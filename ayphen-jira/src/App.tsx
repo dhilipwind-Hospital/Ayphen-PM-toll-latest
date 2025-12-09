@@ -204,7 +204,7 @@ function App() {
     // Add delay to ensure auth context is ready
     const timer = setTimeout(fetchData, 100);
     return () => clearTimeout(timer);
-  }, [setCurrentUser, setProjects, setCurrentProject, setIssues, setBoards, setSprints, setCurrentBoard]);
+  }, [currentUser, setCurrentUser, setProjects, setCurrentProject, setIssues, setBoards, setSprints, setCurrentBoard]);
 
   // Restore last selected project from localStorage
   useEffect(() => {
