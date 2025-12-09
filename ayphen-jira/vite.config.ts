@@ -9,11 +9,11 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8500',
+        target: 'https://ayphen-pm-toll-latest.onrender.com',
         changeOrigin: true
       },
       '/socket.io': {
-        target: 'http://localhost:8500',
+        target: 'https://ayphen-pm-toll-latest.onrender.com',
         changeOrigin: true,
         ws: true
       }
