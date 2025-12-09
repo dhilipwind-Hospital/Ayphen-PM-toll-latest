@@ -10,6 +10,7 @@ export const AppDataSource = new DataSource({
     rejectUnauthorized: false // Required for Supabase
   },
   synchronize: true, // Auto-create tables (disable in production)
+  dropSchema: true, // DROPS ALL TABLES on startup - Use only for initial setup/dev!
   logging: false,
   entities: [__dirname + '/../entities/**/*.{ts,js}'],
   migrations: [__dirname + '/../migrations/**/*.{ts,js}'],
