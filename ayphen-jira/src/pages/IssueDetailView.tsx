@@ -11,6 +11,7 @@ import { VoiceAssistant } from '../components/VoiceAssistant/VoiceAssistant';
 import { aiTestCasesApi } from '../services/ai-test-automation-api';
 import { MoreActionsMenu } from '../components/MoreActionsMenu';
 import { TestCaseGeneratorButton } from '../components/AI/TestCaseGeneratorButton';
+import { AttachmentList } from '../components/FileUpload/AttachmentList';
 
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';

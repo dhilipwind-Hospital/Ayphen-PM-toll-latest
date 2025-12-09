@@ -260,7 +260,7 @@ export const DashboardView: React.FC = () => {
       {/* Stats Row */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
-          <StatCard>
+          <StatPanel>
             <IconWrapper color="#1890ff">
               <BarChart3 size={24} />
             </IconWrapper>
@@ -269,10 +269,10 @@ export const DashboardView: React.FC = () => {
               value={stats.total}
               valueStyle={{ color: '#1890ff' }}
             />
-          </StatCard>
+          </StatPanel>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <StatCard>
+          <StatPanel>
             <IconWrapper color="#faad14">
               <Clock size={24} />
             </IconWrapper>
@@ -281,10 +281,10 @@ export const DashboardView: React.FC = () => {
               value={stats.open}
               valueStyle={{ color: '#faad14' }}
             />
-          </StatCard>
+          </StatPanel>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <StatCard>
+          <StatPanel>
             <IconWrapper color="#1890ff">
               <Activity size={24} />
             </IconWrapper>
@@ -293,10 +293,10 @@ export const DashboardView: React.FC = () => {
               value={stats.inProgress}
               valueStyle={{ color: '#1890ff' }}
             />
-          </StatCard>
+          </StatPanel>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <StatCard>
+          <StatPanel>
             <IconWrapper color="#52c41a">
               <CheckCircle size={24} />
             </IconWrapper>
@@ -305,7 +305,7 @@ export const DashboardView: React.FC = () => {
               value={stats.done}
               valueStyle={{ color: '#52c41a' }}
             />
-          </StatCard>
+          </StatPanel>
         </Col>
       </Row>
       
@@ -314,7 +314,7 @@ export const DashboardView: React.FC = () => {
         {/* Left Column */}
         <Col xs={24} lg={12}>
           {/* Assigned to Me */}
-          <GadgetCard title="Assigned to Me" style={{ marginBottom: 16, minHeight: 300 }}>
+          <GadgetContainer title="Assigned to Me" style={{ marginBottom: 16, minHeight: 300 }}>
             {assignedIssues.length > 0 ? (
               <List
                 dataSource={assignedIssues.slice(0, 5)}
@@ -349,10 +349,10 @@ export const DashboardView: React.FC = () => {
                 />
               </div>
             )}
-          </GadgetCard>
+          </GadgetContainer>
           
           {/* Activity Stream */}
-          <GadgetCard title="Activity Stream" style={{ minHeight: 300 }}>
+          <GadgetContainer title="Activity Stream" style={{ minHeight: 300 }}>
             {activities.length > 0 ? (
               <List
                 dataSource={activities.slice(0, 5)}
@@ -374,13 +374,13 @@ export const DashboardView: React.FC = () => {
                 <Empty description="No recent activity" />
               </div>
             )}
-          </GadgetCard>
+          </GadgetContainer>
         </Col>
         
         {/* Right Column */}
         <Col xs={24} lg={12}>
           {/* Issues by Status Pie Chart */}
-          <GadgetCard title="Issues by Status" style={{ marginBottom: 16, minHeight: 300 }}>
+          <GadgetContainer title="Issues by Status" style={{ marginBottom: 16, minHeight: 300 }}>
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
@@ -406,10 +406,10 @@ export const DashboardView: React.FC = () => {
                 <Empty description="No data available" />
               </div>
             )}
-          </GadgetCard>
+          </GadgetContainer>
           
           {/* Created vs Resolved */}
-          <GadgetCard title="Created vs Resolved (Last 30 Days)" style={{ minHeight: 300 }}>
+          <GadgetContainer title="Created vs Resolved (Last 30 Days)" style={{ minHeight: 300 }}>
             <Row gutter={16}>
               <Col span={12}>
                 <Statistic
@@ -435,7 +435,7 @@ export const DashboardView: React.FC = () => {
                 </strong>
               </div>
             </div>
-          </GadgetCard>
+          </GadgetContainer>
         </Col>
       </Row>
       
@@ -443,7 +443,7 @@ export const DashboardView: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           {/* Sprint Burndown */}
         <Col xs={24} md={12}>
-          <GadgetCard title="Sprint Burndown">
+          <GadgetContainer title="Sprint Burndown">
             {sprintBurndown.sprint ? (
               <div>
                 <div style={{ marginBottom: 16 }}>
@@ -494,12 +494,12 @@ export const DashboardView: React.FC = () => {
                 />
               </div>
             )}
-          </GadgetCard>
+          </GadgetContainer>
         </Col>
         
         {/* Quick Links */}
         <Col xs={24} md={12}>
-          <GadgetCard title="Quick Links">
+          <GadgetContainer title="Quick Links">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <QuickLink onClick={() => window.location.href = '/board'}>
                 <BarChart3 size={16} />
@@ -518,14 +518,14 @@ export const DashboardView: React.FC = () => {
                 <span>Reports</span>
               </QuickLink>
             </div>
-          </GadgetCard>
+          </GadgetContainer>
         </Col>
       </Row>
       
       {/* In Progress Issues */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col span={24}>
-          <GadgetCard title="In Progress Issues">
+          <GadgetContainer title="In Progress Issues">
             {inProgressIssues.length > 0 ? (
               <List
                 grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 4 }}
@@ -550,7 +550,7 @@ export const DashboardView: React.FC = () => {
             ) : (
               <Empty description="No issues in progress" />
             )}
-          </GadgetCard>
+          </GadgetContainer>
         </Col>
       </Row>
       
