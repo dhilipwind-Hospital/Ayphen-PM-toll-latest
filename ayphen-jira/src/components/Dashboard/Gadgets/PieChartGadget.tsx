@@ -17,7 +17,7 @@ export const PieChartGadget: React.FC<PieChartGadgetProps> = ({ gadgetId, config
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:8500/api/gadgets/${gadgetId}/data/pie-chart`);
+        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/pie-chart`);
         setData(response.data);
       } catch (error) {
         console.error('Error fetching pie chart data:', error);

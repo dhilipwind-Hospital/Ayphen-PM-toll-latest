@@ -57,7 +57,7 @@ export const AuditLogsView: React.FC = () => {
       params.append('limit', pagination.pageSize.toString());
       params.append('offset', ((pagination.current - 1) * pagination.pageSize).toString());
 
-      const response = await axios.get(`http://localhost:8500/api/audit?${params}`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/audit?${params}`);
       setLogs(response.data.logs);
       setTotal(response.data.total);
     } catch (error) {

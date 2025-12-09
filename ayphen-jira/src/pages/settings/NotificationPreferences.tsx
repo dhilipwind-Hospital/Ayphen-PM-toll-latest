@@ -97,7 +97,7 @@ export const NotificationPreferences: React.FC = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:8500/api/notification-preferences/${currentUser.id}`
+        `https://ayphen-pm-toll-latest.onrender.com/api/notification-preferences/${currentUser.id}`
       );
       if (response.data) {
         setPreferences(response.data);
@@ -121,7 +121,7 @@ export const NotificationPreferences: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post('http://localhost:8500/api/notification-preferences', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/notification-preferences', {
         userId: currentUser.id,
         ...newPreferences,
       });

@@ -53,7 +53,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
 
   const handleBulkEdit = async (values: any) => {
     try {
-      await axios.post('http://localhost:8500/api/bulk-operations/update', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/update', {
         issueIds: selectedIssueIds,
         updates: values,
       });
@@ -76,7 +76,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
       okType: 'danger',
       onOk: async () => {
         try {
-          await axios.post('http://localhost:8500/api/bulk-operations/delete', {
+          await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/delete', {
             issueIds: selectedIssueIds,
           });
           message.success(`${selectedIssueIds.length} issues deleted successfully`);
@@ -92,7 +92,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
 
   const handleBulkAssign = async (values: any) => {
     try {
-      await axios.post('http://localhost:8500/api/bulk-operations/assign', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/assign', {
         issueIds: selectedIssueIds,
         assigneeId: values.assigneeId,
       });
@@ -110,7 +110,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
   const handleBulkAddLabels = async (values: any) => {
     try {
       const labels = values.labels.split(',').map((l: string) => l.trim()).filter(Boolean);
-      await axios.post('http://localhost:8500/api/bulk-operations/add-labels', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/add-labels', {
         issueIds: selectedIssueIds,
         labels,
       });
@@ -127,7 +127,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
 
   const handleBulkMoveToSprint = async (values: any) => {
     try {
-      await axios.post('http://localhost:8500/api/bulk-operations/move-to-sprint', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/move-to-sprint', {
         issueIds: selectedIssueIds,
         sprintId: values.sprintId,
       });

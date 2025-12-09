@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8500/api/test-execution';
+const API_BASE = 'https://ayphen-pm-toll-latest.onrender.com/api/test-execution';
 
 // Test Runs API
 export const testRunsApi = {

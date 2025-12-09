@@ -92,7 +92,7 @@ export const JQLEditor: React.FC<JQLEditorProps> = ({ onSearch }) => {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:8500/api/search/jql', {
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/search/jql', {
         jql,
         userId: 'current-user-id',
       });

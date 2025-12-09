@@ -50,7 +50,7 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
       formData.append('file', file);
       if (issueId) formData.append('issueId', issueId);
 
-      const response = await axios.post('http://localhost:8500/api/attachments', formData, {
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/attachments', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

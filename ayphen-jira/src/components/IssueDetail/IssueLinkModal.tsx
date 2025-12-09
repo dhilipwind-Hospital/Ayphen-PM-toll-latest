@@ -46,7 +46,7 @@ export const IssueLinkModal: React.FC<IssueLinkModalProps> = ({
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:8500/api/issue-links', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/issue-links', {
         sourceIssueId,
         targetIssueId: values.targetIssueId,
         linkType: values.linkType,

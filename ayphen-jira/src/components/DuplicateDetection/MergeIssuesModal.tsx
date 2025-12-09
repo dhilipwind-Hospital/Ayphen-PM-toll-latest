@@ -69,7 +69,7 @@ export const MergeIssuesModal: React.FC<MergeIssuesModalProps> = ({
   const handleMerge = async () => {
     setMerging(true);
     try {
-      const response = await axios.post('http://localhost:8500/api/issues/merge', {
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/issues/merge', {
         sourceIssueId: sourceIssue.id,
         targetIssueId: targetIssue.id,
         ...mergeOptions

@@ -15,7 +15,7 @@ export const SprintBurndownGadget: React.FC<SprintBurndownGadgetProps> = ({ gadg
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:8500/api/gadgets/${gadgetId}/data/sprint-burndown`);
+        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/sprint-burndown`);
         setData(response.data);
       } catch (error) {
         console.error('Error fetching sprint burndown data:', error);

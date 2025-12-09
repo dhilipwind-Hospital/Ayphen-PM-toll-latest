@@ -159,7 +159,7 @@ export const PMBotDashboard: React.FC<PMBotDashboardProps> = ({ projectId }) => 
 
     const fetchPMBotData = async () => {
         try {
-            const response = await axios.get(`http://localhost:8500/api/pmbot/activity/${projectId}?days=7`);
+            const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/pmbot/activity/${projectId}?days=7`);
             if (response.data.success) {
                 setStats(response.data.summary);
             }

@@ -28,7 +28,7 @@ export default function AutomationRules() {
 
   const loadRules = async () => {
     const token = localStorage.getItem('token');
-    const res = await axios.get('http://localhost:8500/api/automation/rules', {
+    const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/automation/rules', {
       headers: { Authorization: `Bearer ${token}` }
     });
     setRules(res.data);
@@ -36,7 +36,7 @@ export default function AutomationRules() {
 
   const toggleRule = async (id: number, enabled: boolean) => {
     const token = localStorage.getItem('token');
-    await axios.put(`http://localhost:8500/api/automation/rules/${id}`, 
+    await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/automation/rules/${id}`, 
       { enabled: !enabled },
       { headers: { Authorization: `Bearer ${token}` } }
     );

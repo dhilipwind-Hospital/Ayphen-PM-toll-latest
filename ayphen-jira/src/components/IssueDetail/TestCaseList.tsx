@@ -34,7 +34,7 @@ export const TestCaseList: React.FC<TestCaseListProps> = ({ issueId, refreshTrig
   const fetchTestCases = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8500/api/test-cases/issue/${issueId}`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/test-cases/issue/${issueId}`);
       if (response.data.success) {
         setTestCases(response.data.data);
       }
@@ -47,7 +47,7 @@ export const TestCaseList: React.FC<TestCaseListProps> = ({ issueId, refreshTrig
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      await axios.patch(`http://localhost:8500/api/test-cases/${id}/status`, { status });
+      await axios.patch(`https://ayphen-pm-toll-latest.onrender.com/api/test-cases/${id}/status`, { status });
       message.success(`Test case marked as ${status}`);
       fetchTestCases();
     } catch (error) {

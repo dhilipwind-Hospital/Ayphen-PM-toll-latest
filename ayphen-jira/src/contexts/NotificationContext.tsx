@@ -69,7 +69,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!currentUserId) return;
 
     // Connect to WebSocket server
-    const newSocket = io('http://localhost:8500', {
+    const newSocket = io('https://ayphen-pm-toll-latest.onrender.com', {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,

@@ -14,7 +14,7 @@ const Phase2TestPage: React.FC = () => {
 
   const checkServerStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8500/health');
+      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/health');
       if (response.ok) {
         setServerStatus('online');
       } else {

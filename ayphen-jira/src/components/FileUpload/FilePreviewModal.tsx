@@ -61,8 +61,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 }) => {
   if (!attachment) return null;
 
-  const fileUrl = `http://localhost:8500/api/attachments-v2/file/${attachment.fileName}`;
-  const downloadUrl = `http://localhost:8500/api/attachments-v2/download/${attachment.id}`;
+  const fileUrl = `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/file/${attachment.fileName}`;
+  const downloadUrl = `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/download/${attachment.id}`;
 
   const renderPreview = () => {
     if (attachment.isImage) {

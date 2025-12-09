@@ -49,7 +49,7 @@ export const TestCaseGeneratorButton: React.FC<TestCaseGeneratorButtonProps> = (
     setLoading(true);
     try {
       const response = await axios.post(
-        `http://localhost:8500/api/ai-test-case-generator/generate/${issueId}`
+        `https://ayphen-pm-toll-latest.onrender.com/api/ai-test-case-generator/generate/${issueId}`
       );
 
       if (response.data.success) {
@@ -85,7 +85,7 @@ export const TestCaseGeneratorButton: React.FC<TestCaseGeneratorButtonProps> = (
           id: undefined // Let backend assign IDs
         }));
 
-      const response = await axios.post('http://localhost:8500/api/test-cases/batch', {
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/test-cases/batch', {
         testCases: selectedTestCases
       });
 

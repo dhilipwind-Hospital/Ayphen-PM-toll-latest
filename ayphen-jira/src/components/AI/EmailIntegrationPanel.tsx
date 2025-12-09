@@ -50,7 +50,7 @@ export const EmailIntegrationPanel: React.FC<EmailIntegrationPanelProps> = ({
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:8500/api/email-to-issue/process', {
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/email-to-issue/process', {
         email: emailData,
         projectId
       });

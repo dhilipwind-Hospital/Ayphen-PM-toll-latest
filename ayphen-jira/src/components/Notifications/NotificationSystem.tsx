@@ -149,7 +149,7 @@ export const NotificationSystem: React.FC = () => {
 
     setIsAiFiltering(true);
     try {
-      const response = await fetch('http://localhost:8500/api/ai-notification-filter/filter', {
+      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/ai-notification-filter/filter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

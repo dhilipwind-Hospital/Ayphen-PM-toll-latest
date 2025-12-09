@@ -102,7 +102,7 @@ export const SavedFiltersList: React.FC = () => {
     
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8500/api/saved-filters?userId=${currentUser.id}`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/saved-filters?userId=${currentUser.id}`);
       setFilters(response.data);
     } catch (error) {
       console.error('Error fetching filters:', error);
@@ -133,11 +133,11 @@ export const SavedFiltersList: React.FC = () => {
     try {
       if (editingFilter) {
         // Update existing filter
-        await axios.put(`http://localhost:8500/api/saved-filters/${editingFilter.id}`, values);
+        await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/saved-filters/${editingFilter.id}`, values);
         message.success('Filter updated successfully');
       } else {
         // Create new filter
-        await axios.post('http://localhost:8500/api/saved-filters', {
+        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/saved-filters', {
           ...values,
           ownerId: currentUser?.id,
           filterConfig: {}, // Empty config for now, will be set when saving from FiltersView
@@ -160,7 +160,7 @@ export const SavedFiltersList: React.FC = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          await axios.delete(`http://localhost:8500/api/saved-filters/${filterId}`);
+          await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/saved-filters/${filterId}`);
           message.success('Filter deleted');
           fetchFilters();
         } catch (error) {
@@ -173,7 +173,7 @@ export const SavedFiltersList: React.FC = () => {
 
   const handleStarFilter = async (filterId: string) => {
     try {
-      await axios.post(`http://localhost:8500/api/saved-filters/${filterId}/star`);
+      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/saved-filters/${filterId}/star`);
       fetchFilters();
     } catch (error) {
       console.error('Error starring filter:', error);
@@ -183,7 +183,7 @@ export const SavedFiltersList: React.FC = () => {
 
   const handleUseFilter = async (filter: SavedFilter) => {
     try {
-      await axios.post(`http://localhost:8500/api/saved-filters/${filter.id}/use`);
+      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/saved-filters/${filter.id}/use`);
       // Navigate to filters view with this filter applied
       window.location.href = `/filters?savedFilter=${filter.id}`;
     } catch (error) {
@@ -205,7 +205,7 @@ export const SavedFiltersList: React.FC = () => {
         icon: <Share2 size={14} />,
         onClick: async () => {
           try {
-            await axios.put(`http://localhost:8500/api/saved-filters/${filter.id}`, {
+            await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/saved-filters/${filter.id}`, {
               isShared: !filter.isShared,
             });
             message.success(filter.isShared ? 'Filter unshared' : 'Filter shared');

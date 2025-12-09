@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8500/api/ai-test-automation';
+const API_BASE_URL = 'https://ayphen-pm-toll-latest.onrender.com/api/ai-test-automation';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

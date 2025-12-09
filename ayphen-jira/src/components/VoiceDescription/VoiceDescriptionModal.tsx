@@ -233,7 +233,7 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
   const loadContext = async () => {
     setIsLoadingContext(true);
     try {
-      const response = await axios.get('http://localhost:8500/api/ai-description/context', {
+      const response = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/ai-description/context', {
         params: {
           projectId,
           epicId,
@@ -275,7 +275,7 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
 
     setIsGenerating(true);
     try {
-      const response = await axios.post('http://localhost:8500/api/ai-description/generate', {
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/ai-description/generate', {
         issueType,
         issueSummary,
         userInput: transcript || currentDescription || 'Generate a description',

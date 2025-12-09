@@ -37,7 +37,7 @@ const TableContainer = styled.div`
   background: #fff;
 `;
 
-const API_URL = 'http://localhost:8500/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 export const TeamsView: React.FC = () => {
   const navigate = useNavigate();

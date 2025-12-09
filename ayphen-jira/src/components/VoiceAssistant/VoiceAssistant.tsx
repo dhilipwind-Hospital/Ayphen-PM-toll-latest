@@ -73,7 +73,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ issueId, onUpdat
       setIsProcessing(true);
       
       try {
-        const response = await axios.post('http://localhost:8500/api/voice-assistant/process', {
+        const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/voice-assistant/process', {
           command,
           issueId
         });

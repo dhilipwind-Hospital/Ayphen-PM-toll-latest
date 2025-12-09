@@ -286,7 +286,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({
 
         try {
             const userId = localStorage.getItem('userId');
-            const response = await axios.post('http://localhost:8500/api/voice-assistant/process-enhanced', {
+            const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/voice-assistant/process-enhanced', {
                 command,
                 context: {
                     userId,

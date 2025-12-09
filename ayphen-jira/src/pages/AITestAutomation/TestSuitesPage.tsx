@@ -79,7 +79,7 @@ export const TestSuitesPage: React.FC = () => {
     setLoadingTestCases(prev => new Set(prev).add(suiteId));
     
     try {
-      const res = await axios.get(`http://localhost:8500/api/ai-test-automation/generation/suites/${suiteId}/test-cases`);
+      const res = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/ai-test-automation/generation/suites/${suiteId}/test-cases`);
       setSuiteTestCases(prev => ({
         ...prev,
         [suiteId]: res.data.testCases || []

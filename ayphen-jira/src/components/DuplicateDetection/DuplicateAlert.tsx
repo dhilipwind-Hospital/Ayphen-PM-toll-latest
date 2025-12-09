@@ -127,7 +127,7 @@ export const DuplicateAlert: React.FC<DuplicateAlertProps> = ({
 
   const recordFeedback = async (action: 'dismissed' | 'linked' | 'merged' | 'blocked', duplicateId: string) => {
     try {
-      await axios.post('http://localhost:8500/api/duplicate-feedback', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/duplicate-feedback', {
         issueId: 'current-issue-id', // Would be actual issue ID
         suggestedDuplicateId: duplicateId,
         aiConfidence: confidence,

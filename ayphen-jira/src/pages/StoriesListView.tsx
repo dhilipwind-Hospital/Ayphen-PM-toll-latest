@@ -138,7 +138,7 @@ export const StoriesListView: React.FC = () => {
   const loadTestCasesCount = async (userStories: any[]) => {
     try {
       // Load AI stories to map issueId to AI story ID
-      const aiStoriesRes = await axios.get('http://localhost:8500/api/ai-test-automation/stories');
+      const aiStoriesRes = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/ai-test-automation/stories');
       const aiStories = aiStoriesRes.data;
       
       // Load all test cases

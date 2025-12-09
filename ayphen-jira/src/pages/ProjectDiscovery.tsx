@@ -107,7 +107,7 @@ export const ProjectDiscoveryPage: React.FC = () => {
   const loadPublicProjects = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8500/api/projects/public');
+      const response = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/projects/public');
       setPublicProjects(response.data);
     } catch (error) {
       message.error('Failed to load public projects');
@@ -124,7 +124,7 @@ export const ProjectDiscoveryPage: React.FC = () => {
 
     setJoiningId(projectId);
     try {
-      await axios.post(`http://localhost:8500/api/projects/${projectId}/join`, {
+      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/projects/${projectId}/join`, {
         userId,
       });
       message.success('Joined project successfully!');

@@ -4,7 +4,7 @@ import { Input, Spin, message as antMessage } from 'antd';
 import { Bot, Mic, Send, X } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8500/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 const pulse = keyframes`
   0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }

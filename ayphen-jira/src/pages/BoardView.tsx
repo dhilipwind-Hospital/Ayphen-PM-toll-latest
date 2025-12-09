@@ -261,7 +261,7 @@ const CountBadge = styled.div`
   }
 `;
 
-const API_URL = 'http://localhost:8500/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 interface SortableIssueProps {
   issue: any;

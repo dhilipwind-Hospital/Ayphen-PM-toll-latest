@@ -27,7 +27,7 @@ export const CustomFieldManager: React.FC<{ projectId?: string }> = ({ projectId
   const loadFields = async () => {
     try {
       const params = projectId ? { projectId } : {};
-      const { data } = await axios.get('http://localhost:8500/api/custom-fields', { params });
+      const { data } = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/custom-fields', { params });
       setFields(data);
     } catch (error) {
       message.error('Failed to load custom fields');
@@ -46,10 +46,10 @@ export const CustomFieldManager: React.FC<{ projectId?: string }> = ({ projectId
       };
 
       if (editingField) {
-        await axios.put(`http://localhost:8500/api/custom-fields/${editingField.id}`, payload);
+        await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/custom-fields/${editingField.id}`, payload);
         message.success('Custom field updated');
       } else {
-        await axios.post('http://localhost:8500/api/custom-fields', payload);
+        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/custom-fields', payload);
         message.success('Custom field created');
       }
 
@@ -75,7 +75,7 @@ export const CustomFieldManager: React.FC<{ projectId?: string }> = ({ projectId
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:8500/api/custom-fields/${id}`);
+      await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/custom-fields/${id}`);
       message.success('Custom field deleted');
       loadFields();
     } catch (error) {

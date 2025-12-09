@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8500/api/ai-insights';
+const API_BASE = 'https://ayphen-pm-toll-latest.onrender.com/api/ai-insights';
 
 export const aiInsightsApi = {
   analyzeFlakyTest: (testCaseId: string) => 

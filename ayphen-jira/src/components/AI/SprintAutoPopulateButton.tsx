@@ -50,7 +50,7 @@ export const SprintAutoPopulateButton: React.FC<SprintAutoPopulateButtonProps> =
     setLoading(true);
     try {
       const response = await axios.post(
-        `http://localhost:8500/api/ai-sprint-auto-populate/preview/${sprintId}`,
+        `https://ayphen-pm-toll-latest.onrender.com/api/ai-sprint-auto-populate/preview/${sprintId}`,
         {
           teamCapacity,
           sprintDuration,
@@ -75,7 +75,7 @@ export const SprintAutoPopulateButton: React.FC<SprintAutoPopulateButtonProps> =
     setLoading(true);
     try {
       const response = await axios.post(
-        `http://localhost:8500/api/ai-sprint-auto-populate/populate/${sprintId}`,
+        `https://ayphen-pm-toll-latest.onrender.com/api/ai-sprint-auto-populate/populate/${sprintId}`,
         {
           teamCapacity,
           sprintDuration,

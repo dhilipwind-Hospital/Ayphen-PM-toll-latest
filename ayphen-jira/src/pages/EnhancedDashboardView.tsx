@@ -93,7 +93,7 @@ export const EnhancedDashboardView: React.FC = () => {
         return;
       }
       
-      const response = await axios.get('http://localhost:8500/api/dashboards-v2', {
+      const response = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/dashboards-v2', {
         params: { userId: currentUser.id },
       });
       
@@ -119,7 +119,7 @@ export const EnhancedDashboardView: React.FC = () => {
     try {
       const projectId = localStorage.getItem('currentProjectId');
       const userId = localStorage.getItem('userId');
-      const response = await axios.get('http://localhost:8500/api/issues', {
+      const response = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/issues', {
         params: { projectId, userId },
       });
       setIssues(response.data);
@@ -143,7 +143,7 @@ export const EnhancedDashboardView: React.FC = () => {
       };
       
       console.log('Sending dashboard data:', dashboardData);
-      const response = await axios.post('http://localhost:8500/api/dashboards-v2', dashboardData);
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/dashboards-v2', dashboardData);
       console.log('Dashboard created:', response.data);
       
       setCurrentDashboard(response.data);
@@ -172,7 +172,7 @@ export const EnhancedDashboardView: React.FC = () => {
       ];
 
       const promises = defaultGadgets.map(gadget =>
-        axios.post('http://localhost:8500/api/gadgets', {
+        axios.post('https://ayphen-pm-toll-latest.onrender.com/api/gadgets', {
           dashboardId,
           ...gadget,
           config: {},
@@ -188,7 +188,7 @@ export const EnhancedDashboardView: React.FC = () => {
 
   const fetchGadgets = async (dashboardId: string) => {
     try {
-      const response = await axios.get(`http://localhost:8500/api/gadgets/dashboard/${dashboardId}`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/dashboard/${dashboardId}`);
       setGadgets(response.data);
     } catch (error) {
       console.error('Error fetching gadgets:', error);
@@ -204,7 +204,7 @@ export const EnhancedDashboardView: React.FC = () => {
       const updates = layout.map(l => {
         const gadget = gadgets.find(g => g.id === l.i);
         if (gadget) {
-          return axios.put(`http://localhost:8500/api/gadgets/${gadget.id}`, {
+          return axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadget.id}`, {
             position: { x: l.x, y: l.y, w: l.w, h: l.h },
           });
         }
@@ -233,7 +233,7 @@ export const EnhancedDashboardView: React.FC = () => {
       const resetPromises = gadgets.map((gadget, index) => {
         const row = Math.floor(index / 2);
         const col = index % 2;
-        return axios.put(`http://localhost:8500/api/gadgets/${gadget.id}`, {
+        return axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadget.id}`, {
           position: { x: col * 6, y: row * 4, w: 6, h: 4 },
         });
       });
@@ -262,7 +262,7 @@ export const EnhancedDashboardView: React.FC = () => {
         order: gadgets.length,
       };
 
-      const response = await axios.post('http://localhost:8500/api/gadgets', newGadget);
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/gadgets', newGadget);
       setGadgets([...gadgets, response.data]);
       setIsAddGadgetModalVisible(false);
       gadgetForm.resetFields();
@@ -275,7 +275,7 @@ export const EnhancedDashboardView: React.FC = () => {
 
   const handleRemoveGadget = async (gadgetId: string) => {
     try {
-      await axios.delete(`http://localhost:8500/api/gadgets/${gadgetId}`);
+      await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}`);
       setGadgets(gadgets.filter(g => g.id !== gadgetId));
       message.success('Gadget removed');
     } catch (error) {
@@ -300,7 +300,7 @@ export const EnhancedDashboardView: React.FC = () => {
       
       console.log('Sending dashboard data:', dashboardData);
       
-      const response = await axios.post('http://localhost:8500/api/dashboards-v2', dashboardData);
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/dashboards-v2', dashboardData);
       
       console.log('Dashboard created:', response.data);
       setDashboards([...dashboards, response.data]);
@@ -325,7 +325,7 @@ export const EnhancedDashboardView: React.FC = () => {
 
     try {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      const response = await axios.post(`http://localhost:8500/api/dashboards-v2/${currentDashboard.id}/clone`, {
+      const response = await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/dashboards-v2/${currentDashboard.id}/clone`, {
         name: `${currentDashboard.name} (Copy)`,
         ownerId: currentUser.id,
       });
@@ -341,7 +341,7 @@ export const EnhancedDashboardView: React.FC = () => {
     if (!currentDashboard) return;
 
     try {
-      const response = await axios.post(`http://localhost:8500/api/dashboards-v2/${currentDashboard.id}/star`);
+      const response = await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/dashboards-v2/${currentDashboard.id}/star`);
       setCurrentDashboard(response.data);
       setDashboards(dashboards.map(d => d.id === response.data.id ? response.data : d));
     } catch (error) {

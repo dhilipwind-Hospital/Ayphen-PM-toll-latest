@@ -29,7 +29,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
     setLoading(true);
     try {
       const { data } = await axios.get(
-        `http://localhost:8500/api/project-members/project/${projectId}`
+        `https://ayphen-pm-toll-latest.onrender.com/api/project-members/project/${projectId}`
       );
       setMembers(data);
     } catch (error) {
@@ -41,7 +41,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
 
   const loadAllUsers = async () => {
     try {
-      const { data } = await axios.get('http://localhost:8500/api/auth/users');
+      const { data } = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/auth/users');
       setUsers(data);
     } catch (error) {
       console.error('Failed to load users');
@@ -55,7 +55,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
     }
 
     try {
-      await axios.post('http://localhost:8500/api/project-members', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/project-members', {
         projectId,
         userId: selectedUser,
         role: selectedRole,
@@ -74,7 +74,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
 
   const handleRemoveMember = async (memberId: string) => {
     try {
-      await axios.delete(`http://localhost:8500/api/project-members/${memberId}`);
+      await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/project-members/${memberId}`);
       message.success('Member removed from project');
       loadMembers();
     } catch (error) {
@@ -84,7 +84,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
 
   const handleChangeRole = async (memberId: string, newRole: string) => {
     try {
-      await axios.patch(`http://localhost:8500/api/project-members/${memberId}`, {
+      await axios.patch(`https://ayphen-pm-toll-latest.onrender.com/api/project-members/${memberId}`, {
         role: newRole,
       });
       message.success('Role updated successfully');

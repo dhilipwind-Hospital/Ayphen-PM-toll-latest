@@ -20,7 +20,7 @@ export const usePresence = (userId: string, userName: string, userAvatar?: strin
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io('http://localhost:8500', {
+    const newSocket = io('https://ayphen-pm-toll-latest.onrender.com', {
       transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,

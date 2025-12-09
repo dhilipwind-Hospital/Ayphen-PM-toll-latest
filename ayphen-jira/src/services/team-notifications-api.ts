@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8500/api';
+const API_BASE_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 export const teamNotificationsApi = {
   // Send notification to team

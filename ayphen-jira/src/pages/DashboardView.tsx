@@ -102,7 +102,7 @@ const QuickLink = styled.div`
   }
 `;
 
-const API_URL = 'http://localhost:8500/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 const COLORS = ['#1890ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1'];
 

@@ -284,7 +284,7 @@ export const EpicDetailView: React.FC = () => {
       }
 
       try {
-        const attachmentsRes = await fetch(`http://localhost:8500/api/attachments-v2/issue/${issueRes.data.id}`);
+        const attachmentsRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/issue/${issueRes.data.id}`);
         const attachmentsData = await attachmentsRes.json();
         setAttachments(attachmentsData || []);
       } catch (e) {
@@ -299,7 +299,7 @@ export const EpicDetailView: React.FC = () => {
       }
 
       try {
-        const linksRes = await fetch(`http://localhost:8500/api/issue-links/issue/${issueRes.data.id}`);
+        const linksRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/issue/${issueRes.data.id}`);
         const linksData = await linksRes.json();
         setLinkedIssues(linksData || []);
       } catch (e) {
@@ -563,7 +563,7 @@ export const EpicDetailView: React.FC = () => {
       const userId = localStorage.getItem('userId') || issue.reporterId || issue.assigneeId;
       formData.append('uploaderId', userId);
 
-      const response = await fetch('http://localhost:8500/api/attachments-v2/upload-multiple', {
+      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple', {
         method: 'POST',
         body: formData
       });
@@ -608,7 +608,7 @@ export const EpicDetailView: React.FC = () => {
           <div key={att.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'white', borderRadius: 8, border: '1px solid #e0e0e0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
               {att.isImage && att.thumbnailPath ? (
-                <img src={`http://localhost:8500/uploads/thumbnails/${att.fileName}`} alt={att.originalName} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <img src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`} alt={att.originalName} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
                 <div style={{ width: 40, height: 40, background: '#f0f0f0', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Paperclip size={20} color="#999" />
@@ -621,17 +621,17 @@ export const EpicDetailView: React.FC = () => {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {att.isImage && (
-                <Button size="small" icon={<Eye size={14} />} onClick={() => window.open(`http://localhost:8500/uploads/${att.fileName}`, '_blank')}>Preview</Button>
+                <Button size="small" icon={<Eye size={14} />} onClick={() => window.open(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`, '_blank')}>Preview</Button>
               )}
               <Button size="small" icon={<Download size={14} />} onClick={() => {
                 const a = document.createElement('a');
-                a.href = `http://localhost:8500/uploads/${att.fileName}`;
+                a.href = `https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`;
                 a.download = att.originalName || att.fileName;
                 a.click();
               }}>Download</Button>
               <Button size="small" danger icon={<Trash2 size={14} />} onClick={async () => {
                 try {
-                  await fetch(`http://localhost:8500/api/attachments-v2/${att.id}`, { method: 'DELETE' });
+                  await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/${att.id}`, { method: 'DELETE' });
                   message.success('Attachment deleted');
                   loadIssueData();
                 } catch (error) {
@@ -800,7 +800,7 @@ export const EpicDetailView: React.FC = () => {
                         e.stopPropagation();
                         try {
                           const userId = localStorage.getItem('userId') || issue.reporterId;
-                          await fetch(`http://localhost:8500/api/epics/${issue.id}/link/${child.id}?userId=${userId}`, { method: 'DELETE' });
+                          await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/epics/${issue.id}/link/${child.id}?userId=${userId}`, { method: 'DELETE' });
                           message.success('Child issue removed');
                           loadIssueData();
                         } catch (error) {
@@ -825,7 +825,7 @@ export const EpicDetailView: React.FC = () => {
                       </div>
                       <Button size="small" danger icon={<Trash2 size={14} />} onClick={async () => {
                         try {
-                          await fetch(`http://localhost:8500/api/issue-links/${link.id}`, { method: 'DELETE' });
+                          await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/${link.id}`, { method: 'DELETE' });
                           message.success('Link removed');
                           loadIssueData();
                         } catch (error) {
@@ -895,7 +895,7 @@ export const EpicDetailView: React.FC = () => {
               <Button icon={<Flag size={16} />} block onClick={async () => {
                 try {
                   const userId = localStorage.getItem('userId') || issue.reporterId;
-                  const response = await fetch(`http://localhost:8500/api/issue-actions/${issue.id}/flag`, {
+                  const response = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-actions/${issue.id}/flag`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId })
@@ -971,7 +971,7 @@ export const EpicDetailView: React.FC = () => {
             <Form onFinish={async (values) => {
               try {
                 const userId = localStorage.getItem('userId') || issue.reporterId;
-                await fetch(`http://localhost:8500/api/epics/${issue.id}/link`, {
+                await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/epics/${issue.id}/link`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ issueId: values.issueId, userId })
@@ -1008,7 +1008,7 @@ export const EpicDetailView: React.FC = () => {
           <Modal title="Log Work" open={logWorkModalVisible} onCancel={() => setLogWorkModalVisible(false)} onOk={async () => {
             try {
               const userId = localStorage.getItem('userId') || issue.reporterId;
-              const response = await fetch(`http://localhost:8500/api/issue-actions/${issue.id}/log-work`, {
+              const response = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-actions/${issue.id}/log-work`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ timeSpent, comment: workComment, userId })

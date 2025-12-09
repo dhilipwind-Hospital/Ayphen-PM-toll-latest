@@ -2,7 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import { useStore } from '../store/useStore';
 import { message } from 'antd';
 
-const SOCKET_URL = 'http://localhost:8500'; // Should be env var in prod
+const SOCKET_URL = 'https://ayphen-pm-toll-latest.onrender.com'; // Should be env var in prod
 
 class SocketService {
   private socket: Socket | null = null;

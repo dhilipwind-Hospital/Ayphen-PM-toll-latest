@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8500/api';
+const API_BASE = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 export interface PMBotActivitySummary {
   autoAssignments: number;

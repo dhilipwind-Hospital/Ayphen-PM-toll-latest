@@ -148,7 +148,7 @@ export const IssueDetailView: React.FC = () => {
     fetchProjectMembers();
   }, [currentProject?.id]);
 
-  const API_URL = 'http://localhost:8500/api';
+  const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
   const loadIssueData = async () => {
     if (!issue) return;
@@ -179,7 +179,7 @@ export const IssueDetailView: React.FC = () => {
       // Load attachments
       try {
         console.log('🔍 Loading attachments for issue:', issue.id);
-        const attachmentsRes = await axios.get(`http://localhost:8500/api/attachments-v2/issue/${issue.id}`);
+        const attachmentsRes = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/issue/${issue.id}`);
         console.log('📎 Loaded attachments:', attachmentsRes.data);
 
         // Deduplicate attachments by ID
@@ -204,7 +204,7 @@ export const IssueDetailView: React.FC = () => {
       if (issue.type === 'story') {
         try {
           // First, find the AI Story that links to this Jira issue
-          const storiesRes = await fetch('http://localhost:8500/api/ai-test-automation/stories');
+          const storiesRes = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/ai-test-automation/stories');
           const storiesData = await storiesRes.json();
           const aiStory = storiesData.find((s: any) => s.issueId === issue.id);
 
@@ -1796,7 +1796,7 @@ export const IssueDetailView: React.FC = () => {
               formData.append('uploaderId', currentUser?.id || '');
 
               const response = await axios.post(
-                'http://localhost:8500/api/attachments-v2/upload-multiple',
+                'https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple',
                 formData,
                 {
                   headers: {

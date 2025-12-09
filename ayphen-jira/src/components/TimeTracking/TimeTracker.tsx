@@ -103,7 +103,7 @@ export const TimeTracker: React.FC = () => {
     if (!currentProject || !currentUser) return;
     
     try {
-      const response = await axios.get(`http://localhost:8500/api/time-tracking/entries`, {
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/entries`, {
         params: { 
           projectId: currentProject.id,
           userId: currentUser.id,
@@ -120,7 +120,7 @@ export const TimeTracker: React.FC = () => {
     if (!currentProject || !currentUser) return;
     
     try {
-      const response = await axios.get(`http://localhost:8500/api/time-tracking/stats/today`, {
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/stats/today`, {
         params: { 
           projectId: currentProject.id,
           userId: currentUser.id
@@ -159,7 +159,7 @@ export const TimeTracker: React.FC = () => {
           billable: true
         };
         
-        await axios.post('http://localhost:8500/api/time-tracking/entries', timeEntry);
+        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/entries', timeEntry);
         
         message.success('Time entry saved successfully!');
         loadTimeEntries();
@@ -179,7 +179,7 @@ export const TimeTracker: React.FC = () => {
 
   const exportTimesheet = async () => {
     try {
-      const response = await axios.get(`http://localhost:8500/api/time-tracking/export`, {
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/export`, {
         params: { 
           projectId: currentProject?.id,
           userId: currentUser?.id,

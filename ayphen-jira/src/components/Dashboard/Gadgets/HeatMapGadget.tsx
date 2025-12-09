@@ -72,7 +72,7 @@ export const HeatMapGadget: React.FC<HeatMapGadgetProps> = ({ gadgetId, config }
     const fetchData = async () => {
       try {
         const projectId = localStorage.getItem('currentProjectId');
-        const response = await axios.get(`http://localhost:8500/api/gadgets/${gadgetId}/data/heat-map`, {
+        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/heat-map`, {
           params: { projectId },
         });
         setData(response.data);

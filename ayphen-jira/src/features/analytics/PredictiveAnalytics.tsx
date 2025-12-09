@@ -39,7 +39,7 @@ export const PredictiveAnalytics: React.FC = () => {
     if (!currentProject) return;
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8500/api/predictive-alerts/${currentProject.id}`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/predictive-alerts/${currentProject.id}`);
       if (response.data.success) {
         const fetchedAlerts: AlertData[] = response.data.alerts;
         setAlerts(fetchedAlerts);

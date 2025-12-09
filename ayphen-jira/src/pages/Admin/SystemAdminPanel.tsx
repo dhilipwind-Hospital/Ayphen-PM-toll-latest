@@ -57,7 +57,7 @@ export const SystemAdminPanel: React.FC = () => {
   const loadStats = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8500/api/admin/stats?adminId=${adminId}`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/admin/stats?adminId=${adminId}`);
       setStats(response.data);
     } catch (error: any) {
       message.error(error.response?.data?.error || 'Failed to load stats');
@@ -69,7 +69,7 @@ export const SystemAdminPanel: React.FC = () => {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8500/api/admin/users?adminId=${adminId}`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/admin/users?adminId=${adminId}`);
       setUsers(response.data);
     } catch (error: any) {
       message.error(error.response?.data?.error || 'Failed to load users');
@@ -81,7 +81,7 @@ export const SystemAdminPanel: React.FC = () => {
   const loadAnalytics = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8500/api/admin/analytics/usage?adminId=${adminId}`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/admin/analytics/usage?adminId=${adminId}`);
       setAnalytics(response.data);
     } catch (error: any) {
       message.error(error.response?.data?.error || 'Failed to load analytics');
@@ -93,7 +93,7 @@ export const SystemAdminPanel: React.FC = () => {
   const loadAuditLogs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8500/api/admin/audit-logs?adminId=${adminId}&limit=100`);
+      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/admin/audit-logs?adminId=${adminId}&limit=100`);
       setAuditLogs(response.data.logs);
     } catch (error: any) {
       message.error(error.response?.data?.error || 'Failed to load audit logs');
@@ -104,7 +104,7 @@ export const SystemAdminPanel: React.FC = () => {
 
   const handleDeactivateUser = async (userId: string) => {
     try {
-      await axios.put(`http://localhost:8500/api/admin/users/${userId}/deactivate`, {
+      await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/admin/users/${userId}/deactivate`, {
         adminId,
       });
       message.success('User deactivated successfully');
@@ -116,7 +116,7 @@ export const SystemAdminPanel: React.FC = () => {
 
   const handleActivateUser = async (userId: string) => {
     try {
-      await axios.put(`http://localhost:8500/api/admin/users/${userId}/activate`, {
+      await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/admin/users/${userId}/activate`, {
         adminId,
       });
       message.success('User activated successfully');
@@ -128,7 +128,7 @@ export const SystemAdminPanel: React.FC = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      await axios.delete(`http://localhost:8500/api/admin/users/${userId}?adminId=${adminId}`);
+      await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/admin/users/${userId}?adminId=${adminId}`);
       message.success('User deleted successfully');
       loadUsers();
     } catch (error: any) {
@@ -138,7 +138,7 @@ export const SystemAdminPanel: React.FC = () => {
 
   const handleMakeAdmin = async (userId: string) => {
     try {
-      await axios.put(`http://localhost:8500/api/admin/users/${userId}/make-admin`, {
+      await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/admin/users/${userId}/make-admin`, {
         adminId,
       });
       message.success('User promoted to system admin');

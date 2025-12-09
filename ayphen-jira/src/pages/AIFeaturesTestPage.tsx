@@ -7,7 +7,7 @@ import { SmartPrioritySelector } from '../components/AI/SmartPrioritySelector';
 import { AutoTagButton } from '../components/AI/AutoTagButton';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8500/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 const Container = styled.div`
   padding: 24px;

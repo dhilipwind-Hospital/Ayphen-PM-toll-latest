@@ -43,7 +43,7 @@ export const useCollaborativeEditing = (issueId: string, userId: string, userNam
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io('http://localhost:8500', {
+    const newSocket = io('https://ayphen-pm-toll-latest.onrender.com', {
       transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,

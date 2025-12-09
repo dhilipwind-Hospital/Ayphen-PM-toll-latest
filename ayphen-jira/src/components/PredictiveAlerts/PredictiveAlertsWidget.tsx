@@ -165,7 +165,7 @@ export const PredictiveAlertsWidget: React.FC<PredictiveAlertsWidgetProps> = ({ 
 
     const fetchAlerts = async () => {
         try {
-            const response = await axios.get(`http://localhost:8500/api/predictive-alerts/${projectId}`);
+            const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/predictive-alerts/${projectId}`);
             if (response.data.success) {
                 setAlerts(response.data.alerts.filter((a: AlertData) => !dismissedAlerts.has(a.id)));
             }
@@ -180,7 +180,7 @@ export const PredictiveAlertsWidget: React.FC<PredictiveAlertsWidgetProps> = ({ 
 
         try {
             const userId = localStorage.getItem('userId');
-            await axios.post(`http://localhost:8500/api/predictive-alerts/dismiss/${alertId}`, { userId });
+            await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/predictive-alerts/dismiss/${alertId}`, { userId });
         } catch (error) {
             console.error('Failed to dismiss alert:', error);
         }

@@ -203,7 +203,7 @@ export const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post('http://localhost:8500/api/auth/register', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/auth/register', {
         name: values.name,
         email: values.email,
         password: values.password,

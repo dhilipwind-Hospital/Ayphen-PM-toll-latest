@@ -103,7 +103,7 @@ export const FiltersView: React.FC = () => {
         searchText: searchText || undefined,
       };
 
-      await axios.post('http://localhost:8500/api/saved-filters', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/saved-filters', {
         ...values,
         ownerId: currentUser?.id,
         filterConfig,

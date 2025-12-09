@@ -173,7 +173,7 @@ const LoadingText = styled.div`
   color: #595959;
 `;
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8500';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ayphen-pm-toll-latest.onrender.com';
 
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   open,

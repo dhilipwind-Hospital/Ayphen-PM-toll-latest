@@ -51,34 +51,34 @@ export const ReportsView: React.FC = () => {
       let response;
       switch (reportType) {
         case 'burndown':
-          response = await axios.get(`http://localhost:8500/api/reports/sprint-burndown/sprint-1`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/sprint-burndown/sprint-1`);
           break;
         case 'velocity':
-          response = await axios.get(`http://localhost:8500/api/reports/velocity/${projectId}`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/velocity/${projectId}`);
           break;
         case 'cumulative-flow':
-          response = await axios.get(`http://localhost:8500/api/reports/cumulative-flow/${projectId}`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/cumulative-flow/${projectId}`);
           break;
         case 'created-vs-resolved':
-          response = await axios.get(`http://localhost:8500/api/reports/created-vs-resolved/${projectId}`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/created-vs-resolved/${projectId}`);
           break;
         case 'pie-chart':
-          response = await axios.get(`http://localhost:8500/api/reports/pie-chart/${projectId}?groupBy=status`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/pie-chart/${projectId}?groupBy=status`);
           break;
         case 'time-tracking':
-          response = await axios.get(`http://localhost:8500/api/reports/time-tracking/${projectId}`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/time-tracking/${projectId}`);
           break;
         case 'average-age':
-          response = await axios.get(`http://localhost:8500/api/reports/average-age/${projectId}`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/average-age/${projectId}`);
           break;
         case 'resolution-time':
-          response = await axios.get(`http://localhost:8500/api/reports/resolution-time/${projectId}`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/resolution-time/${projectId}`);
           break;
         case 'user-workload':
-          response = await axios.get(`http://localhost:8500/api/reports/user-workload/${projectId}`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/user-workload/${projectId}`);
           break;
         case 'sprint-report':
-          response = await axios.get(`http://localhost:8500/api/reports/sprint-report/sprint-1`);
+          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/sprint-report/sprint-1`);
           break;
         default:
           response = { data: null };

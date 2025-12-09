@@ -120,7 +120,7 @@ export const BugAIPanel: React.FC<Props> = ({ issueId, issueKey }) => {
 
         try {
             const response = await axios.post(
-                `http://localhost:8500/api/bug-ai/full-analysis/${issueId}`
+                `https://ayphen-pm-toll-latest.onrender.com/api/bug-ai/full-analysis/${issueId}`
             );
 
             if (response.data.success) {

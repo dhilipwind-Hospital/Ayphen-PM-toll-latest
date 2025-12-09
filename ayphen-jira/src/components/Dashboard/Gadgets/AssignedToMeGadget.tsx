@@ -25,7 +25,7 @@ export const AssignedToMeGadget: React.FC<AssignedToMeGadgetProps> = ({ gadgetId
     const fetchData = async () => {
       try {
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        const response = await axios.get(`http://localhost:8500/api/gadgets/${gadgetId}/data/assigned-to-me`, {
+        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/assigned-to-me`, {
           params: { userId: currentUser.id },
         });
         setIssues(response.data);

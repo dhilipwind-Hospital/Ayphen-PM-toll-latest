@@ -88,7 +88,7 @@ export const ResetPasswordPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post('http://localhost:8500/api/auth/reset-password', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/auth/reset-password', {
         email,
         token,
         newPassword: values.newPassword,

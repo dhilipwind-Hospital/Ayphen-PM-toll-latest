@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8500/api/test-reports';
+const API_BASE = 'https://ayphen-pm-toll-latest.onrender.com/api/test-reports';
 
 export const testReportsApi = {
   getSummary: (params?: any) => axios.get(`${API_BASE}/summary`, { params }),

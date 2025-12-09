@@ -30,7 +30,7 @@ export default function ManualTestCases() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:8500/api/manual-test-cases', {
+      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTestCases(res.data);
@@ -45,12 +45,12 @@ export default function ManualTestCases() {
     try {
       const token = localStorage.getItem('token');
       if (editId) {
-        await axios.put(`http://localhost:8500/api/manual-test-cases/${editId}`, values, {
+        await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases/${editId}`, values, {
           headers: { Authorization: `Bearer ${token}` }
         });
         message.success('Test case updated successfully');
       } else {
-        await axios.post('http://localhost:8500/api/manual-test-cases', values, {
+        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', values, {
           headers: { Authorization: `Bearer ${token}` }
         });
         message.success('Test case created successfully');
@@ -73,7 +73,7 @@ export default function ManualTestCases() {
   const handleDelete = async (id: number) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8500/api/manual-test-cases/${id}`, {
+      await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       message.success('Test case deleted successfully');

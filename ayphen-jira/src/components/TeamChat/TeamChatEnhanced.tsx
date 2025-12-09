@@ -7,8 +7,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
-const API_URL = 'http://localhost:8500/api/chat-v2';
-const WS_URL = 'http://localhost:8500';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api/chat-v2';
+const WS_URL = 'https://ayphen-pm-toll-latest.onrender.com';
 
 const Container = styled.div`
   display: flex;

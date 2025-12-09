@@ -14,7 +14,7 @@ export const NotificationSnooze: React.FC<NotificationSnoozeProps> = ({
 }) => {
   const handleSnooze = async (minutes: number) => {
     try {
-      await axios.post(`http://localhost:8500/api/notifications/${notificationId}/snooze`, {
+      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/notifications/${notificationId}/snooze`, {
         minutes,
       });
       message.success(`Notification snoozed for ${minutes > 60 ? `${minutes / 60} hour(s)` : `${minutes} minutes`}`);

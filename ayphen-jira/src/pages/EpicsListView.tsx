@@ -84,7 +84,7 @@ const StatsRow = styled.div`
   color: #5E6C84;
 `;
 
-const API_URL = 'http://localhost:8500/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 export const EpicsListView: React.FC = () => {
   const navigate = useNavigate();

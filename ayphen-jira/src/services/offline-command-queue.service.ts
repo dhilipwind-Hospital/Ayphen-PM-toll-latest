@@ -84,7 +84,7 @@ export class OfflineCommandQueueService {
     this.notifyListeners();
 
     try {
-      const response = await fetch('http://localhost:8500/api/voice-assistant/process-enhanced', {
+      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/voice-assistant/process-enhanced', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

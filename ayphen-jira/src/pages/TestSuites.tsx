@@ -47,7 +47,7 @@ export default function TestSuites() {
 
   const loadSuites = async () => {
     const token = localStorage.getItem('token');
-    const res = await axios.get('http://localhost:8500/api/test-suites', {
+    const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/test-suites', {
       headers: { Authorization: `Bearer ${token}` }
     });
     setSuites(res.data);
@@ -55,7 +55,7 @@ export default function TestSuites() {
 
   const loadTestCases = async () => {
     const token = localStorage.getItem('token');
-    const res = await axios.get('http://localhost:8500/api/manual-test-cases', {
+    const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', {
       headers: { Authorization: `Bearer ${token}` }
     });
     setTestCases(res.data);
@@ -63,7 +63,7 @@ export default function TestSuites() {
 
   const handleCreate = async () => {
     const token = localStorage.getItem('token');
-    await axios.post('http://localhost:8500/api/test-suites', form, {
+    await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/test-suites', form, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setOpen(false);
@@ -73,7 +73,7 @@ export default function TestSuites() {
 
   const handleAddTest = async (testCaseId: number) => {
     const token = localStorage.getItem('token');
-    await axios.post(`http://localhost:8500/api/test-suites/${selectedSuite}/test-cases`, 
+    await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/test-suites/${selectedSuite}/test-cases`, 
       { testCaseId },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -83,7 +83,7 @@ export default function TestSuites() {
 
   const handleRun = async (suiteId: number) => {
     const token = localStorage.getItem('token');
-    const res = await axios.post(`http://localhost:8500/api/test-suites/${suiteId}/run`, {}, {
+    const res = await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/test-suites/${suiteId}/run`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     });
     navigate(`/test-runs/${res.data.id}`);

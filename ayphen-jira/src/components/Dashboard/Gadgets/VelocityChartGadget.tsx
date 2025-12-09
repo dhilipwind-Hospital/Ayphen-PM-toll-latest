@@ -62,7 +62,7 @@ export const VelocityChartGadget: React.FC<VelocityChartGadgetProps> = ({ gadget
     const fetchData = async () => {
       try {
         const projectId = localStorage.getItem('currentProjectId');
-        const response = await axios.get(`http://localhost:8500/api/gadgets/${gadgetId}/data/velocity`, {
+        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/velocity`, {
           params: { projectId },
         });
         setData(response.data);

@@ -160,7 +160,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ visible, onC
       const values = await form.validateFields();
       const userId = localStorage.getItem('userId');
       
-      await axios.post('http://localhost:8500/api/projects', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/projects', {
         ...values,
         key: values.key.toUpperCase(),
         leadId: userId,

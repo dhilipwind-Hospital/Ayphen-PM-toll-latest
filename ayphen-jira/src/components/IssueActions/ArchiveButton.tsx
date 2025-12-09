@@ -24,7 +24,7 @@ export const ArchiveButton: React.FC<ArchiveButtonProps> = ({
       okType: 'danger',
       onOk: async () => {
         try {
-          await axios.post(`http://localhost:8500/api/issues/${issueId}/archive`, {
+          await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/issues/${issueId}/archive`, {
             userId: localStorage.getItem('userId'),
           });
           message.success('Issue archived successfully');
@@ -38,7 +38,7 @@ export const ArchiveButton: React.FC<ArchiveButtonProps> = ({
 
   const handleUnarchive = async () => {
     try {
-      await axios.post(`http://localhost:8500/api/issues/${issueId}/unarchive`);
+      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/issues/${issueId}/unarchive`);
       message.success('Issue restored successfully');
       onArchiveChange();
     } catch (error) {

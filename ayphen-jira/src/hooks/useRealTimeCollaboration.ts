@@ -15,7 +15,7 @@ export const useRealTimeCollaboration = (issueId?: string) => {
   const [events, setEvents] = useState<CollaborationEvent[]>([]);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:8500', {
+    const newSocket = io('https://ayphen-pm-toll-latest.onrender.com', {
       transports: ['websocket'],
       auth: {
         token: localStorage.getItem('sessionId'),

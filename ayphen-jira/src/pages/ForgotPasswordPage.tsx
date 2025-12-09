@@ -54,7 +54,7 @@ export const ForgotPasswordPage: React.FC = () => {
   const handleSubmit = async (values: { email: string }) => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:8500/api/auth/forgot-password', {
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/auth/forgot-password', {
         email: values.email,
       });
       setEmailSent(true);

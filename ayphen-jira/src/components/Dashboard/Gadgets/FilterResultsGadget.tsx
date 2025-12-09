@@ -24,7 +24,7 @@ export const FilterResultsGadget: React.FC<FilterResultsGadgetProps> = ({ gadget
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:8500/api/gadgets/${gadgetId}/data/filter-results`);
+        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/filter-results`);
         setIssues(response.data);
       } catch (error) {
         console.error('Error fetching filter results:', error);

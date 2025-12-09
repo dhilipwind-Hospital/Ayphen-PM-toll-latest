@@ -203,7 +203,7 @@ export const MeetingScribeForm: React.FC<MeetingScribeFormProps> = ({ projectId,
         setResult(null);
 
         try {
-            const response = await axios.post('http://localhost:8500/api/meeting-scribe/process', {
+            const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/meeting-scribe/process', {
                 transcript,
                 projectId,
                 meetingTitle: meetingTitle || 'Team Meeting'

@@ -124,7 +124,7 @@ export const AdvancedSearchAI: React.FC = () => {
 
   const searchWithAI = async (searchQuery: string): Promise<SearchResult[]> => {
     try {
-      const response = await axios.post('http://localhost:8500/api/search/ai', {
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/search/ai', {
         query: searchQuery,
         projectId: currentProject?.id,
         context: 'issues'
@@ -138,7 +138,7 @@ export const AdvancedSearchAI: React.FC = () => {
 
   const getAISuggestions = async (searchQuery: string) => {
     try {
-      const response = await axios.post('http://localhost:8500/api/search/suggestions', {
+      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/search/suggestions', {
         query: searchQuery,
         projectId: currentProject?.id
       });

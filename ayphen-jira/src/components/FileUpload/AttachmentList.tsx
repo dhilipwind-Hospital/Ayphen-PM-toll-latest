@@ -86,7 +86,7 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
   const handleDownload = async (attachment: any) => {
     try {
       const response = await axios.get(
-        `http://localhost:8500/api/attachments-v2/download/${attachment.id}`,
+        `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/download/${attachment.id}`,
         { responseType: 'blob' }
       );
       
@@ -117,10 +117,10 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
       okType: 'danger',
       onOk: async () => {
         try {
-          console.log('📤 Sending DELETE request to:', `http://localhost:8500/api/attachments-v2/${attachment.id}`);
+          console.log('📤 Sending DELETE request to:', `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/${attachment.id}`);
           
           const response = await axios.delete(
-            `http://localhost:8500/api/attachments-v2/${attachment.id}`
+            `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/${attachment.id}`
           );
           
           console.log('✅ Delete response:', response.status, response.data);

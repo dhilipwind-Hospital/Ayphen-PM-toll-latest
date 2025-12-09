@@ -84,7 +84,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ issue }) => {
 
   const fetchSubtasks = async (parentId: string) => {
     try {
-      const res = await axios.get(`http://localhost:8500/api/subtasks/parent/${parentId}`);
+      const res = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/subtasks/parent/${parentId}`);
       return res.data || [];
     } catch (e) {
       return [];

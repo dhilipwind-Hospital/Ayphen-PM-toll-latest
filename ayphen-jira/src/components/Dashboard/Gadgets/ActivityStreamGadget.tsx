@@ -24,7 +24,7 @@ export const ActivityStreamGadget: React.FC<ActivityStreamGadgetProps> = ({ gadg
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:8500/api/gadgets/${gadgetId}/data/activity-stream`, {
+        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/activity-stream`, {
           params: { projectId: config.projectId },
         });
         setActivities(response.data);

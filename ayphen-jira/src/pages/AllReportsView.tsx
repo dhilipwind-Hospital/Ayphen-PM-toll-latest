@@ -59,7 +59,7 @@ const StatsRow = styled(Row)`
   margin-bottom: 24px;
 `;
 
-const API_URL = 'http://localhost:8500/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 export const AllReportsView: React.FC = () => {
   const { reportType } = useParams<{ reportType?: string }>();

@@ -4,7 +4,7 @@ import { UserAddOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design
 import axios from 'axios';
 import styled from 'styled-components';
 
-const API_URL = 'http://localhost:8500/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 interface AutoAssignButtonProps {
   issueId: string;

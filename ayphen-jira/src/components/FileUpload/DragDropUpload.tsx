@@ -56,7 +56,7 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
     try {
       setUploading(true);
       const response = await axios.post(
-        'http://localhost:8500/api/attachments-v2/upload',
+        'https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload',
         formData,
         {
           headers: {
@@ -104,7 +104,7 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
     try {
       setUploading(true);
       const response = await axios.post(
-        'http://localhost:8500/api/attachments-v2/upload-multiple',
+        'https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple',
         formData,
         {
           headers: {
