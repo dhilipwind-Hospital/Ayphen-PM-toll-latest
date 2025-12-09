@@ -1,0 +1,712 @@
+{
+  "config": {
+    "configFile": "/Users/dhilipelango/VS Jira 2/playwright.config.ts",
+    "rootDir": "/Users/dhilipelango/VS Jira 2/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 5
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/junit.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/dhilipelango/VS Jira 2/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/dhilipelango/VS Jira 2/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.1",
+    "workers": 5,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:1600",
+      "reuseExistingServer": true
+    }
+  },
+  "suites": [
+    {
+      "title": "menu-integration.spec.ts",
+      "file": "menu-integration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Menu Integration - Complete Navigation Tests",
+          "file": "menu-integration.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Your Work Menu - All Items",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12981,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Your Work Menu\n"
+                        },
+                        {
+                          "text": "✅ Your Work menu items verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:23.356Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-19ace94e521f04c5f578",
+              "file": "menu-integration.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "Projects Menu - All Items",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 12671,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Projects Menu\n"
+                        },
+                        {
+                          "text": "✅ Projects menu items verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:23.364Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-ad1a1cd052535e37316a",
+              "file": "menu-integration.spec.ts",
+              "line": 42,
+              "column": 7
+            },
+            {
+              "title": "Filters Menu - All Items",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 12157,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Filters Menu\n"
+                        },
+                        {
+                          "text": "✅ Filters menu items verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:23.359Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-b3d316881b72e8ffc8f0",
+              "file": "menu-integration.spec.ts",
+              "line": 60,
+              "column": 7
+            },
+            {
+              "title": "Dashboards Menu - All Items",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 12454,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Dashboards Menu\n"
+                        },
+                        {
+                          "text": "✅ Dashboards menu items verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:23.360Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-f01d1816f3bb7cd217d3",
+              "file": "menu-integration.spec.ts",
+              "line": 79,
+              "column": 7
+            },
+            {
+              "title": "People Menu - All Items",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 13135,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: People Menu\n"
+                        },
+                        {
+                          "text": "✅ People menu items verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:23.362Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-15693a1c80e40a83efcc",
+              "file": "menu-integration.spec.ts",
+              "line": 97,
+              "column": 7
+            },
+            {
+              "title": "Apps Menu - All Items",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 11244,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Apps Menu\n"
+                        },
+                        {
+                          "text": "✅ Apps menu items verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:36.215Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-1929e593a55b37fc1de1",
+              "file": "menu-integration.spec.ts",
+              "line": 115,
+              "column": 7
+            },
+            {
+              "title": "Navigate: Your Work -> View All Projects",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 13028,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Navigate to Projects from Your Work\n"
+                        },
+                        {
+                          "text": "✅ Navigation to projects successful\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:36.512Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-506699b19bccded3909e",
+              "file": "menu-integration.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "Navigate: Projects -> Create Project",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 13310,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Navigate to Create Project\n"
+                        },
+                        {
+                          "text": "✅ Navigation to create project successful\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:36.724Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-938666f563bb38a8b9c9",
+              "file": "menu-integration.spec.ts",
+              "line": 152,
+              "column": 7
+            },
+            {
+              "title": "Navigate: Filters -> Advanced Search",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13470,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Navigate to Advanced Search\n"
+                        },
+                        {
+                          "text": "✅ Navigation to advanced search successful\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:37.026Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-368485b9c59965ebd16c",
+              "file": "menu-integration.spec.ts",
+              "line": 171,
+              "column": 7
+            },
+            {
+              "title": "Navigate: Dashboards -> Create Dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 13649,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Navigate to Create Dashboard\n"
+                        },
+                        {
+                          "text": "✅ Navigation to create dashboard successful\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:37.209Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-6e96d6d8015298e07d8e",
+              "file": "menu-integration.spec.ts",
+              "line": 190,
+              "column": 7
+            },
+            {
+              "title": "Navigate: People -> View All People",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 12705,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Navigate to People Directory\n"
+                        },
+                        {
+                          "text": "✅ Navigation to people directory successful\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:47.468Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-b2688e65a388001db9c9",
+              "file": "menu-integration.spec.ts",
+              "line": 209,
+              "column": 7
+            },
+            {
+              "title": "Navigate: Apps -> Explore Apps",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 12751,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Navigate to Apps Explore\n"
+                        },
+                        {
+                          "text": "✅ Navigation to apps explore successful\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:49.548Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-a8906ddff320b80a6c90",
+              "file": "menu-integration.spec.ts",
+              "line": 228,
+              "column": 7
+            },
+            {
+              "title": "Create Button - Opens Modal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 11233,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Create Button\n"
+                        },
+                        {
+                          "text": "✅ Create button clicked\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:50.045Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-fcaba452e10a2b19b7f7",
+              "file": "menu-integration.spec.ts",
+              "line": 247,
+              "column": 7
+            },
+            {
+              "title": "Search Functionality",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11183,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Search\n"
+                        },
+                        {
+                          "text": "✅ Search input working\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:50.510Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-27f7beade11d38bf2ea2",
+              "file": "menu-integration.spec.ts",
+              "line": 262,
+              "column": 7
+            },
+            {
+              "title": "Profile Menu - All Items",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 11312,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Test: Profile Menu\n"
+                        },
+                        {
+                          "text": "✅ Profile menu items verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-21T14:31:50.932Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7653673c9bd51ee76463-dd4c6227932a517d4e93",
+              "file": "menu-integration.spec.ts",
+              "line": 277,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-11-21T14:31:22.973Z",
+    "duration": 39476.799999999996,
+    "expected": 15,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

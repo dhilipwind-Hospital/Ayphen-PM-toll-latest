@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS automation_rules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  trigger TEXT NOT NULL,
+  conditions TEXT,
+  actions TEXT NOT NULL,
+  project_id INTEGER,
+  created_by INTEGER NOT NULL,
+  enabled INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS automation_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  rule_id INTEGER NOT NULL,
+  issue_id INTEGER,
+  status TEXT NOT NULL,
+  executed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (rule_id) REFERENCES automation_rules(id) ON DELETE CASCADE
+);

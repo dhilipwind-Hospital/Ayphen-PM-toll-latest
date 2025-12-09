@@ -1,0 +1,296 @@
+
+> ayphen-jira-backend@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/index.ts
+
+[INFO] 18:28:00 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.3)
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+✅ Database connected successfully
+🚀 Server is running on http://localhost:8500
+📊 API endpoints available at http://localhost:8500/api
+🔌 WebSocket server ready on ws://localhost:8500
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis unavailable, using in-memory sessions as fallback
+✅ Created project: PROJECT - Scrum
+✅ Added Demo as admin member
+📊 Found 0 board views for user 26efc026-8a33-4210-aa3b-db68e78106ac
+📊 Found 0 board views for user 26efc026-8a33-4210-aa3b-db68e78106ac
+✅ Created project: PROJECTED - kanban
+✅ Added Demo as admin member
+📊 Found 0 board views for user 26efc026-8a33-4210-aa3b-db68e78106ac
+📊 Found 0 board views for user 26efc026-8a33-4210-aa3b-db68e78106ac
+[INFO] 18:47:28 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/issues.ts has been modified
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+✅ Database connected successfully
+🚀 Server is running on http://localhost:8500
+📊 API endpoints available at http://localhost:8500/api
+🔌 WebSocket server ready on ws://localhost:8500
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis unavailable, using in-memory sessions as fallback
+[INFO] 18:47:42 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/issues.ts has been modified
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+✅ Database connected successfully
+🚀 Server is running on http://localhost:8500
+📊 API endpoints available at http://localhost:8500/api
+🔌 WebSocket server ready on ws://localhost:8500
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis unavailable, using in-memory sessions as fallback
+🔌 Client connected: UWsHdkVbZNLX6v2LAAAB
+👥 User joined project room: 61a8d3fb-69cc-43ee-80ca-4e248b37f07d
+✅ User authenticated: 26efc026-8a33-4210-aa3b-db68e78106ac
+👥 User joined project room: 61a8d3fb-69cc-43ee-80ca-4e248b37f07d
+🔌 Client disconnected: UWsHdkVbZNLX6v2LAAAB
+🔌 Client connected: v0Cowa1a_hO3j0U-AAAD
+✅ User authenticated: 26efc026-8a33-4210-aa3b-db68e78106ac
+👥 User joined project room: 61a8d3fb-69cc-43ee-80ca-4e248b37f07d
+🔌 Client disconnected: v0Cowa1a_hO3j0U-AAAD
+🔌 Client connected: RGth6GJJRfVkLsSMAAAF
+🔌 Client disconnected: RGth6GJJRfVkLsSMAAAF
+🔌 Client connected: 5EVw6_dw7kr0gHJWAAAH
+✅ User authenticated: 26efc026-8a33-4210-aa3b-db68e78106ac
+👋 User left project room: 61a8d3fb-69cc-43ee-80ca-4e248b37f07d
+👥 User joined project room: 0404f190-6690-47ae-abe8-fd84e21a45b2
+👥 User joined project room: 0404f190-6690-47ae-abe8-fd84e21a45b2
+Alert high-bug-ratio-1765113803592 dismissed by user 26efc026-8a33-4210-aa3b-db68e78106ac
+Alert high-bug-ratio-1765113863602 dismissed by user 26efc026-8a33-4210-aa3b-db68e78106ac
+[INFO] 18:56:23 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/sprints.ts has been modified
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+✅ Database connected successfully
+🚀 Server is running on http://localhost:8500
+📊 API endpoints available at http://localhost:8500/api
+🔌 WebSocket server ready on ws://localhost:8500
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+🔌 Client connected: Z4jxb9et5VB-9KZkAAAB
+✅ User authenticated: 26efc026-8a33-4210-aa3b-db68e78106ac
+👥 User joined project room: 0404f190-6690-47ae-abe8-fd84e21a45b2
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis unavailable, using in-memory sessions as fallback
+[INFO] 18:56:35 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/project-members.ts has been modified
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+✅ Database connected successfully
+🚀 Server is running on http://localhost:8500
+📊 API endpoints available at http://localhost:8500/api
+🔌 WebSocket server ready on ws://localhost:8500
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis unavailable, using in-memory sessions as fallback
+🔌 Client connected: pZZC5fHZZr5mrvPXAAAB
+✅ User authenticated: 26efc026-8a33-4210-aa3b-db68e78106ac
+👥 User joined project room: 0404f190-6690-47ae-abe8-fd84e21a45b2
+🔌 Client disconnected: pZZC5fHZZr5mrvPXAAAB
+🔌 Client connected: TtywBF5e-xKeqdtaAAAD
+✅ User authenticated: 26efc026-8a33-4210-aa3b-db68e78106ac
+🔌 Client disconnected: TtywBF5e-xKeqdtaAAAD
+🔌 Client connected: Z0opvDi50KUi3VIoAAAF
+✅ User authenticated: ad7ba309-ca84-4910-acb5-6b58ec711ae4
+🔌 Client disconnected: Z0opvDi50KUi3VIoAAAF
+🔌 Client connected: ti88n5Hwo824RWa1AAAH
+✅ User authenticated: ad7ba309-ca84-4910-acb5-6b58ec711ae4
+📊 Found 0 board views for user ad7ba309-ca84-4910-acb5-6b58ec711ae4
+📊 Found 0 board views for user ad7ba309-ca84-4910-acb5-6b58ec711ae4
+✅ Created project: BAN - Dhilip Kan
+✅ Added demo dhilip as admin member
+👥 User joined project room: 2d20f0d6-17c3-4caa-8851-5426b8935add
+📊 Found 0 board views for user ad7ba309-ca84-4910-acb5-6b58ec711ae4
+📊 Found 0 board views for user ad7ba309-ca84-4910-acb5-6b58ec711ae4
+📊 Found 0 board views for user ad7ba309-ca84-4910-acb5-6b58ec711ae4
+📊 Found 0 board views for user ad7ba309-ca84-4910-acb5-6b58ec711ae4
+🔌 Client connected: Db9qqYLLs1lTSGovAAAK
+💬 User joined channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+👋 User left channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+💬 User joined channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+🔌 Client disconnected: Db9qqYLLs1lTSGovAAAK
+🔌 Client connected: ADRqx6B6_FhQyEcBAAAN
+💬 User joined channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+👋 User left channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+💬 User joined channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+🔌 Client disconnected: ADRqx6B6_FhQyEcBAAAN
+🔌 Client connected: xl1AZLorgnPGFEaTAAAQ
+💬 User joined channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+👋 User left channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+💬 User joined channel: 2f012d84-af2e-4f2c-bacf-4bf8419c61d1
+🔌 Client disconnected: xl1AZLorgnPGFEaTAAAQ
+TypeError: Cannot read properties of undefined (reading 'userId')
+    at /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/automation.ts:20:36
+    at Layer.handle [as handle_request] (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/index.js:280:10)
+    at Function.handle (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/index.js:175:3)
+    at router (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/express/lib/router/index.js:47:12)
+[ERROR] 10:16:26 TypeError: Cannot read properties of undefined (reading 'userId')
+[INFO] 14:13:48 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/entities/AITestCase.ts has been modified
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+❌ Database connection failed: QueryFailedError: SQLITE_BUSY: database is locked
+    at Statement.handler (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/driver/sqlite/SqliteQueryRunner.ts:133:29)
+    at Statement.replacement (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/sqlite3/lib/trace.js:25:27)
+    at Statement.replacement (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/sqlite3/lib/trace.js:25:27) {
+  query: `CREATE TABLE "temporary_ai_test_cases" ("id" varchar PRIMARY KEY NOT NULL, "testCaseKey" varchar(50), "requirementId" varchar, "projectId" varchar, "suiteKey" varchar(50), "storyId" varchar, "title" varchar(500) NOT NULL, "type" varchar(20) NOT NULL, "steps" text, "expectedResult" text, "categories" text, "suiteId" varchar, "status" varchar(50) NOT NULL DEFAULT ('active'), "flagged" boolean NOT NULL DEFAULT (0), "createdAt" datetime NOT NULL DEFAULT (datetime('now')), "issueId" varchar, "description" text, "priority" varchar(20), "automated" boolean NOT NULL DEFAULT (0), CONSTRAINT "UQ_b351191b13e3c858ccac1d9a3aa" UNIQUE ("testCaseKey"), CONSTRAINT "FK_2028c9d6caee91a7d58913acd6f" FOREIGN KEY ("issueId") REFERENCES "issues" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT "FK_aa932e39be1289fac410e0c7d46" FOREIGN KEY ("storyId") REFERENCES "ai_stories" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION)`,
+  parameters: undefined,
+  driverError: Error: SQLITE_BUSY: database is locked
+  --> in Statement#all(undefined, [Function: replacement])
+      at Database.<anonymous> (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/sqlite3/lib/sqlite3.js:88:19)
+      at Database.<anonymous> (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/node_modules/sqlite3/lib/sqlite3.js:20:19)
+      at execute (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/driver/sqlite/SqliteQueryRunner.ts:85:50)
+      at /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/driver/sqlite/SqliteQueryRunner.ts:168:23
+      at new Promise (<anonymous>)
+      at SqliteQueryRunner.query (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/driver/sqlite/SqliteQueryRunner.ts:74:16)
+      at SqliteQueryRunner.executeQueries (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/query-runner/BaseQueryRunner.ts:681:13)
+      at SqliteQueryRunner.recreateTable (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/driver/sqlite-abstract/AbstractSqliteQueryRunner.ts:2210:9) {
+    errno: 5,
+    code: 'SQLITE_BUSY',
+    __augmented: true
+  },
+  errno: 5,
+  code: 'SQLITE_BUSY',
+  __augmented: true
+}
+[INFO] 15:17:41 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/ai-description.ts has been modified
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+✅ Database connected successfully
+Error: listen EADDRINUSE: address already in use 0.0.0.0:8500
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 15:17:42 Error: listen EADDRINUSE: address already in use 0.0.0.0:8500
+[INFO] 15:17:53 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/ai-description.ts has been modified
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+✅ Database connected successfully
+Error: listen EADDRINUSE: address already in use 0.0.0.0:8500
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+[ERROR] 15:17:54 Error: listen EADDRINUSE: address already in use 0.0.0.0:8500
+[INFO] 12:37:28 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/config/database.ts has been modified
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+📧 Email service initialized with Gmail SMTP
+   Host: smtp.gmail.com
+   User: dhilipwind@gmail.com
+🔵 Using Cerebras API
+⚠️ GEMINI_API_KEY or GOOGLE_API_KEY not set - Bug AI Analyzer will not function
+✅ Initialized 6 default templates
+🔌 WebSocket service initialized
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+⚠️  Redis error (using in-memory fallback): 
+❌ Database connection failed: DataTypeNotSupportedError: Data type "datetime" in "Notification.snoozedUntil" is not supported by "postgres" database.
+    at /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/metadata-builder/EntityMetadataValidator.ts:133:31
+    at Array.forEach (<anonymous>)
+    at EntityMetadataValidator.validate (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/metadata-builder/EntityMetadataValidator.ts:128:18)
+    at /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/metadata-builder/EntityMetadataValidator.ts:43:18
+    at Array.forEach (<anonymous>)
+    at EntityMetadataValidator.validateMany (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/metadata-builder/EntityMetadataValidator.ts:42:25)
+    at DataSource.buildMetadatas (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/data-source/DataSource.ts:753:33)
+    at DataSource.initialize (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/data-source/DataSource.ts:264:13)
