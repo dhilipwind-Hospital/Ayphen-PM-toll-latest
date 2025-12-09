@@ -50,7 +50,7 @@ export const SystemSettings: React.FC = () => {
         <Input />
       </Form.Item>
       
-      <Form.Item name="baseUrl" label="Base URL" initialValue="http://localhost:1600">
+      <Form.Item name="baseUrl" label="Base URL" initialValue="https://ayphen-pm-toll.vercel.app">
         <Input />
       </Form.Item>
       

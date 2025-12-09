@@ -23,7 +23,7 @@ export default function ProjectDetailView() {
 
   const loadProject = async () => {
     const token = localStorage.getItem('token');
-    const res = await axios.get(`http://localhost:7500/api/projects/${projectId}`, {
+    const res = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/projects/${projectId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setProject(res.data);
@@ -31,7 +31,7 @@ export default function ProjectDetailView() {
 
   const loadEpics = async () => {
     const token = localStorage.getItem('token');
-    const res = await axios.get(`http://localhost:7500/api/epics?projectId=${projectId}`, {
+    const res = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/epics?projectId=${projectId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setEpics(res.data);

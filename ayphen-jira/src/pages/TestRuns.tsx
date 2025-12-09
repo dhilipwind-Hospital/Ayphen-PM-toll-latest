@@ -13,7 +13,7 @@ export default function TestRuns() {
 
   const loadRuns = async () => {
     const token = localStorage.getItem('token');
-    const res = await axios.get('http://localhost:7500/api/test-runs', {
+    const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/test-runs', {
       headers: { Authorization: `Bearer ${token}` }
     });
     setRuns(res.data);
