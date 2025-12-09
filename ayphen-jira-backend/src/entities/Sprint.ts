@@ -11,10 +11,10 @@ export class Sprint {
   @Column({ type: 'text', nullable: true })
   goal: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   startDate: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   endDate: Date;
 
   @Column({ default: 'future' })
@@ -23,7 +23,7 @@ export class Sprint {
   @Column()
   projectId: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   completedAt: Date;
 
   @CreateDateColumn()

@@ -71,13 +71,13 @@ export class User {
   @Column({ default: false })
   isSystemAdmin: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   deactivatedAt: Date;
 
   @Column({ nullable: true })
   deactivatedBy: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   lastLoginAt: Date;
 
   @Column({ nullable: true })

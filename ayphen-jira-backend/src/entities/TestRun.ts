@@ -29,10 +29,10 @@ export class TestRun {
   @Column({ length: 20, default: 'running' })
   status: string; // running, completed, aborted
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   startTime: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   endTime: Date;
 
   @Column({ nullable: true })

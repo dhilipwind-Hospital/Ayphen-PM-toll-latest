@@ -29,7 +29,7 @@ export class Notification {
   @Column({ default: false })
   read: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   snoozedUntil: Date;
 
   @Column({ nullable: true })

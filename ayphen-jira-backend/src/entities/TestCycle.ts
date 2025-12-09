@@ -20,10 +20,10 @@ export class TestCycle {
   @Column({ length: 100, nullable: true })
   releaseVersion: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   startDate: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   endDate: Date;
 
   @Column({ length: 20, default: 'planned' })

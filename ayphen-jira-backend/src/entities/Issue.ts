@@ -64,10 +64,10 @@ export class Issue {
   @Column({ nullable: true })
   epicKey: string | null; // JIRA-style epic key: PROJ-100
   
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   startDate: Date; // For epics: roadmap start date
   
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   endDate: Date; // For epics: roadmap end date
   
   @Column({ type: 'simple-json', nullable: true })
@@ -94,10 +94,10 @@ export class Issue {
   @Column({ nullable: true })
   timeEstimate: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   dueDate: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   resolvedAt: Date;
 
   @Column({ nullable: true })
@@ -109,7 +109,7 @@ export class Issue {
   @Column({ default: false })
   archived: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   archivedAt: Date | null;
 
   @Column({ nullable: true })
@@ -124,7 +124,7 @@ export class Issue {
   @Column({ default: false })
   isFlagged: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   flaggedAt: Date | null;
   
   @Column({ nullable: true })

@@ -41,10 +41,10 @@ export class ProjectInvitation {
   @Column({ default: 'pending' })
   status: string; // pending, accepted, rejected, expired
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   expiresAt: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   acceptedAt: Date;
 
   @CreateDateColumn()
