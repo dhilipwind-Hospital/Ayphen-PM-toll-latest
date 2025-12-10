@@ -102,6 +102,17 @@ const QuickStats = styled.div`
   }
 `;
 
+const IconWrapper = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+`;
+
 // Animated Counter Component
 const AnimatedCounter: React.FC<{ value: number; duration?: number }> = ({ value, duration = 1000 }) => {
   const [count, setCount] = useState(0);
@@ -137,10 +148,10 @@ export const EnhancedDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { issues, currentProject, sprints } = useStore();
   const [stats, setStats] = useState([
-    { title: 'Total Issues', value: 0, icon: <TrendingUp size={24} />, color: '#EC4899' },
-    { title: 'In Progress', value: 0, icon: <Clock size={24} />, color: '#F472B6' },
-    { title: 'Completed', value: 0, icon: <CheckCircle size={24} />, color: '#10B981' },
-    { title: 'Overdue', value: 0, icon: <AlertTriangle size={24} />, color: '#EF4444' },
+    { title: 'Total Issues', value: 0, icon: <TrendingUp size={28} />, color: '#EC4899' },
+    { title: 'In Progress', value: 0, icon: <Clock size={28} />, color: '#F472B6' },
+    { title: 'Completed', value: 0, icon: <CheckCircle size={28} />, color: '#10B981' },
+    { title: 'Overdue', value: 0, icon: <AlertTriangle size={28} />, color: '#EF4444' },
   ]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [upcomingDeadlines, setUpcomingDeadlines] = useState<any[]>([]);
@@ -169,10 +180,10 @@ export const EnhancedDashboard: React.FC = () => {
       }).length;
 
       setStats([
-        { title: 'Total Issues', value: totalIssues, icon: <TrendingUp size={24} />, color: '#EC4899' },
-        { title: 'In Progress', value: inProgress, icon: <Clock size={24} />, color: '#F472B6' },
-        { title: 'Completed', value: completed, icon: <CheckCircle size={24} />, color: '#10B981' },
-        { title: 'Overdue', value: overdue, icon: <AlertTriangle size={24} />, color: '#EF4444' },
+        { title: 'Total Issues', value: totalIssues, icon: <TrendingUp size={28} />, color: '#EC4899' },
+        { title: 'In Progress', value: inProgress, icon: <Clock size={28} />, color: '#F472B6' },
+        { title: 'Completed', value: completed, icon: <CheckCircle size={28} />, color: '#10B981' },
+        { title: 'Overdue', value: overdue, icon: <AlertTriangle size={28} />, color: '#EF4444' },
       ]);
 
       const recentIssues = projectIssues
@@ -278,9 +289,9 @@ export const EnhancedDashboard: React.FC = () => {
                 alignItems: 'center',
                 gap: '12px'
               }}>
-                <span style={{ color: stat.color, display: 'flex', alignItems: 'center' }}>
+                <IconWrapper style={{ color: stat.color, backgroundColor: `${stat.color}20` }}>
                   {stat.icon}
-                </span>
+                </IconWrapper>
                 <div style={{
                   fontSize: '2.5rem',
                   fontWeight: 800,

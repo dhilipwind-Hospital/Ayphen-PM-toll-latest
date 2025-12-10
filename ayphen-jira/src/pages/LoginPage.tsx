@@ -330,10 +330,6 @@ export const LoginPage: React.FC = () => {
                     onFinish={handleLogin}
                     layout="vertical"
                     size="large"
-                    initialValues={{
-                      email: 'demo@demo.com',
-                      password: 'demo123'
-                    }}
                   >
                     <Form.Item
                       name="email"
