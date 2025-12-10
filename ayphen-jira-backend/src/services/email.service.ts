@@ -23,15 +23,27 @@ export class EmailService {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASSWORD,
         },
+        pool: true, // Use connection pooling
+        maxConnections: 5,
+        maxMessages: 10,
+        rateDelta: 1000,
+        rateLimit: 5,
+        connectionTimeout: 60000, // 60 seconds
+        greetingTimeout: 30000,
+        socketTimeout: 60000,
         tls: {
-          rejectUnauthorized: false // Allow self-signed certificates
-        }
+          rejectUnauthorized: false,
+          ciphers: 'SSLv3'
+        },
+        debug: true, // Enable debug logging
+        logger: true
       });
       console.log('📧 Email service initialized with SMTP');
       console.log('   Host:', process.env.SMTP_HOST);
       console.log('   Port:', process.env.SMTP_PORT);
       console.log('   User:', process.env.SMTP_USER);
       console.log('   From:', this.fromEmail);
+      console.log('   Connection timeout: 60s');
     } else {
       console.warn('⚠️  SMTP credentials not configured! Emails will NOT be sent.');
       console.warn('   Required env vars: SMTP_HOST, SMTP_USER, SMTP_PASSWORD');
