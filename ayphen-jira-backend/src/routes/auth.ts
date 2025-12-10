@@ -46,45 +46,52 @@ router.post('/register', async (req, res) => {
     });
     
     await userRepo.save(user);
+    console.log(`✅ User registered: ${email} (unverified)`);
 
     // Send verification email
     try {
-      const verifyLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:1600';
+      const verifyLink = `${frontendUrl}/auth/verify-email?token=${verificationToken}`;
+      
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #0052CC;">Welcome to Ayphen Project Management! 🎉</h2>
+          <p>Hi <strong>${name}</strong>,</p>
+          <p>Thank you for signing up! Please verify your email address to get started.</p>
+          <div style="margin: 30px 0; text-align: center;">
+            <a href="${verifyLink}" 
+               style="background: #0052CC; color: white; padding: 14px 32px; 
+                      text-decoration: none; border-radius: 4px; display: inline-block; 
+                      font-weight: 600; font-size: 16px;">
+              Verify Email Address
+            </a>
+          </div>
+          <p style="color: #666; font-size: 12px;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <a href="${verifyLink}" style="color: #0052CC; word-break: break-all;">${verifyLink}</a>
+          </p>
+          <p style="color: #666; font-size: 12px; margin-top: 30px;">
+            This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+          </p>
+        </div>
+      `;
+      
       await emailService.sendEmail(
         email,
-        'Verify your email address',
-        `Welcome to Ayphen Jira! Please click the link below to verify your email address:\n\n${verifyLink}`
+        'Verify your email address - Ayphen Project Management',
+        emailHtml
       );
+      console.log(`📧 Verification email sent to: ${email}`);
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError);
-      // Continue registration even if email fails (for dev/demo purposes)
+      // Continue registration even if email fails
     }
     
-    // Create session
-    const sessionId = `session_${Date.now()}_${Math.random()}`;
-    const sessionData = {
-      userId: user.id,
+    // DO NOT create session - user must verify email first
+    res.status(201).json({
+      message: 'Registration successful! Please check your email to verify your account.',
       email: user.email,
-      name: user.name,
-      role: user.role,
-      createdAt: new Date(),
-    };
-    
-    // Try Redis first, fallback to memory
-    const saved = await redisService.setSession(sessionId, sessionData, SESSION_TTL);
-    if (!saved) {
-      sessions.set(sessionId, sessionData);
-    }
-    
-    res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
-      },
-      sessionId,
+      requiresVerification: true,
     });
   } catch (error: any) {
     console.error('Registration failed:', error);
@@ -363,13 +370,36 @@ router.post('/resend-verification', async (req, res) => {
     user.verificationToken = verificationToken;
     await userRepo.save(user);
 
-    // Send email
-    const verifyLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
+    // Send email with proper HTML template
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:1600';
+    const verifyLink = `${frontendUrl}/auth/verify-email?token=${verificationToken}`;
+    
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #0052CC;">Verify Your Email Address</h2>
+        <p>Hi <strong>${user.name}</strong>,</p>
+        <p>Please verify your email address to access Ayphen Project Management.</p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${verifyLink}" 
+             style="background: #0052CC; color: white; padding: 14px 32px; 
+                    text-decoration: none; border-radius: 4px; display: inline-block; 
+                    font-weight: 600; font-size: 16px;">
+            Verify Email Address
+          </a>
+        </div>
+        <p style="color: #666; font-size: 12px;">
+          If the button doesn't work, copy and paste this link into your browser:<br>
+          <a href="${verifyLink}" style="color: #0052CC; word-break: break-all;">${verifyLink}</a>
+        </p>
+      </div>
+    `;
+    
     await emailService.sendEmail(
       email,
-      'Verify your email address',
-      `Welcome to Ayphen Jira! Please click the link below to verify your email address:\n\n${verifyLink}`
+      'Verify your email address - Ayphen Project Management',
+      emailHtml
     );
+    console.log(`📧 Verification email resent to: ${email}`);
 
     res.json({ message: 'Verification email sent' });
   } catch (error: any) {
