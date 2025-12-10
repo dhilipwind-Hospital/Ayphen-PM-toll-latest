@@ -34,7 +34,7 @@ const StyledCard = styled(Card)`
   }
 `;
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 export const EmailVerificationHandler: React.FC = () => {
   const navigate = useNavigate();

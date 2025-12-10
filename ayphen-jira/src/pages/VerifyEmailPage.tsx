@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 
 const { Title, Text, Paragraph } = Typography;
-const API_URL = import.meta.env.VITE_API_URL || 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
