@@ -5,6 +5,7 @@ import { AppDataSource } from '../config/database';
 import { User } from '../entities/User';
 import { redisService } from '../services/redis.service';
 import { EmailService } from '../services/email.service';
+import { sendGridService } from '../services/sendgrid.service';
 
 const router = Router();
 const userRepo = AppDataSource.getRepository(User);
@@ -94,8 +95,8 @@ router.post('/register', async (req, res) => {
       </div>
     `;
     
-    // Send email asynchronously without blocking the response
-    emailService.sendEmail(
+    // Send email asynchronously without blocking the response using SendGrid Web API
+    sendGridService.sendEmail(
       email,
       'Verify your email address - Ayphen Project Management',
       emailHtml
@@ -103,6 +104,9 @@ router.post('/register', async (req, res) => {
       console.log(`📧 Verification email sent to: ${email}`);
     }).catch((emailError) => {
       console.error('Failed to send verification email:', emailError);
+      // Fallback to SMTP if SendGrid fails
+      emailService.sendEmail(email, 'Verify your email address - Ayphen Project Management', emailHtml)
+        .catch(e => console.error('SMTP fallback also failed:', e));
     });
     
     // Respond immediately without waiting for email
@@ -412,12 +416,23 @@ router.post('/resend-verification', async (req, res) => {
       </div>
     `;
     
-    await emailService.sendEmail(
-      email,
-      'Verify your email address - Ayphen Project Management',
-      emailHtml
-    );
-    console.log(`📧 Verification email resent to: ${email}`);
+    // Use SendGrid Web API with SMTP fallback
+    try {
+      await sendGridService.sendEmail(
+        email,
+        'Verify your email address - Ayphen Project Management',
+        emailHtml
+      );
+      console.log(`📧 Verification email resent to: ${email} (SendGrid)`);
+    } catch (sendGridError) {
+      console.error('SendGrid failed, trying SMTP fallback:', sendGridError);
+      await emailService.sendEmail(
+        email,
+        'Verify your email address - Ayphen Project Management',
+        emailHtml
+      );
+      console.log(`📧 Verification email resent to: ${email} (SMTP)`);
+    }
 
     res.json({ message: 'Verification email sent' });
   } catch (error: any) {

@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { EmailService } from '../services/email.service';
+import { sendGridService } from '../services/sendgrid.service';
 
 const router = Router();
-const emailService = new EmailService();
 
 // Test endpoint to send email
 router.post('/send-test-email', async (req, res) => {
@@ -33,7 +32,7 @@ router.post('/send-test-email', async (req, res) => {
       </div>
     `;
 
-    await emailService.sendEmail(
+    await sendGridService.sendEmail(
       testEmail,
       '✅ SendGrid Test - Email Working!',
       emailHtml
