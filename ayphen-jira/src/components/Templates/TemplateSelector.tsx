@@ -173,7 +173,6 @@ const LoadingText = styled.div`
   color: #595959;
 `;
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ayphen-pm-toll-latest.onrender.com';
 
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   open,
@@ -256,8 +255,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
     setIsFilling(true);
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/templates/${selectedTemplate.id}/fill`,
+      const response = await api.post(
+        `/templates/${selectedTemplate.id}/fill`,
         {
           summary: issueSummary,
           context: {
