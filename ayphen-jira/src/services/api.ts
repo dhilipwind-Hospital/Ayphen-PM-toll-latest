@@ -296,3 +296,33 @@ export const boardViewsApi = {
 
 // Health check
 export const healthCheck = () => axios.get(`${API_BASE_URL.replace('/api', '')}/health`);
+
+// Gadgets API
+export const gadgetsApi = {
+  getByDashboard: (dashboardId: string) => api.get(`/gadgets/dashboard/${dashboardId}`),
+  create: (data: any) => api.post('/gadgets', data),
+  update: (id: string, data: any) => api.put(`/gadgets/${id}`, data),
+  delete: (id: string) => api.delete(`/gadgets/${id}`),
+};
+
+// Dashboards V2 API
+export const dashboardsV2Api = {
+  getAll: (userId: string) => api.get('/dashboards-v2', { params: { userId } }),
+  create: (data: any) => api.post('/dashboards-v2', data),
+  clone: (id: string, data: any) => api.post(`/dashboards-v2/${id}/clone`, data),
+  toggleStar: (id: string) => api.post(`/dashboards-v2/${id}/star`),
+};
+
+// Extended Reports API
+export const reportsLegacyApi = {
+  getSprintBurndown: (sprintId: string) => api.get(`/reports/sprint-burndown/${sprintId}`),
+  getVelocity: (projectId: string) => api.get(`/reports/velocity/${projectId}`),
+  getCumulativeFlow: (projectId: string) => api.get(`/reports/cumulative-flow/${projectId}`),
+  getCreatedVsResolved: (projectId: string) => api.get(`/reports/created-vs-resolved/${projectId}`),
+  getPieChart: (projectId: string, groupBy: string) => api.get(`/reports/pie-chart/${projectId}`, { params: { groupBy } }),
+  getTimeTracking: (projectId: string) => api.get(`/reports/time-tracking/${projectId}`),
+  getAverageAge: (projectId: string) => api.get(`/reports/average-age/${projectId}`),
+  getResolutionTime: (projectId: string) => api.get(`/reports/resolution-time/${projectId}`),
+  getUserWorkload: (projectId: string) => api.get(`/reports/user-workload/${projectId}`),
+  getSprintReport: (sprintId: string) => api.get(`/reports/sprint-report/${sprintId}`),
+};

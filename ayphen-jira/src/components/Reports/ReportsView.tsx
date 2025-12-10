@@ -3,7 +3,7 @@ import { Card, Select, DatePicker, Button, Tabs, Spin } from 'antd';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Download, Calendar, Filter } from 'lucide-react';
 import styled from 'styled-components';
-import axios from 'axios';
+import { reportsLegacyApi } from '../../services/api';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -51,34 +51,34 @@ export const ReportsView: React.FC = () => {
       let response;
       switch (reportType) {
         case 'burndown':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/sprint-burndown/sprint-1`);
+          response = await reportsLegacyApi.getSprintBurndown('sprint-1');
           break;
         case 'velocity':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/velocity/${projectId}`);
+          response = await reportsLegacyApi.getVelocity(projectId);
           break;
         case 'cumulative-flow':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/cumulative-flow/${projectId}`);
+          response = await reportsLegacyApi.getCumulativeFlow(projectId);
           break;
         case 'created-vs-resolved':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/created-vs-resolved/${projectId}`);
+          response = await reportsLegacyApi.getCreatedVsResolved(projectId);
           break;
         case 'pie-chart':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/pie-chart/${projectId}?groupBy=status`);
+          response = await reportsLegacyApi.getPieChart(projectId, 'status');
           break;
         case 'time-tracking':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/time-tracking/${projectId}`);
+          response = await reportsLegacyApi.getTimeTracking(projectId);
           break;
         case 'average-age':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/average-age/${projectId}`);
+          response = await reportsLegacyApi.getAverageAge(projectId);
           break;
         case 'resolution-time':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/resolution-time/${projectId}`);
+          response = await reportsLegacyApi.getResolutionTime(projectId);
           break;
         case 'user-workload':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/user-workload/${projectId}`);
+          response = await reportsLegacyApi.getUserWorkload(projectId);
           break;
         case 'sprint-report':
-          response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/reports/sprint-report/sprint-1`);
+          response = await reportsLegacyApi.getSprintReport('sprint-1');
           break;
         default:
           response = { data: null };
