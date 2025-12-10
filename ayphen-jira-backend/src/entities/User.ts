@@ -68,6 +68,12 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: true })
+  isVerified: boolean;
+
+  @Column({ nullable: true, select: false })
+  verificationToken: string;
+
   @Column({ default: false })
   isSystemAdmin: boolean;
 

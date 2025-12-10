@@ -30,6 +30,9 @@ router.post('/register', async (req, res) => {
     
     // Hash password with bcrypt
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
     
     // Create user
     const user = userRepo.create({
@@ -38,9 +41,24 @@ router.post('/register', async (req, res) => {
       name,
       role: 'user',
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1890ff&color=fff`,
+      isVerified: false, // Explicitly set to false for new users
+      verificationToken,
     });
     
     await userRepo.save(user);
+
+    // Send verification email
+    try {
+      const verifyLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
+      await emailService.sendEmail(
+        email,
+        'Verify your email address',
+        `Welcome to Ayphen Jira! Please click the link below to verify your email address:\n\n${verifyLink}`
+      );
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Continue registration even if email fails (for dev/demo purposes)
+    }
     
     // Create session
     const sessionId = `session_${Date.now()}_${Math.random()}`;
@@ -83,6 +101,16 @@ router.post('/login', async (req, res) => {
     const user = await userRepo.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check verification status
+    // Hard-enforced: Unverified users cannot login
+    if (!user.isVerified) {
+      return res.status(403).json({ 
+        error: 'Email not verified', 
+        code: 'EMAIL_NOT_VERIFIED',
+        email: user.email 
+      });
     }
     
     // Check password with bcrypt
@@ -283,3 +311,70 @@ router.post('/reset-password', async (req, res) => {
 });
 
 export default router;
+
+// POST /api/auth/verify-email
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Verification token is required' });
+    }
+
+    // Find user with this token
+    // Note: verificationToken is select: false by default, so we need to explicitly select it if we query by it
+    // But typeorm query builder is better here
+    const user = await userRepo.createQueryBuilder('user')
+      .addSelect('user.verificationToken')
+      .where('user.verificationToken = :token', { token })
+      .getOne();
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification token' });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = null as any; // Clear token
+    await userRepo.save(user);
+
+    res.json({ message: 'Email verified successfully', user });
+  } catch (error: any) {
+    console.error('Verification failed:', error);
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+// POST /api/auth/resend-verification
+router.post('/resend-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await userRepo.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ error: 'Email is already verified' });
+    }
+
+    // Generate new token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    user.verificationToken = verificationToken;
+    await userRepo.save(user);
+
+    // Send email
+    const verifyLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
+    await emailService.sendEmail(
+      email,
+      'Verify your email address',
+      `Welcome to Ayphen Jira! Please click the link below to verify your email address:\n\n${verifyLink}`
+    );
+
+    res.json({ message: 'Verification email sent' });
+  } catch (error: any) {
+    console.error('Resend verification failed:', error);
+    res.status(500).json({ error: 'Failed to send verification email' });
+  }
+});
+

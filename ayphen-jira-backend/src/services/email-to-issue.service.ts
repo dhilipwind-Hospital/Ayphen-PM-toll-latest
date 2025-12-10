@@ -75,7 +75,7 @@ export class EmailToIssueService {
         description: parsed.description,
         type: parsed.type,
         priority: parsed.priority,
-        status: 'todo',
+        status: 'backlog',
         projectId: finalProjectId,
         reporterId: reporter.id,
         labels: parsed.labels,

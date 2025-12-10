@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { AppDataSource } from '../config/database';
 import { Issue } from '../entities/Issue';
+import { User } from '../entities/User';
 import { Project } from '../entities/Project';
 import { getUserProjectIds } from '../middleware/projectAccess';
 import { aiDuplicateDetector } from '../services/ai-duplicate-detector.service';
 import { websocketService } from '../services/websocket.service';
+import { emailService } from '../services/email.service';
 import { In } from 'typeorm';
 
 const router = Router();
@@ -193,6 +195,25 @@ router.post('/', async (req, res) => {
       websocketService.notifyIssueCreated(fullIssue, req.body.reporterId || 'system');
     }
 
+    // Send email notification if assignee is set
+    if (fullIssue.assignee && fullIssue.assignee.id) {
+      try {
+        const reporter = fullIssue.reporter || { name: 'System' };
+        await emailService.sendNotificationEmail(fullIssue.assignee.id, 'issue_created', {
+          actorName: reporter.name,
+          projectKey: fullIssue.project?.key || 'PROJECT',
+          issueKey: fullIssue.key,
+          summary: fullIssue.summary,
+          type: fullIssue.type,
+          priority: fullIssue.priority,
+        });
+        console.log(`📧 Email notification sent to assignee: ${fullIssue.assignee.email}`);
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError);
+        // Don't fail the request if email fails
+      }
+    }
+
     res.status(201).json(fullIssue);
   } catch (error: any) {
     console.error('❌ Failed to create issue:', error.message, error.stack);
@@ -227,6 +248,24 @@ router.put('/:id', async (req, res) => {
           updatedIssue.status, 
           userId
         );
+        
+        // Send email notification for status change
+        if (updatedIssue.assignee && updatedIssue.assignee.id) {
+          try {
+            const userRepo = AppDataSource.getRepository(User);
+            const actor = await userRepo.findOne({ where: { id: userId } });
+            await emailService.sendNotificationEmail(updatedIssue.assignee.id, 'status_changed', {
+              actorName: actor?.name || 'Someone',
+              projectKey: updatedIssue.project?.key || 'PROJECT',
+              issueKey: updatedIssue.key,
+              oldStatus: existingIssue.status,
+              newStatus: updatedIssue.status,
+            });
+            console.log(`📧 Status change email sent to assignee: ${updatedIssue.assignee.email}`);
+          } catch (emailError) {
+            console.error('Failed to send status change email:', emailError);
+          }
+        }
       }
 
       if (existingIssue.assigneeId !== updatedIssue.assigneeId && updatedIssue.assigneeId) {
@@ -235,6 +274,25 @@ router.put('/:id', async (req, res) => {
           updatedIssue.assigneeId,
           userId
         );
+        
+        // Send email notification for assignment change
+        if (updatedIssue.assignee && updatedIssue.assignee.id) {
+          try {
+            const userRepo = AppDataSource.getRepository(User);
+            const actor = await userRepo.findOne({ where: { id: userId } });
+            await emailService.sendNotificationEmail(updatedIssue.assignee.id, 'assignment_changed', {
+              actorName: actor?.name || 'Someone',
+              projectKey: updatedIssue.project?.key || 'PROJECT',
+              issueKey: updatedIssue.key,
+              summary: updatedIssue.summary,
+              priority: updatedIssue.priority,
+              status: updatedIssue.status,
+            });
+            console.log(`📧 Assignment email sent to new assignee: ${updatedIssue.assignee.email}`);
+          } catch (emailError) {
+            console.error('Failed to send assignment email:', emailError);
+          }
+        }
       }
     }
 
@@ -309,7 +367,7 @@ router.post('/:id/clone', async (req, res) => {
       summary: `${original.summary} (Copy)`,
       description: original.description,
       type: original.type,
-      status: 'todo',
+      status: 'backlog',
       priority: original.priority,
       storyPoints: original.storyPoints,
       labels: original.labels,

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AppDataSource } from '../config/database';
 import { Issue } from '../entities/Issue';
 import { User } from '../entities/User';
+import { emailService } from '../services/email.service';
 
 const router = Router();
 
@@ -93,6 +94,29 @@ router.post('/', async (req, res) => {
 
     comments.push(comment);
     console.log('✅ Comment created:', comment);
+    
+    // Send email notification to issue assignee
+    try {
+      const issueRepo = AppDataSource.getRepository(Issue);
+      const issue = await issueRepo.findOne({
+        where: { id: issueId },
+        relations: ['assignee', 'project'],
+      });
+      
+      if (issue && issue.assignee && issue.assignee.id !== actualUserId) {
+        await emailService.sendNotificationEmail(issue.assignee.id, 'comment_added', {
+          actorName: user.name,
+          projectKey: issue.project?.key || 'PROJECT',
+          issueKey: issue.key,
+          comment: actualText,
+        });
+        console.log(`📧 Comment notification sent to assignee: ${issue.assignee.email}`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send comment email notification:', emailError);
+      // Don't fail the request if email fails
+    }
+    
     res.status(201).json(comment);
   } catch (error: any) {
     console.error('❌ Error creating comment:', error);

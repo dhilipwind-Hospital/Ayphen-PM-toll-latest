@@ -324,7 +324,7 @@ export class MeetingIntegrationService {
         summary: actionItem.text,
         type: 'task',
         priority: actionItem.priority || 'medium',
-        status: 'todo',
+        status: 'backlog',
         description: `Created from meeting ${meetingId}\nSpeaker: ${
           meeting.segments.find(s => s.id === actionItem.createdFromSegment)?.speaker
         }`,
