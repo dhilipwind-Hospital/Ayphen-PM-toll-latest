@@ -76,7 +76,7 @@ const ViewToggle = styled.div`
 
 const ViewButton = styled.button<{ active?: boolean }>`
   border: none;
-  background: ${props => props.active ? '#8B5CF6' : 'transparent'};
+  background: ${props => props.active ? '#EC4899' : 'transparent'};
   color: ${props => props.active ? 'white' : colors.text.secondary};
   padding: 6px;
   border-radius: 4px;
@@ -87,7 +87,8 @@ const ViewButton = styled.button<{ active?: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background: ${props => props.active ? '#7C3AED' : colors.background.sidebar};
+    background: ${props => props.active ? '#DB2777' : colors.background.sidebar};
+    color: ${props => props.active ? 'white' : colors.text.primary};
   }
 `;
 
