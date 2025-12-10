@@ -78,6 +78,7 @@ import aiDescriptionRoutes from './routes/ai-description';
 import issueMergeRoutes from './routes/issue-merge';
 import duplicateFeedbackRoutes from './routes/duplicate-feedback';
 import teamComparisonRoutes from './routes/team-comparison';
+import testEmailRoutes from './routes/test-email';
 import templatesRoutes from './routes/templates';
 import aiAutoAssignmentRoutes from './routes/ai-auto-assignment';
 import aiSmartPrioritizationRoutes from './routes/ai-smart-prioritization';
@@ -149,6 +150,7 @@ app.use('/api/roadmap', roadmapRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/epics', epicsRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/test-email', testEmailRoutes);
 
 // AI Test Automation routes
 app.use('/api/ai-test-automation/requirements', aiRequirementsRoutes);
