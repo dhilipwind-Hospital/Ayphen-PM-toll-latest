@@ -9,14 +9,10 @@ export class EmailService {
   private fromName: string;
 
   constructor() {
-    // For development, use Ethereal (fake SMTP service)
-    // In production, replace with real SMTP credentials (Gmail, SendGrid, etc.)
     this.fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@jiraclone.com';
-    this.fromName = process.env.SMTP_FROM_NAME || 'Jira Clone';
-    this.initializeTransporter();
-  }
-
-  private async initializeTransporter() {
+    this.fromName = process.env.SMTP_FROM_NAME || 'Ayphen Project Management';
+    
+    // Initialize transporter synchronously
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
       // Real SMTP configuration (Gmail, etc.)
       this.transporter = nodemailer.createTransport({
@@ -27,24 +23,24 @@ export class EmailService {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASSWORD,
         },
+        tls: {
+          rejectUnauthorized: false // Allow self-signed certificates
+        }
       });
-      console.log('📧 Email service initialized with Gmail SMTP');
+      console.log('📧 Email service initialized with SMTP');
       console.log('   Host:', process.env.SMTP_HOST);
+      console.log('   Port:', process.env.SMTP_PORT);
       console.log('   User:', process.env.SMTP_USER);
+      console.log('   From:', this.fromEmail);
     } else {
-      // Development: Use Ethereal for testing
-      const testAccount = await nodemailer.createTestAccount();
+      console.warn('⚠️  SMTP credentials not configured! Emails will NOT be sent.');
+      console.warn('   Required env vars: SMTP_HOST, SMTP_USER, SMTP_PASSWORD');
+      // Create a dummy transporter that will fail gracefully
       this.transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
+        host: 'localhost',
         port: 587,
         secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
       });
-      console.log('📧 Email service initialized with Ethereal (test mode)');
-      console.log('   User:', testAccount.user);
     }
   }
 
