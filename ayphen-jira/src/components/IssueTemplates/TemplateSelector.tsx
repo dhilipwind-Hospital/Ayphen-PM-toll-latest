@@ -27,7 +27,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({ projectId, o
     setLoading(true);
     try {
       const params = projectId ? { projectId } : {};
-      const { data } = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/issue-templates', { params });
+      const { data } = await api.get('/issue-templates', { params });
       setTemplates(data);
     } catch (error) {
       console.error('Failed to load templates:', error);

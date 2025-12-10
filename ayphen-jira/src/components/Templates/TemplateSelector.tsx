@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Spin, message, Card, Tag, Empty, Input, Tabs } from 'antd';
 import { FileText, Sparkles, Star, TrendingUp } from 'lucide-react';
 import styled from 'styled-components';
-import axios from 'axios';
+import { api } from '../../services/api';
 
 const { Search: AntSearch } = Input;
 const { TabPane } = Tabs;
@@ -202,7 +202,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/templates`, {
+      const response = await api.get('/templates', {
         params: { issueType }
       });
       setTemplates(response.data.templates || []);
