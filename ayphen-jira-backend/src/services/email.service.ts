@@ -264,24 +264,33 @@ export class EmailService {
       // Get email template
       const { subject, html } = this.getEmailTemplate(type, data);
 
-      // Send email
-      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
-      const fromName = process.env.SMTP_FROM_NAME || 'Jira Clone';
-      const info = await this.transporter.sendMail({
-        from: `"${fromName}" <${fromEmail}>`,
-        to: user.email,
-        subject,
-        html,
-      });
+      // Try SendGrid Web API first (more reliable), fallback to SMTP
+      try {
+        const { sendGridService } = await import('./sendgrid.service');
+        await sendGridService.sendEmail(user.email, subject, html);
+        console.log(`📧 Email sent to ${user.email} via SendGrid`);
+      } catch (sendGridError) {
+        console.warn('SendGrid failed, trying SMTP fallback:', sendGridError);
+        
+        // Fallback to SMTP
+        const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
+        const fromName = process.env.SMTP_FROM_NAME || 'Ayphen Project Management';
+        const info = await this.transporter.sendMail({
+          from: `"${fromName}" <${fromEmail}>`,
+          to: user.email,
+          subject,
+          html,
+        });
 
-      console.log(`📧 Email sent to ${user.email}: ${info.messageId}`);
-      
-      // In development, log preview URL
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('   Preview URL:', nodemailer.getTestMessageUrl(info));
+        console.log(`📧 Email sent to ${user.email} via SMTP: ${info.messageId}`);
+        
+        // In development, log preview URL
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('   Preview URL:', nodemailer.getTestMessageUrl(info));
+        }
       }
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('Error sending notification email:', error);
     }
   }
 
