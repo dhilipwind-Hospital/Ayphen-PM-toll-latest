@@ -216,7 +216,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
   const fetchPopularTemplates = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/templates/stats/popular`, {
+      const response = await api.get('/templates/stats/popular', {
         params: { limit: 5 }
       });
       setPopularTemplates(response.data.templates || []);
@@ -233,7 +233,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     }
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/templates/search/query`, {
+      const response = await api.get('/templates/search/query', {
         params: { q: query }
       });
       setTemplates(response.data.templates || []);
