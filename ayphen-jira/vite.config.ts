@@ -18,5 +18,18 @@ export default defineConfig({
         ws: true
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom', 'zustand'],
+          'vendor-ui': ['antd', 'styled-components', 'lucide-react', 'framer-motion'],
+          'vendor-charts': ['recharts', 'reactflow'],
+          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities', 'react-beautiful-dnd', 'react-grid-layout'],
+          'vendor-utils': ['axios', 'dayjs', 'date-fns', 'socket.io-client', '@tanstack/react-query']
+        }
+      }
+    }
   }
 })
