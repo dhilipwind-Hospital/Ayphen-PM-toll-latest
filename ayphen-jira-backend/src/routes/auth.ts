@@ -17,6 +17,25 @@ const SESSION_TTL = 86400; // 24 hours
 const sessions = new Map<string, any>();
 const resetTokens = new Map<string, string>();
 
+// GET /api/auth/env-check - Check if environment variables are set
+router.get('/env-check', (req, res) => {
+  const envStatus = {
+    FRONTEND_URL: process.env.FRONTEND_URL ? '✅ Set' : '❌ Not set',
+    SMTP_HOST: process.env.SMTP_HOST ? '✅ Set' : '❌ Not set',
+    SMTP_USER: process.env.SMTP_USER ? '✅ Set' : '❌ Not set',
+    SMTP_PASSWORD: process.env.SMTP_PASSWORD ? '✅ Set' : '❌ Not set',
+    SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL ? '✅ Set' : '❌ Not set',
+    DATABASE_URL: process.env.DATABASE_URL ? '✅ Set' : '❌ Not set',
+    values: {
+      FRONTEND_URL: process.env.FRONTEND_URL || 'NOT SET',
+      SMTP_HOST: process.env.SMTP_HOST || 'NOT SET',
+      SMTP_USER: process.env.SMTP_USER || 'NOT SET',
+      SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL || 'NOT SET',
+    }
+  };
+  res.json(envStatus);
+});
+
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
