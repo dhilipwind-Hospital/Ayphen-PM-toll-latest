@@ -31,7 +31,7 @@ const Header = styled.div`
 const ProjectBadge = styled.div`
   width: 40px;
   height: 40px;
-  background: #1890ff;
+  background: #EC4899;
   color: white;
   border-radius: 6px;
   display: flex;
@@ -328,7 +328,7 @@ const SortableCard: React.FC<SortableCardProps> = ({ issue, onClick }) => {
             )}
           </IssueMeta>
           {issue.assignee && (
-            <Avatar size="small" style={{ background: '#1890ff' }}>
+            <Avatar size="small" style={{ background: '#EC4899' }}>
               {issue.assignee.name.charAt(0)}
             </Avatar>
           )}
@@ -349,7 +349,7 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ status, children }) =
   });
 
   return (
-    <div ref={setNodeRef} style={{ minHeight: '200px', background: isOver ? '#f0f5ff' : 'transparent', borderRadius: '8px', padding: '8px', transition: 'all 0.2s' }}>
+    <div ref={setNodeRef} style={{ minHeight: '200px', background: isOver ? '#FCE7F3' : 'transparent', borderRadius: '8px', padding: '8px', transition: 'all 0.2s' }}>
       {children}
     </div>
   );
