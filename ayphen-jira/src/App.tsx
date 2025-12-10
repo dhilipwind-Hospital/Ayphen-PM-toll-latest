@@ -64,6 +64,9 @@ import AIFeaturesTestPage from './pages/AIFeaturesTestPage';
 import Phase2TestPage from './pages/Phase2TestPage';
 import { socketService } from './services/socketService';
 
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
+import { EmailVerificationHandler } from './pages/EmailVerificationHandler';
+
 function App() {
   const { currentUser, currentProject, setCurrentUser, setProjects, setCurrentProject, setIssues, setBoards, setSprints, setCurrentBoard } = useStore();
 
@@ -237,6 +240,8 @@ function App() {
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
                     <Route path="/accept-invitation/:token" element={<AcceptInvitation />} />
+                    <Route path="/verify-email" element={<VerifyEmailPage />} />
+                    <Route path="/auth/verify-email" element={<EmailVerificationHandler />} />
 
                     {/* All other routes require authentication */}
                     <Route path="/*" element={
