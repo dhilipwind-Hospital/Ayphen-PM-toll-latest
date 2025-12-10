@@ -19,6 +19,7 @@ interface User {
   language?: string;
   dateFormat?: string;
   timeFormat?: string;
+  isVerified?: boolean;
 }
 
 interface AuthContextType {
@@ -99,17 +100,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
 
-      // 🔒 Store userId separately for API calls
-      localStorage.setItem('sessionId', response.data.sessionId);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      localStorage.setItem('userId', response.data.user.id);
-      
-      setUser(response.data.user);
-      setCurrentUser(response.data.user); // Sync with store
-      
-      console.log('✅ Registration successful - userId:', response.data.user.id);
-      message.success('Registration successful!');
-      navigate('/dashboard');
+      // Registration successful but user needs to verify email
+      if (response.data.requiresVerification) {
+        console.log('✅ Registration successful - verification required');
+        message.success({
+          content: response.data.message || 'Registration successful! Please check your email to verify your account.',
+          duration: 5,
+        });
+        // Redirect to verify-email page with email in state
+        navigate('/verify-email', { state: { email: response.data.email } });
+      } else {
+        // Legacy fallback (shouldn't happen with new backend)
+        localStorage.setItem('sessionId', response.data.sessionId);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('userId', response.data.user.id);
+        setUser(response.data.user);
+        setCurrentUser(response.data.user);
+        message.success('Registration successful!');
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       message.error(error.response?.data?.error || 'Registration failed');
       throw error;

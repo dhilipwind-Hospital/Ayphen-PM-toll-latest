@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Card, Tag, Avatar, Button, Select, message, Dropdown, Space, Badge } from 'antd';
-import { Plus, Filter, Star, Settings, MoreHorizontal, Users, Flag, Grid } from 'lucide-react';
+import { Plus, Filter, Star, Settings, MoreHorizontal, Users, Flag, Grid, List } from 'lucide-react';
 import { DndContext, useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { useStore } from '../store/useStore';
+import { BoardSettingsModal } from '../components/Board/BoardSettingsModal';
 import { issuesApi, workflowsApi } from '../services/api';
 import { colors } from '../theme/colors';
 
@@ -21,22 +22,86 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  border: 1px solid ${colors.border.light};
 `;
 
-const Title = styled.h1`
-  font-size: 24px;
+const ProjectBadge = styled.div`
+  width: 40px;
+  height: 40px;
+  background: #1890ff;
+  color: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-right: 12px;
+`;
+
+const ProjectInfo = styled.div`
+  display: flex;
+  align-items: center;
+  margin-right: 24px;
+`;
+
+const ProjectDetails = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const ProjectName = styled.div`
   font-weight: 600;
+  font-size: 16px;
   color: ${colors.text.primary};
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
 `;
 
-const Controls = styled.div`
+const ProjectType = styled.div`
+  font-size: 12px;
+  color: ${colors.text.secondary};
+`;
+
+const ViewToggle = styled.div`
+  display: flex;
+  background: white;
+  border: 1px solid ${colors.border.light};
+  border-radius: 6px;
+  padding: 2px;
+  margin-left: 12px;
+`;
+
+const ViewButton = styled.button<{ active?: boolean }>`
+  border: none;
+  background: ${props => props.active ? '#8B5CF6' : 'transparent'};
+  color: ${props => props.active ? 'white' : colors.text.secondary};
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${props => props.active ? '#7C3AED' : colors.background.sidebar};
+  }
+`;
+
+const FilterGroup = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
+`;
+
+const StyledSelect = styled(Select)`
+  min-width: 140px;
+  .ant-select-selector {
+    border-radius: 6px !important;
+  }
 `;
 
 const QuickFilters = styled.div`
@@ -291,12 +356,15 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ status, children }) =
 
 export const EnhancedBoardView: React.FC = () => {
   const navigate = useNavigate();
-  const { issues, currentBoard, updateIssue } = useStore();
+  const { issues, currentBoard, updateIssue, currentProject, sprints } = useStore();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [workflow, setWorkflow] = useState<any>(null);
   const [groupBy, setGroupBy] = useState<string>('none');
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [wipLimits, setWIPLimits] = useState<Record<string, number>>({});
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState('columns');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -340,9 +408,31 @@ export const EnhancedBoardView: React.FC = () => {
 
   const filteredIssues = useMemo(() => {
     let filtered = issues;
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+    // Filter by Project first
+    if (currentProject) {
+      filtered = filtered.filter(i => i.projectId === currentProject.id);
+    }
+
+    // Scrum Logic: Only show issues in active sprints
+    if (currentProject?.type === 'scrum') {
+      const activeSprint = sprints.find(s => s.status === 'active' && s.projectId === currentProject.id);
+      if (activeSprint) {
+        filtered = filtered.filter(i => i.sprintId === activeSprint.id);
+      } else {
+        // If no active sprint, show nothing or empty state (technically board is empty)
+        filtered = [];
+      }
+    } else {
+      // Kanban Logic: Filter out 'backlog' status if needed, or keep all
+      // Typically Kanban boards show everything except maybe backlog if it's a separate view
+      // For now, let's exclude 'backlog' status from the main board to match Jira behavior
+      filtered = filtered.filter(i => i.status !== 'backlog');
+    }
 
     if (activeFilters.includes('my-issues')) {
-      filtered = filtered.filter(i => i.assignee?.id === 'current-user');
+      filtered = filtered.filter(i => i.assignee?.id === currentUser.id);
     }
     if (activeFilters.includes('high-priority')) {
       filtered = filtered.filter(i => i.priority === 'high' || i.priority === 'highest');
@@ -355,7 +445,7 @@ export const EnhancedBoardView: React.FC = () => {
     }
 
     return filtered;
-  }, [issues, activeFilters]);
+  }, [issues, activeFilters, currentProject, sprints]);
 
   const groupedIssues = useMemo(() => {
     if (groupBy === 'none') {
@@ -436,29 +526,60 @@ export const EnhancedBoardView: React.FC = () => {
         onDragEnd={handleDragEnd}
       >
         <Header>
-          <Title>
-            {currentBoard?.name || 'Ayphen Platform Board'}
-            <Star size={20} style={{ cursor: 'pointer', color: '#faad14' }} />
-          </Title>
-          <Controls>
-            <Select
-              placeholder="Group by"
-              style={{ width: 150 }}
-              value={groupBy}
-              onChange={setGroupBy}
-              options={[
-                { label: 'None', value: 'none' },
-                { label: 'Assignee', value: 'assignee' },
-                { label: 'Priority', value: 'priority' },
-                { label: 'Epic', value: 'epic' },
-              ]}
-            />
-            <Button icon={<Filter size={16} />}>Filters</Button>
-            <Dropdown menu={boardSettingsMenu}>
-              <Button icon={<Settings size={16} />}>Board settings</Button>
-            </Dropdown>
-            <Button icon={<MoreHorizontal size={16} />} />
-          </Controls>
+          <ProjectInfo>
+            <ProjectBadge>
+              {currentProject?.key?.substring(0, 3) || 'PRJ'}
+            </ProjectBadge>
+            <ProjectDetails>
+              <ProjectName>{currentProject?.name || 'Project Board'}</ProjectName>
+              <ProjectType>{currentProject?.type === 'scrum' ? 'Scrum Project' : 'Kanban Project'}</ProjectType>
+            </ProjectDetails>
+          </ProjectInfo>
+
+          <FilterGroup>
+            <StyledSelect
+              placeholder="All Priority"
+              mode="multiple"
+              allowClear
+              maxTagCount="responsive"
+            >
+              <Select.Option value="highest">Highest</Select.Option>
+              <Select.Option value="high">High</Select.Option>
+              <Select.Option value="medium">Medium</Select.Option>
+              <Select.Option value="low">Low</Select.Option>
+              <Select.Option value="lowest">Lowest</Select.Option>
+            </StyledSelect>
+
+            <StyledSelect
+              placeholder="All Types"
+              mode="multiple"
+              allowClear
+              maxTagCount="responsive"
+            >
+              <Select.Option value="epic">Epic</Select.Option>
+              <Select.Option value="story">Story</Select.Option>
+              <Select.Option value="task">Task</Select.Option>
+              <Select.Option value="bug">Bug</Select.Option>
+            </StyledSelect>
+
+            <StyledSelect
+              placeholder="All Assignees"
+              mode="multiple"
+              allowClear
+              maxTagCount="responsive"
+            >
+              {/* Assignees will be populated dynamically */}
+            </StyledSelect>
+
+            <ViewToggle>
+              <ViewButton active={viewMode === 'grid'} onClick={() => setViewMode('grid')}>
+                <Grid size={18} />
+              </ViewButton>
+              <ViewButton active={viewMode === 'list'} onClick={() => setViewMode('list')}>
+                <List size={18} />
+              </ViewButton>
+            </ViewToggle>
+          </FilterGroup>
         </Header>
 
         <QuickFilters>
@@ -555,6 +676,12 @@ export const EnhancedBoardView: React.FC = () => {
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      <BoardSettingsModal 
+        open={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)}
+        initialTab={settingsTab}
+      />
     </Container>
   );
 };
