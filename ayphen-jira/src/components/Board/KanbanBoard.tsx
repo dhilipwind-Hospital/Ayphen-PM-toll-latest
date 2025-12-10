@@ -212,7 +212,7 @@ export const KanbanBoard: React.FC = () => {
         assigneeId: values.assignee,
         storyPoints: values.storyPoints || 1,
         labels: values.labels || [],
-        status: selectedColumn === 'todo' ? 'todo' : selectedColumn === 'inprogress' ? 'in-progress' : selectedColumn === 'review' ? 'in-review' : 'done',
+        status: 'backlog', // Always create in backlog, user can move it later
         projectId: currentProject?.id
       };
 

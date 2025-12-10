@@ -296,11 +296,12 @@ export const IssueDetailView: React.FC = () => {
     if (!issue || !newComment.trim()) return;
 
     try {
+      const realUserId = currentUser?.id || JSON.parse(localStorage.getItem('currentUser') || '{}').id || localStorage.getItem('userId');
       const response = await commentsApi.create({
         issueId: issue.id,
         content: newComment,
-        authorId: currentUser?.id || 'current-user',
-        author: currentUser?.name || 'Unknown',
+        authorId: realUserId,
+        author: currentUser?.name || JSON.parse(localStorage.getItem('currentUser') || '{}').name || 'Unknown',
       });
       setComments([...comments, response.data]);
       setNewComment('');
@@ -309,7 +310,7 @@ export const IssueDetailView: React.FC = () => {
       // Create history entry for comment
       await historyApi.create({
         issueId: issue.id,
-        userId: currentUser?.id || 'current-user',
+        userId: realUserId,
         field: 'comment',
         oldValue: '',
         newValue: newComment.substring(0, 100) + (newComment.length > 100 ? '...' : ''),
