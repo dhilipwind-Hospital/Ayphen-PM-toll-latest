@@ -259,6 +259,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [form] = Form.useForm();
   const [project, setProject] = useState<any>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState("");
 
   const [error, setError] = useState<string | null>(null);
 
@@ -744,7 +746,45 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   style={{ marginRight: 8 }}
                 />
                 <IssueKey>{issue?.key}</IssueKey>
-                <IssueTitle>{issue?.summary}</IssueTitle>
+                {editingTitle ? (
+                  <Input
+                    value={titleValue}
+                    onChange={(e) => setTitleValue(e.target.value)}
+                    onBlur={async () => {
+                      if (titleValue && titleValue !== issue.summary) {
+                        await issuesApi.update(issue.id, { summary: titleValue });
+                        message.success('Title updated');
+                        loadIssueData();
+                      }
+                      setEditingTitle(false);
+                    }}
+                    onPressEnter={async () => {
+                      if (titleValue && titleValue !== issue.summary) {
+                        await issuesApi.update(issue.id, { summary: titleValue });
+                        message.success('Title updated');
+                        loadIssueData();
+                      }
+                      setEditingTitle(false);
+                    }}
+                    autoFocus
+                    style={{ flex: 1, fontSize: 20, fontWeight: 700 }}
+                  />
+                ) : (
+                  <>
+                    <IssueTitle title={issue?.summary}>{issue?.summary}</IssueTitle>
+                    <Tooltip title="Edit title">
+                      <Button
+                        icon={<Edit size={14} />}
+                        type="text"
+                        size="small"
+                        onClick={() => {
+                          setTitleValue(issue?.summary || '');
+                          setEditingTitle(true);
+                        }}
+                      />
+                    </Tooltip>
+                  </>
+                )}
               </IssueTitleRow>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
                 <Tooltip title="Copy link to clipboard">
