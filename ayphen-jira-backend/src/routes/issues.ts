@@ -170,6 +170,11 @@ router.post('/', async (req, res) => {
       console.log('🔑 Generated issue key:', req.body.key);
     }
     
+    // Force status to backlog for new issues if not specified or todo
+    if (!req.body.status || req.body.status === 'todo') {
+      req.body.status = 'backlog';
+    }
+    
     // Validate assigneeId - if invalid or placeholder, set to null
     if (req.body.assigneeId && !req.body.assigneeId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
       console.log('⚠️  Invalid assigneeId, setting to null:', req.body.assigneeId);

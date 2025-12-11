@@ -161,6 +161,7 @@ export const EpicsListView: React.FC = () => {
       width: 120,
       render: (status: string) => {
         const statusColors: Record<string, string> = {
+          'backlog': 'purple',
           'todo': 'default',
           'in-progress': 'processing',
           'done': 'success',
