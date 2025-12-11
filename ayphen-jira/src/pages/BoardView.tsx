@@ -209,6 +209,12 @@ const IssueSummary = styled.div`
   margin-bottom: 12px;
   line-height: 1.4;
   cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  max-height: 2.8em;
   
   &:hover {
     color: #0052CC;

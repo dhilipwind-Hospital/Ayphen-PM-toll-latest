@@ -113,6 +113,9 @@ const IssueSummary = styled.span`
   font-weight: 500;
   color: ${colors.text.primary};
   flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const IssueMeta = styled.div`
