@@ -9,7 +9,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { useStore } from '../store/useStore';
 import { BoardSettingsModal } from '../components/Board/BoardSettingsModal';
-import { issuesApi, workflowsApi } from '../services/api';
+import { issuesApi, workflowsApi, sprintsApi } from '../services/api';
 import { colors } from '../theme/colors';
 
 const Container = styled.div`
@@ -366,11 +366,14 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ status, children }) =
 
 export const EnhancedBoardView: React.FC = () => {
   const navigate = useNavigate();
-  const { issues, currentBoard, updateIssue, currentProject, sprints } = useStore();
+  const { issues, currentBoard, updateIssue, currentProject, sprints, setIssues, setSprints, currentUser } = useStore();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [workflow, setWorkflow] = useState<any>(null);
   const [groupBy, setGroupBy] = useState<string>('none');
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [filterPriority, setFilterPriority] = useState<string[]>([]);
+  const [filterType, setFilterType] = useState<string[]>([]);
+  const [filterAssignee, setFilterAssignee] = useState<string[]>([]);
   const [wipLimits, setWIPLimits] = useState<Record<string, number>>({});
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState('columns');
@@ -388,6 +391,28 @@ export const EnhancedBoardView: React.FC = () => {
   useEffect(() => {
     loadDefaultWorkflow();
   }, []);
+
+  useEffect(() => {
+    if (currentProject) {
+      loadData();
+    }
+  }, [currentProject]);
+
+  const loadData = async () => {
+    if (!currentProject) return;
+
+    try {
+      const userId = currentUser?.id || localStorage.getItem('userId');
+      const [issuesResponse, sprintsResponse] = await Promise.all([
+        issuesApi.getAll({ projectId: currentProject.id, userId: userId || undefined }),
+        sprintsApi.getAll(currentProject.id, userId || undefined)
+      ]);
+      setIssues(issuesResponse.data);
+      setSprints(sprintsResponse.data);
+    } catch (error) {
+      console.error('Failed to load board data:', error);
+    }
+  };
 
   const loadDefaultWorkflow = async () => {
     try {
@@ -445,6 +470,16 @@ export const EnhancedBoardView: React.FC = () => {
       // For now, let's exclude 'backlog' status from the main board to match Jira behavior
       filtered = filtered.filter(i => i.status !== 'backlog');
     }
+
+    // Apply Dropdown Filters
+    if (filterPriority.length > 0) {
+      filtered = filtered.filter(i => filterPriority.includes(i.priority));
+    }
+    if (filterType.length > 0) {
+      filtered = filtered.filter(i => filterType.includes(i.type));
+    }
+    // Assignee filter can be added similarly if we had a list of users
+
 
     if (activeFilters.includes('my-issues')) {
       filtered = filtered.filter(i => i.assignee?.id === currentUser.id);
@@ -557,6 +592,8 @@ export const EnhancedBoardView: React.FC = () => {
               mode="multiple"
               allowClear
               maxTagCount="responsive"
+              value={filterPriority}
+              onChange={setFilterPriority}
             >
               <Select.Option value="highest">Highest</Select.Option>
               <Select.Option value="high">High</Select.Option>
@@ -570,6 +607,8 @@ export const EnhancedBoardView: React.FC = () => {
               mode="multiple"
               allowClear
               maxTagCount="responsive"
+              value={filterType}
+              onChange={setFilterType}
             >
               <Select.Option value="epic">Epic</Select.Option>
               <Select.Option value="story">Story</Select.Option>
