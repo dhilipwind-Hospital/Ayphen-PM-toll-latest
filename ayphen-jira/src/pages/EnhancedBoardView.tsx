@@ -427,9 +427,14 @@ export const EnhancedBoardView: React.FC = () => {
 
     // Scrum Logic: Only show issues in active sprints
     if (currentProject?.type === 'scrum') {
-      const activeSprint = sprints.find(s => s.status === 'active' && s.projectId === currentProject.id);
-      if (activeSprint) {
-        filtered = filtered.filter(i => i.sprintId === activeSprint.id);
+      // Get ALL active sprints for this project
+      const activeSprintIds = sprints
+        .filter(s => s.status === 'active' && s.projectId === currentProject.id)
+        .map(s => s.id);
+      
+      if (activeSprintIds.length > 0) {
+        // Show issues from ANY active sprint
+        filtered = filtered.filter(i => i.sprintId && activeSprintIds.includes(i.sprintId));
       } else {
         // If no active sprint, show nothing or empty state (technically board is empty)
         filtered = [];
