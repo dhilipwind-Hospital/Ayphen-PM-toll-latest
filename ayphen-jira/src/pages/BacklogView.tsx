@@ -429,8 +429,9 @@ export const BacklogView: React.FC = () => {
             message.warning('Scope change: Issue added to active sprint');
           }
         }
-        await issuesApi.update(activeIssue.id, { sprintId: targetSprintId });
-        updateIssue(activeIssue.id, { sprintId: targetSprintId });
+        const newStatus = targetSprintId ? "todo" : "backlog";
+        await issuesApi.update(activeIssue.id, { sprintId: targetSprintId, status: newStatus });
+        updateIssue(activeIssue.id, { sprintId: targetSprintId, status: newStatus });
         message.success(`Issue moved to ${targetSprintId ? 'sprint' : 'backlog'}`);
       } catch (error) {
         message.error('Failed to move issue');
@@ -583,7 +584,7 @@ export const BacklogView: React.FC = () => {
                     )}
                     <Dropdown
                       menu={{
-                        items: [
+                        items: sprint.status === "active" ? [{ key: "info", label: "Active sprint cannot be deleted", disabled: true }] : [
                           {
                             key: 'delete',
                             label: 'Delete Sprint',
