@@ -358,7 +358,7 @@ export const RoadmapView: React.FC = () => {
         summary: values.summary,
         description: values.description || '',
         type: 'epic',
-        status: 'todo',
+        status: 'backlog',
         priority: values.priority || 'medium',
         projectId: currentProject.id,
         reporterId: currentUser?.id,

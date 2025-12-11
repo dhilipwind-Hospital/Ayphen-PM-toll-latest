@@ -139,7 +139,7 @@ export const RetrospectiveModal: React.FC<RetrospectiveModalProps> = ({
   const addActionItem = () => {
     setActionItems([
       ...actionItems,
-      { task: '', assigneeId: '', status: 'todo', completed: false },
+      { task: '', assigneeId: '', status: 'backlog', completed: false },
     ]);
   };
 
@@ -169,7 +169,7 @@ export const RetrospectiveModal: React.FC<RetrospectiveModalProps> = ({
         const aiActionItems = (data.report.recommendations || []).map((rec: string) => ({
           task: rec,
           assigneeId: '',
-          status: 'todo',
+          status: 'backlog',
           completed: false
         }));
         setActionItems(aiActionItems);

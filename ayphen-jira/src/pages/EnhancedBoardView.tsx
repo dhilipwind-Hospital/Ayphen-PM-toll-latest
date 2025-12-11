@@ -324,7 +324,16 @@ const SortableCard: React.FC<SortableCardProps> = ({ issue, onClick }) => {
             </TypeIcon>
             <PriorityBadge priority={issue.priority} />
             {issue.storyPoints && (
-              <Tag color="blue">{issue.storyPoints} pts</Tag>
+              <span style={{ 
+                background: '#EC4899', 
+                color: 'white', 
+                padding: '2px 8px', 
+                borderRadius: '4px', 
+                fontSize: '12px', 
+                fontWeight: 600 
+              }}>
+                {issue.storyPoints} pts
+              </span>
             )}
           </IssueMeta>
           {issue.assignee && (
@@ -668,7 +677,16 @@ export const EnhancedBoardView: React.FC = () => {
                     </TypeIcon>
                     <PriorityBadge priority={activeIssue.priority} />
                     {activeIssue.storyPoints && (
-                      <Tag color="blue">{activeIssue.storyPoints} pts</Tag>
+                      <span style={{ 
+                        background: '#EC4899', 
+                        color: 'white', 
+                        padding: '2px 8px', 
+                        borderRadius: '4px', 
+                        fontSize: '12px', 
+                        fontWeight: 600 
+                      }}>
+                        {activeIssue.storyPoints} pts
+                      </span>
                     )}
                   </IssueMeta>
                 </IssueFooter>
