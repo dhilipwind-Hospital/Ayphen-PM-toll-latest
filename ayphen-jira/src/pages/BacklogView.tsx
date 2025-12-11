@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Button, Tag, Avatar, Input, Select, Modal, Form, DatePicker, message, Badge, Drawer } from 'antd';
-import { Plus, MoreHorizontal, GripVertical, Filter, X } from 'lucide-react';
+import { Card, Button, Tag, Avatar, Input, Select, Modal, Form, DatePicker, message, Badge, Drawer, Dropdown, Popconfirm } from 'antd';
+import { Plus, MoreHorizontal, GripVertical, Filter, X, Trash2 } from 'lucide-react';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
@@ -13,7 +13,6 @@ import { sprintsApi, issuesApi } from '../services/api';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { StartSprintModal } from '../components/Sprint/StartSprintModal';
 import { CompleteSprintModal } from '../components/Sprint/CompleteSprintModal';
-
 
 const Container = styled.div`
   padding: 24px;
@@ -148,9 +147,10 @@ const DropZone = styled.div<{ isOver?: boolean }>`
 interface SortableIssueProps {
   issue: any;
   onIssueClick: (issue: any) => void;
+  onDelete: (issueId: string) => void;
 }
 
-const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick }) => {
+const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick, onDelete }) => {
   const {
     attributes,
     listeners,
@@ -177,6 +177,26 @@ const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick }) =>
       <IssueKey>{issue.key}</IssueKey>
       <IssueSummary onClick={() => onIssueClick(issue)}>{issue.summary}</IssueSummary>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <Popconfirm
+          title="Delete Issue"
+          description="Are you sure you want to delete this issue?"
+          onConfirm={(e) => {
+            e?.stopPropagation();
+            onDelete(issue.id);
+          }}
+          onCancel={(e) => e?.stopPropagation()}
+          okText="Yes"
+          cancelText="No"
+        >
+          <Button
+            type="text"
+            size="small"
+            icon={<Trash2 size={14} />}
+            danger
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </Popconfirm>
         <Tag color={
           issue.priority === 'highest' ? 'red' :
             issue.priority === 'high' ? 'orange' :
@@ -226,6 +246,7 @@ export const BacklogView: React.FC = () => {
   const [completeSprintModalVisible, setCompleteSprintModalVisible] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState<any>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [sprintForm] = Form.useForm();
   const [filterDrawerVisible, setFilterDrawerVisible] = useState(false);
   const [filters, setFilters] = useState({
@@ -293,7 +314,7 @@ export const BacklogView: React.FC = () => {
     let result = currentProject
       ? issues.filter(issue =>
         issue.projectId === currentProject.id &&
-        (!issue.sprintId || issue.status === 'backlog')
+        !issue.sprintId
       )
       : issues.filter(issue => !issue.sprintId);
 
@@ -314,6 +335,8 @@ export const BacklogView: React.FC = () => {
   }, [issues, currentProject, filters.specialFilter]);
 
   const handleCreateSprint = async (values: any) => {
+    if (loading) return;
+    setLoading(true);
     try {
       const sprintData: any = {
         name: values.name,
@@ -338,6 +361,28 @@ export const BacklogView: React.FC = () => {
     } catch (error) {
       console.error('Failed to create sprint:', error);
       message.error('Failed to create sprint');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteSprint = async (sprintId: string) => {
+    try {
+      await sprintsApi.delete(sprintId);
+      setSprints(sprints.filter(s => s.id !== sprintId));
+      message.success('Sprint deleted successfully');
+    } catch (error) {
+      message.error('Failed to delete sprint');
+    }
+  };
+
+  const handleDeleteIssue = async (issueId: string) => {
+    try {
+      await issuesApi.delete(issueId);
+      setIssues(issues.filter(i => i.id !== issueId));
+      message.success('Issue deleted successfully');
+    } catch (error) {
+      message.error('Failed to delete issue');
     }
   };
 
@@ -360,6 +405,12 @@ export const BacklogView: React.FC = () => {
     // Only update if the sprint changed
     if (activeIssue.sprintId !== targetSprintId) {
       try {
+        if (targetSprintId) {
+          const targetSprint = sprints.find(s => s.id === targetSprintId);
+          if (targetSprint?.status === 'active') {
+            message.warning('Scope change: Issue added to active sprint');
+          }
+        }
         await issuesApi.update(activeIssue.id, { sprintId: targetSprintId });
         updateIssue(activeIssue.id, { sprintId: targetSprintId });
         message.success(`Issue moved to ${targetSprintId ? 'sprint' : 'backlog'}`);
@@ -500,6 +551,11 @@ export const BacklogView: React.FC = () => {
                         type="primary"
                         size="small"
                         onClick={() => {
+                          const activeSprint = sprints.find(s => s.status === 'active' && s.projectId === currentProject?.id);
+                          if (activeSprint) {
+                            message.warning('There is already an active sprint. Please complete it first.');
+                            return;
+                          }
                           setSelectedSprint(sprint);
                           setStartSprintModalVisible(true);
                         }}
@@ -507,7 +563,30 @@ export const BacklogView: React.FC = () => {
                         Start Sprint
                       </Button>
                     )}
-                    <Button size="small" icon={<MoreHorizontal size={16} />} style={{ marginLeft: 8 }} />
+                    <Dropdown
+                      menu={{
+                        items: [
+                          {
+                            key: 'delete',
+                            label: 'Delete Sprint',
+                            icon: <Trash2 size={16} />,
+                            danger: true,
+                            onClick: () => {
+                              Modal.confirm({
+                                title: 'Delete Sprint',
+                                content: 'Are you sure you want to delete this sprint? All issues will be moved to the backlog.',
+                                okText: 'Delete',
+                                okType: 'danger',
+                                onOk: () => handleDeleteSprint(sprint.id),
+                              });
+                            },
+                          },
+                        ],
+                      }}
+                      trigger={['click']}
+                    >
+                      <Button size="small" icon={<MoreHorizontal size={16} />} style={{ marginLeft: 8 }} />
+                    </Dropdown>
                   </div>
                 </SprintHeader>
               }
@@ -520,7 +599,7 @@ export const BacklogView: React.FC = () => {
                   <IssueList>
                     {sprintIssues.length > 0 ? (
                       sprintIssues.map(issue => (
-                        <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} />
+                        <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} onDelete={handleDeleteIssue} />
                       ))
                     ) : (
                       <div style={{ textAlign: 'center', color: colors.text.secondary, padding: '20px' }}>
@@ -546,7 +625,7 @@ export const BacklogView: React.FC = () => {
               <IssueList>
                 {backlogIssues.length > 0 ? (
                   backlogIssues.map(issue => (
-                    <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} />
+                    <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} onDelete={handleDeleteIssue} />
                   ))
                 ) : (
                   <div style={{ textAlign: 'center', color: colors.text.secondary, padding: '20px' }}>
