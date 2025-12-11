@@ -506,13 +506,13 @@ export const BacklogView: React.FC = () => {
                 Priority: {p}
               </Tag>
             ))}
-            <Button type="link" size="small" onClick={() => setFilters({ search: '', assignee: [], type: [], priority: [], status: [] })}>
+            <Button type="link" size="small" onClick={() => setFilters({ search: '', assignee: [], type: [], priority: [], status: [], specialFilter: 'all' })}>
               Clear all
             </Button>
           </ActiveFilters>
         )}
 
-        {sprints.map(sprint => {
+        {[...sprints].sort((a, b) => { const statusOrder = { active: 0, future: 1, closed: 2 }; return (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99); }).map(sprint => {
           const sprintIssues = getSprintIssues(sprint.id);
           const totalPoints = sprintIssues.reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
 
