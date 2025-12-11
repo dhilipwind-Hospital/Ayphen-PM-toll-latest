@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import { antdTheme } from './theme/theme';
-import { BoardView } from './pages/BoardView';
+import { EnhancedBoardView } from './pages/EnhancedBoardView';
 import { BacklogView } from './pages/BacklogView';
 import { RoadmapView } from './pages/RoadmapView';
 import { DashboardView } from './pages/DashboardView';
@@ -248,7 +248,7 @@ function App() {
                       <AuthenticatedLayout>
                         <Routes>
                           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                          <Route path="/board" element={<BoardView />} />
+                          <Route path="/board" element={<EnhancedBoardView />} />
                           <Route path="/board-kanban" element={<KanbanBoard />} />
                           <Route path="/backlog" element={<BacklogView />} />
                           <Route path="/roadmap" element={<RoadmapView />} />
