@@ -495,7 +495,7 @@ export const EnhancedBoardView: React.FC = () => {
     }
 
     return filtered;
-  }, [issues, activeFilters, currentProject, sprints]);
+  }, [issues, activeFilters, currentProject, sprints, filterPriority, filterType]);
 
   const groupedIssues = useMemo(() => {
     if (groupBy === 'none') {
@@ -553,7 +553,12 @@ export const EnhancedBoardView: React.FC = () => {
   };
 
   const getIssuesByStatus = (statusId: string, swimlaneIssues: any[]) => {
-    return swimlaneIssues.filter(issue => issue.status === statusId);
+    return swimlaneIssues.filter(issue => {
+      // Map 'backlog' status to 'todo' column for board display
+      // This ensures issues in active sprints appear on the board
+      const issueStatus = issue.status === 'backlog' ? 'todo' : issue.status;
+      return issueStatus === statusId;
+    });
   };
 
   const activeIssue = activeId ? issues.find(i => i.id === activeId) : null;
