@@ -133,7 +133,9 @@ const BoardContainer = styled.div`
 `;
 
 const Column = styled.div`
-  min-width: 300px;
+  min-width: 280px;
+  max-width: 320px;
+  flex: 1;
   background: ${colors.background.sidebar};
   border-radius: 8px;
   padding: 16px;
@@ -291,6 +293,62 @@ const SwimlaneHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+`;
+
+// List View Styled Components
+const ListView = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const ListRow = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: white;
+  border: 1px solid ${colors.border.light};
+  border-radius: 6px;
+  gap: 16px;
+  cursor: pointer;
+  
+  &:hover {
+    background: ${colors.background.hover};
+    border-color: ${colors.primary[300]};
+  }
+`;
+
+const ListKey = styled.span`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${colors.text.secondary};
+  min-width: 80px;
+`;
+
+const ListSummary = styled.span`
+  flex: 1;
+  font-size: 14px;
+  color: ${colors.text.primary};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const ListStatus = styled.span<{ status: string }>`
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: ${props => {
+    switch (props.status) {
+      case 'todo': return colors.status.todo;
+      case 'in-progress': return colors.status.inProgress;
+      case 'in-review': return colors.primary[400];
+      case 'done': return colors.status.done;
+      default: return colors.neutral[200];
+    }
+  }};
+  color: white;
+  font-weight: 500;
 `;
 
 interface SortableCardProps {
@@ -670,7 +728,24 @@ export const EnhancedBoardView: React.FC = () => {
           )}
         </QuickFilters>
 
-        {Object.entries(groupedIssues).map(([swimlaneName, swimlaneIssues]) => (
+        {viewMode === 'list' ? (
+          <ListView>
+            {filteredIssues.map(issue => (
+              <ListRow key={issue.id} onClick={() => navigate(`/issue/${issue.key}`)}>
+                <TypeIcon type={issue.type}>
+                  {issue.type.charAt(0).toUpperCase()}
+                </TypeIcon>
+                <ListKey>{issue.key}</ListKey>
+                <ListSummary title={issue.summary}>{issue.summary}</ListSummary>
+                <PriorityBadge priority={issue.priority} />
+                <ListStatus status={issue.status}>
+                  {issue.status?.replace('-', ' ').toUpperCase() || 'TODO'}
+                </ListStatus>
+              </ListRow>
+            ))}
+          </ListView>
+        ) : (
+          Object.entries(groupedIssues).map(([swimlaneName, swimlaneIssues]) => (
           <Swimlane key={swimlaneName}>
             {groupBy !== 'none' && (
               <SwimlaneHeader>
@@ -721,7 +796,8 @@ export const EnhancedBoardView: React.FC = () => {
               })}
             </BoardContainer>
           </Swimlane>
-        ))}
+        ))
+        )}
 
         <DragOverlay>
           {activeIssue ? (
