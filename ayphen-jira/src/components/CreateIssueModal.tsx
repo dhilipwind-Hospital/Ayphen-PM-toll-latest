@@ -162,11 +162,22 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
     setLoading(true);
     try {
+      // Determine the correct status based on sprint selection
+      // If a sprint is selected (especially active), use 'todo' instead of 'backlog'
+      let issueStatus = 'backlog';
+      if (values.sprintId) {
+        const selectedSprint = sprints.find(s => s.id === values.sprintId);
+        if (selectedSprint) {
+          // If sprint is active or future, set status to 'todo' so it appears on board
+          issueStatus = 'todo';
+        }
+      }
+      
       const baseData = {
         summary: values.summary,
         description: values.description || '',
         type: values.type,
-        status: 'todo',
+        status: issueStatus,
         priority: values.priority,
         projectId: currentProject.id,
         reporterId: currentUser.id,
@@ -453,6 +464,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
                   }}
                   size="small"
                   disabled={!summaryValue}
+                  hasContent={!!descriptionValue}
                 />
                 <VoiceDescriptionButton
                   issueType={selectedType as any}

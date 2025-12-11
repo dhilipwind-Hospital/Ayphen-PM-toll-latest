@@ -187,6 +187,9 @@ const IssueCard = styled(Card)`
   cursor: grab;
   border: 1px solid ${colors.border.light};
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  min-height: 100px;
+  max-height: 140px;
+  overflow: hidden;
   
   &:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -199,6 +202,7 @@ const IssueCard = styled(Card)`
 
   .ant-card-body {
     padding: 12px;
+    height: 100%;
   }
 `;
 

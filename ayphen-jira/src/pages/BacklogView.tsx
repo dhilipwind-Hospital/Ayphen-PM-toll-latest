@@ -336,10 +336,28 @@ export const BacklogView: React.FC = () => {
 
   const handleCreateSprint = async (values: any) => {
     if (loading) return;
+    
+    // Check for duplicate sprint names (case-insensitive, trimmed)
+    const trimmedName = values.name?.trim();
+    if (!trimmedName) {
+      message.error('Sprint name cannot be empty');
+      return;
+    }
+    
+    const duplicate = sprints.find(s => 
+      s.name.trim().toLowerCase() === trimmedName.toLowerCase() && 
+      s.projectId === currentProject?.id
+    );
+    
+    if (duplicate) {
+      message.error(`A sprint named "${duplicate.name}" already exists in this project.`);
+      return;
+    }
+    
     setLoading(true);
     try {
       const sprintData: any = {
-        name: values.name,
+        name: trimmedName,
         goal: values.goal || '',
         status: 'future',
         projectId: currentProject?.id || 'default-project',

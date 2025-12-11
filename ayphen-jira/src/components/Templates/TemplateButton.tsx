@@ -12,6 +12,7 @@ interface TemplateButtonProps {
   disabled?: boolean;
   size?: 'small' | 'middle' | 'large';
   block?: boolean;
+  hasContent?: boolean; // If true, shows "Template Applied" instead
 }
 
 /**
@@ -26,21 +27,27 @@ export const TemplateButton: React.FC<TemplateButtonProps> = ({
   epicId,
   disabled = false,
   size = 'middle',
-  block = false
+  block = false,
+  hasContent = false
 }) => {
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [templateUsed, setTemplateUsed] = useState(false);
+
+  // Button is disabled if already used or has content
+  const isDisabled = disabled || templateUsed || hasContent;
 
   return (
     <>
-      <Tooltip title="Use a pre-built template with AI auto-fill">
+      <Tooltip title={isDisabled ? "Template already applied" : "Use a pre-built template with AI auto-fill"}>
         <Button
           icon={<FileText size={16} />}
           onClick={() => setShowTemplateSelector(true)}
-          disabled={disabled}
+          disabled={isDisabled}
           size={size}
           block={block}
+          style={isDisabled ? { opacity: 0.6 } : undefined}
         >
-          Use Template
+          {templateUsed || hasContent ? 'Template Applied' : 'Use Template'}
         </Button>
       </Tooltip>
 
@@ -51,6 +58,7 @@ export const TemplateButton: React.FC<TemplateButtonProps> = ({
         issueSummary={issueSummary}
         onTemplateSelected={(description) => {
           onTemplateSelected(description);
+          setTemplateUsed(true);
           setShowTemplateSelector(false);
         }}
         projectId={projectId}
