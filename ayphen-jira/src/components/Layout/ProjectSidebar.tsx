@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Layout, Menu, Button, Modal, Form, Input, Select, message, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
@@ -188,10 +188,18 @@ const AddButton = styled(Button)`
 
 export const ProjectSidebar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentProject, sidebarCollapsed } = useStore();
   const [selectedKey, setSelectedKey] = useState('board');
   const [addItemModalVisible, setAddItemModalVisible] = useState(false);
   const [customItems, setCustomItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const path = location.pathname.split('/')[1];
+    if (path) {
+      setSelectedKey(path);
+    }
+  }, [location]);
 
   const menuItems: MenuProps['items'] = [
     {

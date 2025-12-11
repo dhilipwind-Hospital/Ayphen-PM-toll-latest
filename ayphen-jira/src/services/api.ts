@@ -98,6 +98,7 @@ export const sprintsApi = {
   getAll: (projectId?: string, userId?: string) => api.get('/sprints', { params: { projectId, userId } }),
   create: (data: any) => api.post('/sprints', data),
   update: (id: string, data: any) => api.put(`/sprints/${id}`, data),
+  delete: (id: string) => api.delete(`/sprints/${id}`),
   start: (id: string, data: any) => api.post(`/sprints/${id}/start`, data),
   complete: (id: string, data: any) => api.post(`/sprints/${id}/complete`, data),
   getReport: (id: string) => api.get(`/sprints/${id}/report`),

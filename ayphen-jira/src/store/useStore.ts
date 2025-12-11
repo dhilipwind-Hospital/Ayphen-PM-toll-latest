@@ -104,7 +104,14 @@ export const useStore = create<AppState>((set, get) => ({
   projects: [],
   currentProject: null,
   setProjects: (projects) => set({ projects }),
-  setCurrentProject: (project) => set({ currentProject: project }),
+  setCurrentProject: (project) => {
+    if (project) {
+      localStorage.setItem('currentProjectId', project.id);
+    } else {
+      localStorage.removeItem('currentProjectId');
+    }
+    set({ currentProject: project });
+  },
   addProject: (project) => set((state) => ({ projects: [...state.projects, project] })),
   updateProject: (id, updates) =>
     set((state) => ({

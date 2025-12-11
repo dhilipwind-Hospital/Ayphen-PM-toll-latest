@@ -64,6 +64,25 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// DELETE sprint
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Move issues to backlog (unassign sprintId)
+    const { Issue } = await import('../entities/Issue');
+    const issueRepo = AppDataSource.getRepository(Issue);
+    await issueRepo.update({ sprintId: id }, { sprintId: null as any });
+    
+    // Delete sprint
+    await sprintRepo.delete(id);
+    res.json({ message: 'Sprint deleted successfully' });
+  } catch (error) {
+    console.error('Failed to delete sprint:', error);
+    res.status(500).json({ error: 'Failed to delete sprint' });
+  }
+});
+
 // POST start sprint
 router.post('/:id/start', async (req, res) => {
   try {

@@ -119,8 +119,12 @@ function App() {
         if (projectsRes.status === 'fulfilled' && projectsRes.value.data) {
           const projects = projectsRes.value.data;
           setProjects(projects);
+          
           if (projects.length > 0) {
-            setCurrentProject(projects[0]);
+            const storedProjectId = localStorage.getItem('currentProjectId');
+            const targetProject = projects.find(p => p.id === storedProjectId);
+            // Use stored project if valid, otherwise default to first
+            setCurrentProject(targetProject || projects[0]);
           }
           console.log(`✅ Loaded ${projects.length} projects`);
         } else {
