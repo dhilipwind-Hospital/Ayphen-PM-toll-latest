@@ -149,6 +149,7 @@ interface SortableIssueProps {
   issue: any;
   onIssueClick: (issue: any) => void;
   onDelete: (issueId: string) => void;
+  onLinkToEpic?: (issue: any) => void;
 }
 
 const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick, onDelete }) => {
@@ -251,6 +252,10 @@ export const BacklogView: React.FC = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [sprintForm] = Form.useForm();
   const [filterDrawerVisible, setFilterDrawerVisible] = useState(false);
+  const [linkEpicModalVisible, setLinkEpicModalVisible] = useState(false);
+  const [issueToLink, setIssueToLink] = useState<any>(null);
+  const [epics, setEpics] = useState<any[]>([]);
+  const [selectedEpicId, setSelectedEpicId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     search: '',
     assignee: [] as string[],
@@ -417,6 +422,42 @@ export const BacklogView: React.FC = () => {
       message.success('Issue deleted successfully');
     } catch (error) {
       message.error('Failed to delete issue');
+    }
+  };
+
+  // Handle linking issue to epic
+  const handleOpenLinkEpicModal = async (issue: any) => {
+    setIssueToLink(issue);
+    // Load epics for this project
+    try {
+      const userId = currentUser?.id || localStorage.getItem('userId');
+      const response = await issuesApi.getAll({ 
+        projectId: currentProject?.id, 
+        type: 'epic',
+        userId: userId || undefined 
+      });
+      setEpics(response.data || []);
+    } catch (error) {
+      console.error('Failed to load epics:', error);
+      setEpics([]);
+    }
+    setLinkEpicModalVisible(true);
+  };
+
+  const handleLinkToEpic = async () => {
+    if (!issueToLink || !selectedEpicId) {
+      message.error('Please select an epic');
+      return;
+    }
+    try {
+      await issuesApi.update(issueToLink.id, { epicLink: selectedEpicId });
+      message.success('Issue linked to epic successfully');
+      setLinkEpicModalVisible(false);
+      setIssueToLink(null);
+      setSelectedEpicId(null);
+      loadData();
+    } catch (error) {
+      message.error('Failed to link issue to epic');
     }
   };
 
@@ -676,7 +717,7 @@ export const BacklogView: React.FC = () => {
                   <IssueList>
                     {sprintIssues.length > 0 ? (
                       sprintIssues.map(issue => (
-                        <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} onDelete={handleDeleteIssue} />
+                        <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} onDelete={handleDeleteIssue} onLinkToEpic={handleOpenLinkEpicModal} />
                       ))
                     ) : (
                       <div style={{ textAlign: 'center', color: colors.text.secondary, padding: '20px' }}>
@@ -702,7 +743,7 @@ export const BacklogView: React.FC = () => {
               <IssueList>
                 {backlogIssues.length > 0 ? (
                   backlogIssues.map(issue => (
-                    <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} onDelete={handleDeleteIssue} />
+                    <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} onDelete={handleDeleteIssue} onLinkToEpic={handleOpenLinkEpicModal} />
                   ))
                 ) : (
                   <div style={{ textAlign: 'center', color: colors.text.secondary, padding: '20px' }}>
@@ -797,6 +838,36 @@ export const BacklogView: React.FC = () => {
           message.success('Sprint completed successfully!');
         }}
       />
+
+      {/* Link to Epic Modal */}
+      <Modal
+        title="Link Issue to Epic"
+        open={linkEpicModalVisible}
+        onCancel={() => {
+          setLinkEpicModalVisible(false);
+          setIssueToLink(null);
+          setSelectedEpicId(null);
+        }}
+        onOk={handleLinkToEpic}
+        okText="Link"
+      >
+        <p>Link <strong>{issueToLink?.key}</strong> to an Epic:</p>
+        <Select
+          style={{ width: '100%' }}
+          placeholder="Select an Epic"
+          value={selectedEpicId}
+          onChange={(value) => setSelectedEpicId(value)}
+        >
+          {epics.map((epic: any) => (
+            <Select.Option key={epic.id} value={epic.id}>
+              {epic.key} - {epic.summary}
+            </Select.Option>
+          ))}
+        </Select>
+        {epics.length === 0 && (
+          <p style={{ color: '#999', marginTop: 8 }}>No epics found. Create an epic first.</p>
+        )}
+      </Modal>
     </Container>
   );
 };
