@@ -51,7 +51,8 @@ export async function syncAIStoryToIssue(
 ): Promise<any> {
   try {
     // Check if already synced
-    const existingIssues = await issuesApi.getAll({ projectId });
+    const userId = localStorage.getItem('userId');
+    const existingIssues = await issuesApi.getAll({ projectId, userId: userId || undefined });
     const alreadySynced = existingIssues.data?.find(
       (issue: any) => issue.aiStoryId === aiStory.id
     );
@@ -160,7 +161,8 @@ export async function updateIssueFromAIStory(
 ): Promise<void> {
   try {
     // Find linked issue
-    const existingIssues = await issuesApi.getAll({ projectId });
+    const userId = localStorage.getItem('userId');
+    const existingIssues = await issuesApi.getAll({ projectId, userId: userId || undefined });
     const linkedIssue = existingIssues.data?.find(
       (issue: any) => issue.aiStoryId === aiStory.id
     );

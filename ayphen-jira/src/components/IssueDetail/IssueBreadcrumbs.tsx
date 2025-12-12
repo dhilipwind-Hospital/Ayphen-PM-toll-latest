@@ -98,7 +98,8 @@ export const IssueBreadcrumbs: React.FC<IssueBreadcrumbsProps> = ({ issue, proje
              setEpicIssue(res.data);
         } else if (issue.epicLink) {
             // Fallback to plan's method or getById
-             const res = await issuesApi.getAll({ projectId: issue.projectId });
+             const userId = localStorage.getItem('userId');
+             const res = await issuesApi.getAll({ projectId: issue.projectId, userId: userId || undefined });
              const epic = res.data.find((i: any) => i.key === issue.epicLink || i.id === issue.epicLink);
              setEpicIssue(epic);
         }

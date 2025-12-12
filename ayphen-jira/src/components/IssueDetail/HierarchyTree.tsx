@@ -139,7 +139,8 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ issue }) => {
         
         // Get child stories
         try {
-            const res = await issuesApi.getAll({ epicLink: issue.id });
+            const userId = localStorage.getItem('userId');
+            const res = await issuesApi.getAll({ epicLink: issue.id, projectId: issue.projectId, userId: userId || undefined });
             const children = res.data || [];
             children.forEach((child: any) => {
                 nodes.push({ ...child, level: 1 });
