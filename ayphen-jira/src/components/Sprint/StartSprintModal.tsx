@@ -124,11 +124,10 @@ export const StartSprintModal: React.FC<StartSprintModalProps> = ({
         <Form.Item
           label="Sprint Goal"
           name="goal"
-          rules={[{ required: true, message: 'Please enter sprint goal' }]}
         >
           <Input.TextArea
             rows={3}
-            placeholder="What is the goal of this sprint?"
+            placeholder="What is the goal of this sprint? (optional)"
           />
         </Form.Item>
 
