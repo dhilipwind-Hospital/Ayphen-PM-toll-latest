@@ -426,31 +426,39 @@ export const BacklogView: React.FC = () => {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    
+    // Clear active drag state first
     setActiveId(null);
 
-    // If dropped outside any droppable area, do nothing
-    if (!over) return;
-
-    const activeIssue = issues.find(i => i.id === active.id);
-    if (!activeIssue) return;
-
-    // Determine target sprint ID - use null for backlog for consistent comparison
-    const targetSprintId = over.id === 'backlog' ? null : over.id as string;
-    
-    // Normalize current sprint ID (undefined, null, or empty string all mean "no sprint")
-    const currentSprintId = activeIssue.sprintId || null;
-
-    // Only update if the sprint actually changed
-    if (currentSprintId === targetSprintId) {
-      return; // No change - dropped in same location
+    // If dropped outside any droppable area, reload to ensure consistency
+    if (!over) {
+      loadData(); // Reload to prevent any UI inconsistencies
+      return;
     }
 
-    // Store original state for rollback
+    const activeIssue = issues.find(i => i.id === active.id);
+    if (!activeIssue) {
+      loadData(); // Reload if issue not found
+      return;
+    }
+
+    // Determine target - use null for backlog, string ID for sprint
+    const targetSprintId = over.id === 'backlog' ? null : String(over.id);
+    
+    // Normalize current sprint ID
+    const currentSprintId = activeIssue.sprintId || null;
+
+    // If dropped in same location, no action needed
+    if (currentSprintId === targetSprintId) {
+      return;
+    }
+
+    // Store original for rollback
     const originalSprintId = activeIssue.sprintId;
     const originalStatus = activeIssue.status;
     const newStatus = targetSprintId ? "todo" : "backlog";
 
-    // Optimistically update UI first
+    // Optimistic update
     updateIssue(activeIssue.id, { 
       sprintId: targetSprintId as any, 
       status: newStatus as any 
@@ -464,9 +472,11 @@ export const BacklogView: React.FC = () => {
         }
       }
       
-      // Make API call to persist
       await issuesApi.update(activeIssue.id, { sprintId: targetSprintId, status: newStatus });
       message.success(`Issue moved to ${targetSprintId ? 'sprint' : 'backlog'}`);
+      
+      // Reload data to ensure UI is in sync with backend
+      loadData();
     } catch (error) {
       // Rollback on error
       updateIssue(activeIssue.id, { 
@@ -474,6 +484,7 @@ export const BacklogView: React.FC = () => {
         status: originalStatus 
       });
       message.error('Failed to move issue');
+      loadData(); // Reload to ensure consistency
     }
   };
 

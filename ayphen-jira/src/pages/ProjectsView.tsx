@@ -90,7 +90,7 @@ export const ProjectsView: React.FC = () => {
                 navigate('/board');
               }}>
                 <ProjectHeader>
-                  <ProjectAvatar>{project.key}</ProjectAvatar>
+                  <ProjectAvatar>{project.key?.substring(0, 3)}</ProjectAvatar>
                   <ProjectName>{project.name}</ProjectName>
                   {project.isStarred && (
                     <Star size={16} fill={colors.status.warning.main} color={colors.status.warning.main} />

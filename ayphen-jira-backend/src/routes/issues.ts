@@ -259,6 +259,34 @@ router.put('/:id', async (req, res) => {
       relations: ['reporter', 'assignee', 'project'],
     });
 
+    // Record history for field changes
+    const userId = req.body.updatedBy || 'system';
+    const changedFields = Object.keys(req.body).filter(key => 
+      key !== 'updatedBy' && existingIssue[key] !== req.body[key]
+    );
+    
+    for (const field of changedFields) {
+      try {
+        const historyEntry = {
+          id: `history-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          issueId: req.params.id,
+          userId,
+          field,
+          oldValue: JSON.stringify(existingIssue[field]),
+          newValue: JSON.stringify(req.body[field]),
+          changeType: 'field_change',
+          projectId: existingIssue.projectId,
+          createdAt: new Date().toISOString(),
+        };
+        // Store in global history array (imported from history route)
+        if (global.historyEntries) {
+          global.historyEntries.push(historyEntry);
+        }
+      } catch (historyError) {
+        console.error('Failed to record history:', historyError);
+      }
+    }
+
     // Notify via WebSocket
     if (websocketService && updatedIssue) {
       const userId = req.body.updatedBy || 'system'; // Client should send updatedBy

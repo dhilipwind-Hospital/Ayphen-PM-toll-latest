@@ -104,8 +104,10 @@ export const OrphanedIssuesWidget: React.FC = () => {
     setLoading(true);
     try {
       // @ts-ignore
+      const userId = localStorage.getItem('userId');
       const response = await issuesApi.getAll({ 
-        projectId: currentProject?.id 
+        projectId: currentProject?.id,
+        userId: userId || undefined
       });
       
       const allIssues = response.data || [];

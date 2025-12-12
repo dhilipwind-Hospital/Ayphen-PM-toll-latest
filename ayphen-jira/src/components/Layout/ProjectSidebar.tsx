@@ -385,7 +385,7 @@ export const ProjectSidebar: React.FC = () => {
     <StyledSider width={260} collapsed={sidebarCollapsed} collapsedWidth={0}>
       <ProjectHeader>
         <ProjectInfo>
-          <ProjectAvatar>{currentProject.key}</ProjectAvatar>
+          <ProjectAvatar>{currentProject.key?.substring(0, 3)}</ProjectAvatar>
           <ProjectDetails>
             <ProjectName>{currentProject.name}</ProjectName>
             <ProjectType>{currentProject.type} project</ProjectType>

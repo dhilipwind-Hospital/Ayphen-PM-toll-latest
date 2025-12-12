@@ -4,8 +4,12 @@ import { User } from '../entities/User';
 
 const router = Router();
 
-// In-memory storage for history
-let historyEntries: any[] = [];
+// In-memory storage for history - made global for access from other routes
+declare global {
+  var historyEntries: any[];
+}
+global.historyEntries = global.historyEntries || [];
+const historyEntries = global.historyEntries;
 
 // Helper function to generate human-readable descriptions
 function generateDescription(field: string, oldValue: any, newValue: any, changeType: string): string {
