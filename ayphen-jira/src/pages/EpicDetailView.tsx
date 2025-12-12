@@ -986,7 +986,8 @@ export const EpicDetailView: React.FC = () => {
               <Form.Item label="Issue" name="issueId" rules={[{ required: true }]}>
                 <Select showSearch placeholder="Search issue" onFocus={async () => {
                   try {
-                    const res = await issuesApi.getAll({});
+                    const userId = localStorage.getItem('userId');
+                    const res = await issuesApi.getAll({ projectId: issue.projectId, userId: userId || undefined });
                     setAvailableIssues(res.data.filter((i: any) =>
                       i.id !== issue.id &&
                       i.type !== 'epic' &&

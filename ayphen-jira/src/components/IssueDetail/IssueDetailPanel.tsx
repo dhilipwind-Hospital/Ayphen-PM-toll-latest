@@ -314,7 +314,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
       if (issueRes.data.type === 'epic') {
         try {
-          const childRes = await issuesApi.getAll({ epicLink: issueRes.data.id });
+          const userId = localStorage.getItem('userId');
+          const childRes = await issuesApi.getAll({ epicLink: issueRes.data.id, projectId: issueRes.data.projectId, userId: userId || undefined });
           setChildIssues(childRes.data || []);
         } catch (e) {
           setChildIssues([]);
@@ -1147,7 +1148,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
               <Form.Item label="Issue" name="issueId" rules={[{ required: true }]}>
                 <Select showSearch placeholder="Search issue" onFocus={async () => {
                   try {
-                    const res = await issuesApi.getAll({});
+                    const userId = localStorage.getItem('userId');
+                    const res = await issuesApi.getAll({ projectId: issue.projectId, userId: userId || undefined });
                     setAvailableIssues(res.data.filter((i: any) =>
                       i.id !== issue.id &&
                       i.type !== 'epic' &&
