@@ -13,6 +13,7 @@ import { sprintsApi, issuesApi } from '../services/api';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { StartSprintModal } from '../components/Sprint/StartSprintModal';
 import { CompleteSprintModal } from '../components/Sprint/CompleteSprintModal';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 const Container = styled.div`
   padding: 24px;
@@ -247,6 +248,7 @@ export const BacklogView: React.FC = () => {
   const [selectedSprint, setSelectedSprint] = useState<any>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [sprintForm] = Form.useForm();
   const [filterDrawerVisible, setFilterDrawerVisible] = useState(false);
   const [filters, setFilters] = useState({
@@ -298,9 +300,19 @@ export const BacklogView: React.FC = () => {
   };
 
   useEffect(() => {
-    if (currentProject) {
-      loadData();
-    }
+    const initializeBacklog = async () => {
+      if (currentProject) {
+        await loadData();
+        setInitialLoading(false);
+      } else {
+        // Wait for store to hydrate
+        const timer = setTimeout(() => {
+          setInitialLoading(false);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    };
+    initializeBacklog();
   }, [currentProject, currentUser]);
 
   const getSprintIssues = (sprintId: string) => {
@@ -449,6 +461,15 @@ export const BacklogView: React.FC = () => {
   };
 
   const activeIssue = activeId ? issues.find(i => i.id === activeId) : null;
+
+  // Show loading spinner during initial load to prevent "No Project Selected" flash
+  if (initialLoading) {
+    return (
+      <Container>
+        <LoadingSpinner text="Loading backlog..." />
+      </Container>
+    );
+  }
 
   if (!currentProject) {
     return (
