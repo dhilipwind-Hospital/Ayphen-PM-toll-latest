@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, Select, InputNumber, Button, message, Avatar, DatePicker } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import { issuesApi, projectMembersApi, sprintsApi, api } from '../services/api';
 import { useStore } from '../store/useStore';
 import { VoiceDescriptionButton } from './VoiceDescription/VoiceDescriptionButton';
@@ -27,6 +28,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<string>(defaultType);
   const { currentProject, currentUser } = useStore();
+  const navigate = useNavigate();
 
   // Duplicate detection state
   const [duplicates, setDuplicates] = useState<any[]>([]);
@@ -64,11 +66,17 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   }, [open, currentProject, defaultType]);
 
   const loadEpics = async () => {
+    if (!currentProject?.id || !currentUser?.id) {
+      console.warn('Cannot load epics: missing project or user');
+      return;
+    }
     try {
-      const response = await issuesApi.getAll({ projectId: currentProject?.id, type: 'epic', userId: currentUser?.id });
+      const response = await issuesApi.getAll({ projectId: currentProject.id, type: 'epic', userId: currentUser.id });
+      console.log('Loaded epics:', response.data?.length || 0);
       setEpics(response.data || []);
     } catch (error) {
       console.error('Failed to load epics', error);
+      setEpics([]);
     }
   };
 
@@ -256,13 +264,17 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       // Reset form and state
       form.resetFields();
       setSelectedType('story');
-      setSelectedType('story');
       setDuplicates([]);
       setSummaryValue('');
       setDescriptionValue('');
 
       onSuccess();
       onClose();
+      
+      // Redirect to the created issue's detail page
+      if (createdKey) {
+        navigate(`/issue/${createdKey}`);
+      }
     } catch (error: any) {
       console.error('Failed to create issue:', error);
 

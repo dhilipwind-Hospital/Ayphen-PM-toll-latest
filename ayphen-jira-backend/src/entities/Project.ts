@@ -59,6 +59,9 @@ export class Project {
   @Column({ type: 'simple-json', nullable: true })
   memberRoles: any[];
 
+  @Column({ type: 'int', default: 0 })
+  lastIssueNumber: number; // Tracks the highest issue number ever used for sequential keys
+
   @OneToMany(() => ProjectMember, member => member.project)
   members: ProjectMember[];
 

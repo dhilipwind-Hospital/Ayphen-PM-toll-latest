@@ -31,6 +31,7 @@ GET    /api/chat-v2/channels/:id/members        // Get members
 - ✅ Last read timestamps
 - ✅ Member management
 
+
 ---
 
 ## 🚀 FRONTEND IMPLEMENTATION NEEDED

@@ -186,12 +186,32 @@ export const CreateProjectView: React.FC = () => {
               label="Project Name"
               rules={[{ required: true, message: 'Please enter project name' }]}
             >
-              <Input placeholder="e.g., My Awesome Project" size="large" />
+              <Input 
+                placeholder="e.g., My Awesome Project" 
+                size="large"
+                onChange={(e) => {
+                  const name = e.target.value;
+                  // Auto-generate project key from name
+                  const words = name.trim().split(/\s+/).filter(w => w.length > 0);
+                  let generatedKey = '';
+                  if (words.length >= 2) {
+                    // Take first letter of each word (up to 4 words)
+                    generatedKey = words.slice(0, 4).map(w => w[0]).join('').toUpperCase();
+                  } else if (words.length === 1 && words[0].length >= 2) {
+                    // Take first 3-4 letters of single word
+                    generatedKey = words[0].substring(0, Math.min(4, words[0].length)).toUpperCase();
+                  }
+                  if (generatedKey.length >= 2) {
+                    form.setFieldsValue({ key: generatedKey });
+                  }
+                }}
+              />
             </Form.Item>
 
             <Form.Item
               name="key"
               label="Project Key"
+              extra="Auto-generated from project name. You can modify it."
               rules={[
                 { required: true, message: 'Please enter project key' },
                 { pattern: /^[A-Z]{2,10}$/, message: 'Key must be 2-10 uppercase letters' }

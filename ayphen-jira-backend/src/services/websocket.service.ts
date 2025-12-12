@@ -13,7 +13,27 @@ export class WebSocketService {
   constructor(httpServer: HTTPServer) {
     this.io = new Server(httpServer, {
       cors: {
-        origin: process.env.CORS_ORIGIN || 'http://localhost:1500',
+        origin: (origin, callback) => {
+          const allowedOrigins = [
+            'http://localhost:1600',
+            'http://127.0.0.1:1600',
+            'http://localhost:1500',
+            'http://127.0.0.1:1500',
+            process.env.CORS_ORIGIN
+          ].filter(Boolean);
+
+          if (
+            !origin ||
+            allowedOrigins.includes(origin) ||
+            origin.includes('127.0.0.1') ||
+            origin.includes('localhost') ||
+            origin.endsWith('.vercel.app')
+          ) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
         methods: ['GET', 'POST'],
         credentials: true,
       },

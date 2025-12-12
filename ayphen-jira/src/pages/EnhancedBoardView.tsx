@@ -385,6 +385,18 @@ const SortableCard: React.FC<SortableCardProps> = ({ issue, onClick }) => {
         <IssueSummary onClick={onClick}>
           {issue.summary}
         </IssueSummary>
+        
+        {/* Render Labels */}
+        {issue.labels && issue.labels.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+            {issue.labels.map((label: string) => (
+              <Tag key={label} style={{ margin: 0, fontSize: 10, lineHeight: '18px' }}>
+                {label}
+              </Tag>
+            ))}
+          </div>
+        )}
+
         <IssueFooter>
           <IssueMeta>
             <TypeIcon type={issue.type}>
@@ -405,9 +417,11 @@ const SortableCard: React.FC<SortableCardProps> = ({ issue, onClick }) => {
             )}
           </IssueMeta>
           {issue.assignee && (
-            <Avatar size="small" style={{ background: '#EC4899' }}>
-              {issue.assignee.name.charAt(0)}
-            </Avatar>
+            <Tooltip title={issue.assignee.name || 'Unknown'}>
+              <Avatar size="small" style={{ background: '#EC4899', cursor: 'pointer' }}>
+                {issue.assignee.name ? issue.assignee.name.charAt(0).toUpperCase() : 'U'}
+              </Avatar>
+            </Tooltip>
           )}
         </IssueFooter>
       </div>

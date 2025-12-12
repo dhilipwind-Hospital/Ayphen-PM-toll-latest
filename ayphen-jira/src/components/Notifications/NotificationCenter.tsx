@@ -166,8 +166,8 @@ export const NotificationCenter: React.FC = () => {
   );
   
   return (
-    <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
-      <Badge count={unreadCount} offset={[-5, 5]}>
+    <Dropdown dropdownRender={() => menu} trigger={['click']} placement="bottomRight">
+      <Badge count={unreadCount} offset={[-5, 5]} size="small" style={{ boxShadow: '0 0 0 2px #fff' }}>
         <NotificationButton>
           <Bell size={20} />
         </NotificationButton>

@@ -100,6 +100,20 @@ router.post('/:id/start', async (req, res) => {
     sprint.goal = goal;
     
     const savedSprint = await sprintRepo.save(sprint);
+
+    // Update issues in this sprint from 'backlog' to 'todo'
+    const { Issue } = await import('../entities/Issue');
+    const issueRepo = AppDataSource.getRepository(Issue);
+    
+    const issuesToUpdate = await issueRepo.find({ 
+      where: { sprintId: id, status: 'backlog' } 
+    });
+    
+    for (const issue of issuesToUpdate) {
+      issue.status = 'todo';
+      await issueRepo.save(issue);
+    }
+    
     res.json(savedSprint);
   } catch (error) {
     console.error('Failed to start sprint:', error);
@@ -135,6 +149,7 @@ router.post('/:id/complete', async (req, res) => {
         
         if (item.action === 'backlog') {
           issue.sprintId = undefined as any;
+          issue.status = 'backlog';
         } else if (item.action === 'next-sprint' && item.targetSprintId) {
           issue.sprintId = item.targetSprintId;
         } else if (item.action === 'new-sprint' && createNewSprint && newSprintName) {

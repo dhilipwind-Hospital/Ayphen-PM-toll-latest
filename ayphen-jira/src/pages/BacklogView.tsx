@@ -331,6 +331,10 @@ export const BacklogView: React.FC = () => {
       result = result.filter(i => !i.assignee);
     }
 
+    // Standard Industry Practice: Hide subtasks from the main backlog list
+    // Subtasks should generally be managed within the context of their parent issue
+    result = result.filter(i => i.type !== 'subtask');
+
     return result;
   }, [issues, currentProject, filters.specialFilter]);
 

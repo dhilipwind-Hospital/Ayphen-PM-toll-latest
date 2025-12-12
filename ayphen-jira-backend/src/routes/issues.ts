@@ -14,40 +14,59 @@ const issueRepo = AppDataSource.getRepository(Issue);
 const projectRepo = AppDataSource.getRepository(Project);
 
 // Helper function to generate unique issue key
+// Uses project.lastIssueNumber to ensure sequential keys even after deletes
 async function generateIssueKey(projectId: string): Promise<string> {
   try {
-    // Get project to get the key prefix
+    // Get project to get the key prefix and last issue number
     const project = await projectRepo.findOne({ where: { id: projectId } });
-    const prefix = project?.key || 'PROJ';
+    if (!project) {
+      console.error('Project not found:', projectId);
+      return `PROJ-${Date.now()}`;
+    }
     
-    // Find all issues for this project to get the highest number
+    const prefix = project.key || 'PROJ';
+    
+    // Use the stored lastIssueNumber for true sequential numbering
+    // This ensures deleted issues don't cause number reuse
+    let nextNumber = (project.lastIssueNumber || 0) + 1;
+    
+    // Also check current issues as a fallback (for existing data migration)
     const allIssues = await issueRepo
       .createQueryBuilder('issue')
       .where('issue.projectId = :projectId', { projectId })
       .andWhere('issue.key LIKE :prefix', { prefix: `${prefix}-%` })
       .getMany();
     
-    let maxNumber = 0;
+    let maxExistingNumber = 0;
     allIssues.forEach(issue => {
       if (issue.key) {
         const match = issue.key.match(/(\d+)$/);
         if (match) {
           const num = parseInt(match[1]);
-          if (num > maxNumber) {
-            maxNumber = num;
+          if (num > maxExistingNumber) {
+            maxExistingNumber = num;
           }
         }
       }
     });
     
-    const nextNumber = maxNumber + 1;
+    // Use the higher of stored counter or existing max
+    nextNumber = Math.max(nextNumber, maxExistingNumber + 1);
+    
     const newKey = `${prefix}-${nextNumber}`;
+    
+    // Update project's lastIssueNumber to track this allocation
+    project.lastIssueNumber = nextNumber;
+    await projectRepo.save(project);
     
     // Double-check key doesn't exist (race condition protection)
     const existingIssue = await issueRepo.findOne({ where: { key: newKey } });
     if (existingIssue) {
-      // If key exists, add timestamp to make it unique
-      return `${prefix}-${nextNumber}-${Date.now()}`;
+      // If key exists, increment and try again
+      const retryNumber = nextNumber + 1;
+      project.lastIssueNumber = retryNumber;
+      await projectRepo.save(project);
+      return `${prefix}-${retryNumber}`;
     }
     
     return newKey;

@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { FloatButton } from 'antd';
+import { FloatButton, message } from 'antd';
 import { Plus, FileText, Bug, Layers, Zap, Calendar } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CreateIssueModal } from '../CreateIssueModal';
+import { useStore } from '../../store/useStore';
+import { issuesApi } from '../../services/api';
 
 export const QuickActionsFAB: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [issueType, setIssueType] = useState<string>('task');
   const navigate = useNavigate();
+  const location = useLocation();
+  const { currentProject, currentUser, addIssue } = useStore();
 
   return (
     <>
@@ -56,7 +60,12 @@ export const QuickActionsFAB: React.FC = () => {
       <CreateIssueModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onSuccess={() => window.location.reload()}
+        onSuccess={() => {
+          setCreateModalOpen(false);
+          // Reload data without full page refresh to avoid flicker
+          // The CreateIssueModal already handles adding the issue to store
+          message.success('Issue created successfully!');
+        }}
         defaultType={issueType}
       />
     </>

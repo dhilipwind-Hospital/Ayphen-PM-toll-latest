@@ -593,11 +593,18 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
-      await commentsApi.create({ issueId: issue.id, content: newComment, authorId: 'current-user' });
+      // Get actual user ID from localStorage or issue data
+      const userId = localStorage.getItem('userId') || issue.reporterId || issue.assigneeId;
+      if (!userId) {
+        message.error('User not found. Please log in again.');
+        return;
+      }
+      await commentsApi.create({ issueId: issue.id, content: newComment, authorId: userId, userId: userId });
       message.success('Comment added');
       setNewComment('');
       loadIssueData();
     } catch (error) {
+      console.error('Failed to add comment:', error);
       message.error('Failed to add comment');
     }
   };
