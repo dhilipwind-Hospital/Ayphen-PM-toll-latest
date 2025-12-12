@@ -167,6 +167,36 @@ const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick, onDe
     transition,
   };
 
+  const getTypeIcon = () => {
+    switch (issue.type) {
+      case 'story': return <BookOpen size={14} color="#10B981" />;
+      case 'bug': return <Bug size={14} color="#EF4444" />;
+      case 'task': return <CheckSquare size={14} color="#3B82F6" />;
+      case 'subtask': return <ListTodo size={14} color="#8B5CF6" />;
+      default: return <FileText size={14} color="#6B7280" />;
+    }
+  };
+
+  const getTypeColor = () => {
+    switch (issue.type) {
+      case 'story': return '#10B981';
+      case 'bug': return '#EF4444';
+      case 'task': return '#3B82F6';
+      case 'subtask': return '#8B5CF6';
+      default: return '#6B7280';
+    }
+  };
+
+  const getStatusColor = () => {
+    switch (issue.status) {
+      case 'done': return 'success';
+      case 'in-progress': return 'processing';
+      case 'review': return 'warning';
+      case 'blocked': return 'error';
+      default: return 'default';
+    }
+  };
+
   return (
     <IssueItem
       ref={setNodeRef}
@@ -176,9 +206,18 @@ const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick, onDe
       {...listeners}
     >
       <GripVertical size={16} style={{ color: colors.text.secondary }} />
+      <Tooltip title={issue.type?.toUpperCase()}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '4px', background: `${getTypeColor()}15` }}>
+          {getTypeIcon()}
+        </div>
+      </Tooltip>
       <IssueKey>{issue.key}</IssueKey>
       <IssueSummary onClick={() => onIssueClick(issue)}>{issue.summary}</IssueSummary>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <Tag color={getTypeColor()} style={{ fontSize: '10px', padding: '0 6px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: 600 }}>
+          {issue.type}
+        </Tag>
+        <Badge status={getStatusColor() as any} text={<span style={{ fontSize: '11px', color: '#666' }}>{issue.status?.replace('-', ' ')}</span>} />
         <Popconfirm
           title="Delete Issue"
           description="Are you sure you want to delete this issue?"
@@ -208,12 +247,14 @@ const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick, onDe
           {issue.priority}
         </Tag>
         {issue.storyPoints && (
-          <Tag color="blue">{issue.storyPoints} pts</Tag>
+          <Tag color="purple">{issue.storyPoints} pts</Tag>
         )}
         {issue.assignee && (
-          <Avatar size="small" style={{ background: colors.primary[500] }}>
-            {issue.assignee.name.charAt(0)}
-          </Avatar>
+          <Tooltip title={issue.assignee.name}>
+            <Avatar size="small" style={{ background: colors.primary[500] }}>
+              {issue.assignee.name.charAt(0)}
+            </Avatar>
+          </Tooltip>
         )}
       </div>
     </IssueItem>
