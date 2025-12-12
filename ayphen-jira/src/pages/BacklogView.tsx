@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Button, Tag, Avatar, Input, Select, Modal, Form, DatePicker, message, Badge, Drawer, Dropdown, Popconfirm } from 'antd';
-import { Plus, MoreHorizontal, GripVertical, Filter, X, Trash2, BookOpen, Bug, CheckSquare, Zap } from 'lucide-react';
+import { Card, Button, Tag, Avatar, Input, Select, Modal, Form, DatePicker, message, Badge, Drawer, Dropdown, Popconfirm, Tooltip } from 'antd';
+import { Plus, MoreHorizontal, GripVertical, Filter, X, Trash2, BookOpen, Bug, CheckSquare, Zap, ListTodo, FileText } from 'lucide-react';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
