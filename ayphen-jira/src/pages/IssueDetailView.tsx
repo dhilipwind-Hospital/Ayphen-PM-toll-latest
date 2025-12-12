@@ -166,7 +166,7 @@ export const IssueDetailView: React.FC = () => {
       const subtasksRes = await subtasksApi.getByParent(issue.id);
 
       // Also load child issues (bugs created from test failures)
-      const allIssuesRes = await issuesApi.getAll({ projectId: issue.projectId });
+      const userId = localStorage.getItem('userId'); const allIssuesRes = await issuesApi.getAll({ projectId: issue.projectId, userId: userId || undefined });
       const childIssues = allIssuesRes.data?.filter((i: any) => i.parentId === issue.id) || [];
 
       // Combine subtasks and child issues
