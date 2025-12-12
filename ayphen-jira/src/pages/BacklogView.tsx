@@ -14,6 +14,7 @@ import { CreateIssueModal } from '../components/CreateIssueModal';
 import { StartSprintModal } from '../components/Sprint/StartSprintModal';
 import { CompleteSprintModal } from '../components/Sprint/CompleteSprintModal';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+type DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
 
 const Container = styled.div`
   padding: 24px;
