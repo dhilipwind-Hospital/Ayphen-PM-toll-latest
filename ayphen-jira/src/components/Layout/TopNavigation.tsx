@@ -659,8 +659,8 @@ export const TopNavigation: React.FC = () => {
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSuccess={() => {
-          // Refresh page or update issues list
-          window.location.reload();
+          // Modal handles navigation to issue page - no reload needed
+          setCreateModalOpen(false);
         }}
       />
       <TeamNotificationPanel visible={teamNotifVisible} onClose={() => setTeamNotifVisible(false)} />
