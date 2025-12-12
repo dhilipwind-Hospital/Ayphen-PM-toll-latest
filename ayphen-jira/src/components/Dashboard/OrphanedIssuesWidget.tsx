@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, List, Tag, Button, Empty, Spin } from 'antd';
-import { WarningOutlined, LinkOutlined } from '@ant-design/icons';
+import { Card, List, Tag, Button, Empty, Spin, Dropdown, message } from 'antd';
+import { WarningOutlined, LinkOutlined, DownOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { issuesApi } from '../../services/api';
 import { useStore } from '../../store/useStore';
+import axios from 'axios';
+
+const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 const WidgetCard = styled(Card)`
   border-radius: 12px;
@@ -93,12 +96,43 @@ export const OrphanedIssuesWidget: React.FC = () => {
     bugs: 0,
     tasks: 0,
   });
+  const [epics, setEpics] = useState<any[]>([]);
+  const [linkingIssueId, setLinkingIssueId] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentProject) {
       loadOrphanedIssues();
+      loadEpics();
     }
   }, [currentProject]);
+
+  const loadEpics = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const response = await axios.get(`${API_URL}/epics?projectId=${currentProject?.id}&userId=${userId}`);
+      setEpics(response.data || []);
+    } catch (error) {
+      console.error('Failed to load epics:', error);
+    }
+  };
+
+  const linkIssueToEpic = async (issueId: string, epicId: string) => {
+    setLinkingIssueId(issueId);
+    try {
+      const userId = localStorage.getItem('userId');
+      await axios.post(`${API_URL}/epics/${epicId}/link`, {
+        issueId,
+        userId
+      });
+      message.success('Issue linked to epic successfully');
+      loadOrphanedIssues(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to link issue to epic:', error);
+      message.error('Failed to link issue to epic');
+    } finally {
+      setLinkingIssueId(null);
+    }
+  };
 
   const loadOrphanedIssues = async () => {
     setLoading(true);
@@ -206,13 +240,24 @@ export const OrphanedIssuesWidget: React.FC = () => {
                   </Tag>
                   <IssueSummary>{issue.summary}</IssueSummary>
                 </IssueInfo>
-                <Button
-                  size="small"
-                  icon={<LinkOutlined />}
-                  onClick={() => navigate(`/issue/${issue.key}`)}
+                <Dropdown
+                  menu={{
+                    items: epics.length > 0 ? epics.map(epic => ({
+                      key: epic.id,
+                      label: `${epic.key} - ${epic.summary?.substring(0, 30)}${epic.summary?.length > 30 ? '...' : ''}`,
+                      onClick: () => linkIssueToEpic(issue.id, epic.id)
+                    })) : [{ key: 'no-epics', label: 'No epics available', disabled: true }]
+                  }}
+                  trigger={['click']}
                 >
-                  Link
-                </Button>
+                  <Button
+                    size="small"
+                    icon={<LinkOutlined />}
+                    loading={linkingIssueId === issue.id}
+                  >
+                    Link <DownOutlined />
+                  </Button>
+                </Dropdown>
               </IssueItem>
             )}
           />

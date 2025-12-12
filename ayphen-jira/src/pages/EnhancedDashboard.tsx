@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Progress, List, Avatar, Tag, Button, Select, Spin } from 'antd';
 import { TrendingUp, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import styled, { keyframes } from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { issuesApi, sprintsApi } from '../services/api';
 import { OrphanedIssuesWidget } from '../components/Dashboard/OrphanedIssuesWidget';
@@ -143,6 +144,7 @@ const AnimatedCounter: React.FC<{ value: number; duration?: number }> = ({ value
 };
 
 export const EnhancedDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('week');
   const [projectFilter, setProjectFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -314,7 +316,7 @@ export const EnhancedDashboard: React.FC = () => {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>
-          <GlassCard title="Recent Activity" extra={<Button type="link">View All</Button>}>
+          <GlassCard title="Recent Activity" extra={<Button type="link" onClick={() => navigate('/reports')}>View All</Button>}>
             <List
               dataSource={recentActivity}
               renderItem={(item) => (
