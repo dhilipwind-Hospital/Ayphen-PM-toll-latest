@@ -780,7 +780,21 @@ export const EpicDetailView: React.FC = () => {
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <SectionTitle>Linked Issues ({childIssues.length})</SectionTitle>
-                <Button size="small" icon={<Link size={14} />} onClick={() => setLinkChildModalVisible(true)}>Link Issue</Button>
+                <Button size="small" icon={<Link size={14} />} onClick={async () => {
+                  // Load available issues first before opening modal
+                  try {
+                    const userId = localStorage.getItem('userId');
+                    const res = await issuesApi.getAll({ projectId: issue.projectId, userId: userId || undefined });
+                    setAvailableIssues(res.data.filter((i: any) =>
+                      i.id !== issue.id &&
+                      i.type !== 'epic' &&
+                      !i.epicLink
+                    ));
+                  } catch (error) {
+                    console.error('Failed to load issues:', error);
+                  }
+                  setLinkChildModalVisible(true);
+                }}>Link Issue</Button>
               </div>
               {childIssues.length === 0 ? (
                 <div style={{ padding: 16, background: '#f9fafb', borderRadius: 8, textAlign: 'center', color: '#6b7280' }}>

@@ -95,6 +95,21 @@ router.post('/', async (req, res) => {
     comments.push(comment);
     console.log('✅ Comment created:', comment);
     
+    // Add to history
+    const historyEntry = {
+      id: `history-${Date.now()}`,
+      issueId,
+      userId: actualUserId,
+      field: 'comment',
+      oldValue: null,
+      newValue: actualText.substring(0, 100) + (actualText.length > 100 ? '...' : ''),
+      description: `added a comment`,
+      createdAt: new Date().toISOString(),
+    };
+    global.historyEntries = global.historyEntries || [];
+    global.historyEntries.push(historyEntry);
+    console.log('📝 History entry added for comment');
+    
     // Send email notification to issue assignee
     try {
       const issueRepo = AppDataSource.getRepository(Issue);
