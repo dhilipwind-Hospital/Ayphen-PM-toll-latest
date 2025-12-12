@@ -428,30 +428,52 @@ export const BacklogView: React.FC = () => {
     const { active, over } = event;
     setActiveId(null);
 
+    // If dropped outside any droppable area, do nothing
     if (!over) return;
 
     const activeIssue = issues.find(i => i.id === active.id);
     if (!activeIssue) return;
 
-    // Determine target sprint ID from the droppable container
-    const targetSprintId = over.id === 'backlog' ? undefined : over.id as string;
+    // Determine target sprint ID - use null for backlog for consistent comparison
+    const targetSprintId = over.id === 'backlog' ? null : over.id as string;
+    
+    // Normalize current sprint ID (undefined, null, or empty string all mean "no sprint")
+    const currentSprintId = activeIssue.sprintId || null;
 
-    // Only update if the sprint changed
-    if (activeIssue.sprintId !== targetSprintId) {
-      try {
-        if (targetSprintId) {
-          const targetSprint = sprints.find(s => s.id === targetSprintId);
-          if (targetSprint?.status === 'active') {
-            message.warning('Scope change: Issue added to active sprint');
-          }
+    // Only update if the sprint actually changed
+    if (currentSprintId === targetSprintId) {
+      return; // No change - dropped in same location
+    }
+
+    // Store original state for rollback
+    const originalSprintId = activeIssue.sprintId;
+    const originalStatus = activeIssue.status;
+    const newStatus = targetSprintId ? "todo" : "backlog";
+
+    // Optimistically update UI first
+    updateIssue(activeIssue.id, { 
+      sprintId: targetSprintId as any, 
+      status: newStatus as any 
+    });
+
+    try {
+      if (targetSprintId) {
+        const targetSprint = sprints.find(s => s.id === targetSprintId);
+        if (targetSprint?.status === 'active') {
+          message.warning('Scope change: Issue added to active sprint');
         }
-        const newStatus = targetSprintId ? "todo" : "backlog";
-        await issuesApi.update(activeIssue.id, { sprintId: targetSprintId, status: newStatus });
-        updateIssue(activeIssue.id, { sprintId: targetSprintId, status: newStatus });
-        message.success(`Issue moved to ${targetSprintId ? 'sprint' : 'backlog'}`);
-      } catch (error) {
-        message.error('Failed to move issue');
       }
+      
+      // Make API call to persist
+      await issuesApi.update(activeIssue.id, { sprintId: targetSprintId, status: newStatus });
+      message.success(`Issue moved to ${targetSprintId ? 'sprint' : 'backlog'}`);
+    } catch (error) {
+      // Rollback on error
+      updateIssue(activeIssue.id, { 
+        sprintId: originalSprintId, 
+        status: originalStatus 
+      });
+      message.error('Failed to move issue');
     }
   };
 

@@ -965,9 +965,16 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
               </div>
             )}
 
-            {linkedIssues.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <h4 style={{ color: '#374151', marginBottom: 12 }}>Linked Issues ({linkedIssues.length})</h4>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h4 style={{ color: '#374151', margin: 0 }}>Linked Issues ({linkedIssues.length})</h4>
+                <Button size="small" icon={<Link size={14} />} onClick={() => setLinkModalVisible(true)}>Link Issue</Button>
+              </div>
+              {linkedIssues.length === 0 ? (
+                <div style={{ padding: 16, background: '#f9fafb', borderRadius: 8, textAlign: 'center', color: '#6b7280' }}>
+                  No child issues. Link stories, bugs, or tasks to this issue.
+                </div>
+              ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {linkedIssues.map((link: any) => (
                     <div key={link.id} style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -987,8 +994,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <Tabs
               items={[

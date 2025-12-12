@@ -32,7 +32,8 @@ export const IssueLinkModal: React.FC<IssueLinkModalProps> = ({
   const loadIssues = async () => {
     setSearching(true);
     try {
-      const response = await issuesApi.getAll({ projectId });
+      const userId = localStorage.getItem('userId');
+      const response = await issuesApi.getAll({ projectId, userId: userId || undefined });
       // Filter out self
       const filteredIssues = response.data.filter((i: any) => i.id !== sourceIssueId);
       setIssues(filteredIssues);

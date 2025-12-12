@@ -195,11 +195,11 @@ export const CreateProjectView: React.FC = () => {
                   const words = name.trim().split(/\s+/).filter(w => w.length > 0);
                   let generatedKey = '';
                   if (words.length >= 2) {
-                    // Take first letter of each word (up to 4 words)
-                    generatedKey = words.slice(0, 4).map(w => w[0]).join('').toUpperCase();
+                    // Take first letter of each word (up to 3 words) for consistent 3-char keys
+                    generatedKey = words.slice(0, 3).map(w => w[0]).join('').toUpperCase();
                   } else if (words.length === 1 && words[0].length >= 2) {
-                    // Take first 3-4 letters of single word
-                    generatedKey = words[0].substring(0, Math.min(4, words[0].length)).toUpperCase();
+                    // Take first 3 letters of single word for consistency
+                    generatedKey = words[0].substring(0, 3).toUpperCase();
                   }
                   if (generatedKey.length >= 2) {
                     form.setFieldsValue({ key: generatedKey });

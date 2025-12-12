@@ -271,9 +271,15 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       onSuccess();
       onClose();
       
-      // Redirect to the created issue's detail page
+      // Redirect based on issue type
       if (createdKey) {
-        navigate(`/issue/${createdKey}`);
+        if (selectedType === 'epic') {
+          // Epics should go to Epic detail page
+          navigate(`/epic/${response.data.id}`);
+        } else {
+          // Other issue types go to issue detail page
+          navigate(`/issue/${createdKey}`);
+        }
       }
     } catch (error: any) {
       console.error('Failed to create issue:', error);
