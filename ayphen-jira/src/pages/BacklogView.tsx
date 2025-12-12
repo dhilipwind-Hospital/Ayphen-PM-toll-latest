@@ -136,7 +136,7 @@ const SectionTitle = styled.div`
   border-radius: 4px;
 `;
 
-const DropZone = styled.div<{ isOver?: boolean }>`
+const DropZone = styled.div<{ isOver?: boolean; isDragging?: boolean }>`
   min-height: 100px;
   padding: 16px;
   border: 2px dashed ${props => props.isOver ? colors.primary[500] : colors.border.light};
@@ -221,18 +221,19 @@ const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick, onDe
 };
 
 interface DroppableSprintProps {
+  isDragging?: boolean;
   sprintId: string;
   children: React.ReactNode;
 }
 
-const DroppableSprint: React.FC<DroppableSprintProps> = ({ sprintId, children }) => {
+const DroppableSprint: React.FC<DroppableSprintProps> = ({ sprintId, children, isDragging }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: sprintId,
   });
 
   return (
     <div ref={setNodeRef}>
-      <DropZone isOver={isOver}>
+      <DropZone isOver={isOver} isDragging={isDragging}>
         {children}
       </DropZone>
     </div>
