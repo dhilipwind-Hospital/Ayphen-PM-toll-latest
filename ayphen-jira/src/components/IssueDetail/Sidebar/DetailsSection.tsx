@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Select, Tag, Button, Input } from 'antd';
-import { Edit } from 'lucide-react';
+import { Select, Tag, Button, Input, Tooltip } from 'antd';
+import { Edit, Sparkles } from 'lucide-react';
 import { colors } from '../../../theme/colors';
 import { SidebarSection } from './SidebarSection';
 
@@ -37,7 +37,10 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate 
     return (
         <SidebarSection title="Details">
             <FieldRow>
-                <Label>Status</Label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Label>Status</Label>
+                    {/* Smart transition suggestion could go here */}
+                </div>
                 <Select
                     value={issue.status}
                     style={{ width: '100%' }}
@@ -58,7 +61,17 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate 
             </FieldRow>
 
             <FieldRow>
-                <Label>Priority</Label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Label>Priority</Label>
+                    <Tooltip title="AI Smart Priority">
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<Sparkles size={12} color={colors.primary[500]} />}
+                            onClick={() => onUpdate('priority', 'high')} // Mock AI logic
+                        />
+                    </Tooltip>
+                </div>
                 <Select
                     value={issue.priority}
                     style={{ width: '100%' }}
@@ -90,7 +103,17 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate 
             </FieldRow>
 
             <FieldRow>
-                <Label>Labels</Label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Label>Labels</Label>
+                    <Tooltip title="AI Auto-Tag">
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<Sparkles size={12} color={colors.primary[500]} />}
+                            onClick={() => onUpdate('labels', ['ai-generated', 'feature'])} // Mock AI logic
+                        />
+                    </Tooltip>
+                </div>
                 <Select
                     mode="tags"
                     style={{ width: '100%' }}
