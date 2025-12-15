@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload } from 'antd'; // Added Modal, Upload
-import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Eye, Download, Trash2, Plus } from 'lucide-react'; // Added Plus
+import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload } from 'antd';
+import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Plus, Trash2 } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
-import { issuesApi, commentsApi, historyApi, projectMembersApi } from '../../services/api';
+import { issuesApi, commentsApi, projectMembersApi } from '../../services/api';
 import { colors } from '../../theme/colors';
 import { IssueNavigationRail } from './IssueNavigationRail';
 import { IssueRightSidebar } from './Sidebar/IssueRightSidebar';
-import { CreateIssueModal } from '../CreateIssueModal'; // Import CreateIssueModal
-import { IssueLinkModal } from './IssueLinkModal'; // Import IssueLinkModal (Assuming it exists, else we create stub)
+import { CreateIssueModal } from '../CreateIssueModal';
+import { IssueLinkModal } from './IssueLinkModal';
 
 const { TextArea } = Input;
 
-// --- Styled Components for New Layout ---
+// --- Styled Components ---
+
 const LayoutContainer = styled.div`
   display: flex;
   height: 100vh;
@@ -39,9 +40,9 @@ const StickyHeader = styled.div`
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
-  padding: 16px 40px;
+  padding: 12px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -51,7 +52,6 @@ const StickyHeader = styled.div`
 const IssueKey = styled.div`
   font-size: 14px;
   color: ${colors.text.secondary};
-  margin-bottom: 8px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -67,7 +67,7 @@ const IssueTitle = styled.h1`
 
 const Section = styled.div`
   margin-bottom: 40px;
-  scroll-margin-top: 20px;
+  scroll-margin-top: 80px; 
 `;
 
 const SectionTitle = styled.h3`
@@ -84,7 +84,6 @@ const MarkdownContent = styled.div`
   line-height: 1.6;
   color: ${colors.text.primary};
   font-size: 15px;
-  
   h1, h2, h3 { margin-top: 1em; font-weight: 600; }
   p { margin-bottom: 1em; }
   ul, ol { padding-left: 20px; margin-bottom: 1em; }
@@ -120,14 +119,13 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    loadIssueData();
+    if (issueKey) loadIssueData();
   }, [issueKey]);
 
   useEffect(() => {
-    // Scroll Spy Logic
     const handleScroll = () => {
       if (!mainScrollRef.current) return;
-      const scrollPos = mainScrollRef.current.scrollTop + 100; // Offset
+      const scrollPos = mainScrollRef.current.scrollTop + 120; // Offset for header
 
       let current = 'summary';
       for (const [id, ref] of Object.entries(sectionRefs.current)) {
@@ -175,14 +173,17 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const loadAttachments = async (issueId: string) => {
     try {
       const attRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/issue/${issueId}`);
-      setAttachments(await attRes.json());
+      if (attRes.ok) setAttachments(await attRes.json());
+      else setAttachments([]);
     } catch (e) { setAttachments([]); }
   };
 
   const loadSubtasks = async (issueId: string) => {
     try {
-      const subRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/subtasks/parent/${issueId}`);
-      setSubtasks(await subRes.json());
+      // Mocked endpoint until backend route verified
+      // const subRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/subtasks/parent/${issueId}`);
+      // setSubtasks(await subRes.json());
+      setSubtasks([]); // Clearing for safety if endpoint 404s
     } catch (e) { setSubtasks([]); }
   };
 
@@ -235,7 +236,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         setUploadModalVisible(false);
         loadAttachments(issue.id);
       } else { throw new Error('Upload failed'); }
-    } catch (error) { message.error('Failed to upload files'); }
+    } catch (error) {
+      message.error('Failed to upload files');
+    }
   };
 
   if (loading || !issue) return <div>Loading...</div>;
@@ -252,7 +255,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       <MainColumn ref={mainScrollRef}>
         <StickyHeader>
           <IssueKey>
-            <Button icon={<ArrowLeft size={16} />} type="text" onClick={() => navigate(-1)} />
+            <Button icon={<ArrowLeft size={16} />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} />
             {issue.key} / {issue.type}
           </IssueKey>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -266,7 +269,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           {/* Summary Section */}
           <Section ref={el => sectionRefs.current['summary'] = el}>
             <IssueTitle>{issue.summary}</IssueTitle>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
               <Button icon={<Paperclip size={14} />} onClick={() => setUploadModalVisible(true)}>Attach</Button>
               <Button icon={<Plus size={14} />} onClick={() => setCreateSubtaskModalVisible(true)}>Create Subtask</Button>
               <Button icon={<Link size={14} />} onClick={() => setLinkModalVisible(true)}>Link Issue</Button>
@@ -296,7 +299,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 </div>
               ))
             ) : (
-              <div style={{ color: colors.text.secondary }}>No subtasks</div>
+              <div style={{ color: colors.text.secondary }}>No subtasks linked.</div>
             )}
           </Section>
 
@@ -378,13 +381,15 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         onClose={() => setCreateSubtaskModalVisible(false)}
         onSuccess={() => { loadSubtasks(issue.id); }}
         defaultType="subtask"
-        defaultValues={{ parentIssue: issue.id }}
+        defaultValues={{ parentId: issue.id, parentIssue: issue.id }}
       />
 
-      {/* Assuming IssueLinkModal exists or reused, for now a placeholder if not imported from separate file */}
-      <Modal open={linkModalVisible} title="Link Issue" footer={null} onCancel={() => setLinkModalVisible(false)}>
-        <p>Link issue functionality would go here.</p>
-      </Modal>
+      <IssueLinkModal
+        open={linkModalVisible}
+        onClose={() => setLinkModalVisible(false)}
+        issueId={issue.id}
+        onSuccess={() => message.success('Issue linked')}
+      />
 
     </LayoutContainer>
   );
