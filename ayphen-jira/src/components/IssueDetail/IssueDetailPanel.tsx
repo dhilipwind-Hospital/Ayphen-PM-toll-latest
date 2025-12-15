@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload } from 'antd';
-import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Plus, Trash2, Edit } from 'lucide-react';
+import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress } from 'antd';
+import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi } from '../../services/api';
@@ -348,16 +348,45 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           {/* Subtasks Section */}
           <Section ref={el => { sectionRefs.current['subtasks'] = el; }}>
             <SectionTitle>Subtasks</SectionTitle>
+
+            {subtasks.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <Progress
+                  percent={Math.round((subtasks.filter(s => s.status === 'done').length / subtasks.length) * 100)}
+                  strokeColor={colors.status.done}
+                  size="small"
+                  format={percent => `${subtasks.filter(s => s.status === 'done').length} of ${subtasks.length} done`}
+                />
+              </div>
+            )}
+
             {subtasks.length > 0 ? (
               subtasks.map(s => (
                 <div key={s.id} onClick={() => navigate(`/issue/${s.key}`)} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'white' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {/* You can add type icon here if available */}
-                    <span style={{ fontWeight: 500, color: colors.text.secondary }}>{s.key}</span>
-                    <span style={{ color: colors.text.primary }}>{s.summary}</span>
-                  </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 12, background: colors.status.todo, padding: '2px 8px', borderRadius: 10, alignSelf: 'center' }}>{s.status}</span>
+
+                    {/* Priority Icon Mockup - assuming basic mapping if priority data present */}
+                    {s.priority === 'high' || s.priority === 'highest' ? <ArrowUp size={14} color={colors.priority.high} /> :
+                      s.priority === 'low' || s.priority === 'lowest' ? <ArrowDown size={14} color={colors.priority.low} /> :
+                        <Minus size={14} color={colors.priority.medium} />}
+
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontWeight: 500, color: colors.text.secondary }}>{s.key}</span>
+                        <span style={{ color: colors.text.primary }}>{s.summary}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {/* Assignee Avatar Mockup - assuming s.assignee object might exist, else fallback */}
+                    <Tooltip title={s.assignee?.name || 'Unassigned'}>
+                      <Avatar size={24} src={s.assignee?.avatar} style={{ backgroundColor: s.assignee ? undefined : '#f56a00' }}>
+                        {s.assignee?.name?.[0] || 'U'}
+                      </Avatar>
+                    </Tooltip>
+
+                    <span style={{ fontSize: 12, background: s.status === 'done' ? colors.status.done : colors.neutral[200], color: s.status === 'done' ? 'white' : colors.text.primary, padding: '2px 8px', borderRadius: 10, alignSelf: 'center' }}>{s.status}</span>
                     <Tooltip title="Unlink/Delete Subtask">
                       <Button
                         type="text"
