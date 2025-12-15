@@ -9,7 +9,8 @@ import { CreateIssueModal } from '../components/CreateIssueModal';
 const Container = styled.div`
   padding: 0;
   background: #fff;
-  min-height: calc(100vh - 56px);
+  height: 100%;
+  overflow: hidden;
 `;
 
 const Header = styled.div`

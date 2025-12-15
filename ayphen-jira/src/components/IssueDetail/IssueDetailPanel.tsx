@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress } from 'antd';
-import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil } from 'lucide-react';
+import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi, historyApi } from '../../services/api';
@@ -18,16 +18,28 @@ const { TextArea } = Input;
 const LayoutContainer = styled.div`
   display: flex;
   height: 100vh;
-  background: #FAF9F7; /* Light beige/off-white */
+  background: #FAF9F7;
   overflow: hidden;
 `;
 
 const MainColumn = styled.div`
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   min-width: 0;
   scroll-behavior: smooth;
   position: relative;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #E0E0E0;
+    border-radius: 4px;
+  }
 `;
 
 const ContentWrapper = styled.div`
@@ -474,11 +486,74 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             )}
           </Section>
 
+          {/* Child Issues / Subtasks Section */}
+          <Section>
+            <SectionHeader>
+              <SectionTitle>
+                <ListTodo size={16} style={{ marginRight: 8, color: '#E91E63' }} />
+                {issue.type === 'epic' ? 'Child Issues' : 'Subtasks'} ({subtasks.length})
+              </SectionTitle>
+              <Button 
+                size="small" 
+                type="text" 
+                icon={<Plus size={14} />} 
+                onClick={() => setCreateSubtaskModalVisible(true)} 
+                style={{ color: '#E91E63', fontSize: 13, fontWeight: 500 }}
+              >
+                Add {issue.type === 'epic' ? 'Issue' : 'Subtask'}
+              </Button>
+            </SectionHeader>
+
+            {subtasks.length > 0 ? (
+              <ContentBox>
+                {subtasks.map(sub => (
+                  <div 
+                    key={sub.id} 
+                    onClick={() => navigate(`/issue/${sub.key}`)} 
+                    style={{ 
+                      padding: '12px 0', 
+                      borderBottom: `1px solid ${colors.border.light}`, 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      cursor: 'pointer', 
+                      alignItems: 'center' 
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {sub.type === 'bug' ? <Bug size={14} color="#EF4444" /> : 
+                       sub.type === 'story' ? <BookOpen size={14} color="#10B981" /> : 
+                       sub.type === 'task' ? <CheckSquare size={14} color="#3B82F6" /> : 
+                       <ListTodo size={14} color="#8B5CF6" />}
+                      <span style={{ fontWeight: 500, color: '#E91E63' }}>{sub.key}</span>
+                      <span style={{ color: colors.text.primary }}>{sub.summary}</span>
+                    </div>
+                    <span style={{ 
+                      fontSize: 11, 
+                      padding: '2px 8px', 
+                      borderRadius: 4, 
+                      background: sub.status === 'done' ? '#D1FAE5' : sub.status === 'in-progress' ? '#DBEAFE' : '#F3F4F6',
+                      color: sub.status === 'done' ? '#059669' : sub.status === 'in-progress' ? '#2563EB' : '#6B7280'
+                    }}>
+                      {sub.status?.replace('-', ' ')}
+                    </span>
+                  </div>
+                ))}
+              </ContentBox>
+            ) : (
+              <ContentBox>
+                <EmptyStateText style={{ marginTop: 0 }}>No {issue.type === 'epic' ? 'child issues' : 'subtasks'} yet. Click "Add" to create one.</EmptyStateText>
+              </ContentBox>
+            )}
+          </Section>
+
           {/* Linked Issues Section */}
           <Section>
             <SectionHeader>
-              <SectionTitle>Linked Issues ({linkedIssues.length})</SectionTitle>
-              <Button size="small" type="text" icon={<Link size={14} />} onClick={() => setLinkModalVisible(true)} style={{ color: '#666', fontSize: 13 }}>Link Issue</Button>
+              <SectionTitle>
+                <Link size={16} style={{ marginRight: 8, color: '#E91E63' }} />
+                Linked Issues ({linkedIssues.length})
+              </SectionTitle>
+              <Button size="small" type="text" icon={<Plus size={14} />} onClick={() => setLinkModalVisible(true)} style={{ color: '#E91E63', fontSize: 13, fontWeight: 500 }}>Link Issue</Button>
             </SectionHeader>
 
             {linkedIssues.length > 0 ? (
@@ -514,7 +589,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
               items={[
                 {
                   key: 'comments',
-                  label: `Comments (${comments.length})`,
+                  label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><MessageSquare size={14} /> Comments ({comments.length})</span>,
                   children: (
                     <div style={{ paddingTop: 8 }}>
                       <TextArea
@@ -547,28 +622,62 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 },
                 {
                   key: 'test_cases',
-                  label: 'Test Cases',
+                  label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FileText size={14} /> Test Cases</span>,
                   children: <EmptyStateText style={{ textAlign: 'center' }}>No test cases linked.</EmptyStateText>
                 },
                 {
                   key: 'attachments',
-                  label: `Attachments (${attachments.length})`,
+                  label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Paperclip size={14} /> Attachments ({attachments.length})</span>,
                   children: (
                     <div style={{ paddingTop: 16 }}>
                       <div style={{ marginBottom: 24 }}>
                         <Button icon={<Paperclip size={14} />} onClick={() => setUploadModalVisible(true)}>Add Attachment</Button>
                       </div>
                       {attachments.length > 0 ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
                           {attachments.map(att => (
-                            <div key={att.id} style={{ border: `1px solid ${colors.border.light}`, borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
+                            <div key={att.id} style={{ border: `1px solid ${colors.border.light}`, borderRadius: 8, overflow: 'hidden', position: 'relative', background: 'white' }}>
                               <div
                                 style={{ height: 100, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: att.isImage ? 'zoom-in' : 'default' }}
                                 onClick={() => att.isImage && setPreviewImage(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`)}
                               >
                                 {att.isImage ? <img src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).src = `https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}` }} /> : <Paperclip color="#999" size={32} />}
                               </div>
-                              <div style={{ padding: 8, fontSize: 12 }}>{att.originalName}</div>
+                              <div style={{ padding: '8px 12px' }}>
+                                <div style={{ fontSize: 12, marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.originalName}</div>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                  <Tooltip title="Download">
+                                    <Button 
+                                      size="small" 
+                                      type="text" 
+                                      icon={<Download size={14} />}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`, '_blank');
+                                      }}
+                                      style={{ color: '#E91E63' }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Delete">
+                                    <Button 
+                                      size="small" 
+                                      type="text" 
+                                      danger
+                                      icon={<Trash2 size={14} />}
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        try {
+                                          await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/${att.id}`, { method: 'DELETE' });
+                                          message.success('Attachment deleted');
+                                          loadAttachments(issue.id);
+                                        } catch (err) {
+                                          message.error('Failed to delete attachment');
+                                        }
+                                      }}
+                                    />
+                                  </Tooltip>
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -580,7 +689,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 },
                 {
                   key: 'history',
-                  label: `History (${history.length})`,
+                  label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><History size={14} /> History ({history.length})</span>,
                   children: (
                     <div style={{ paddingTop: 16 }}>
                       {history.length > 0 ? history.map((h, index) => (
