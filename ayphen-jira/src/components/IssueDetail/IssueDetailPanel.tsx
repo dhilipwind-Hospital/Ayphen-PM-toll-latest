@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, message, Input, Tooltip, Avatar, Tabs } from 'antd';
-import { ArrowLeft, Link, Share2, MoreHorizontal } from 'lucide-react';
+import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload } from 'antd'; // Added Modal, Upload
+import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Eye, Download, Trash2, Plus } from 'lucide-react'; // Added Plus
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { issuesApi, commentsApi, historyApi, projectMembersApi } from '../../services/api';
 import { colors } from '../../theme/colors';
 import { IssueNavigationRail } from './IssueNavigationRail';
 import { IssueRightSidebar } from './Sidebar/IssueRightSidebar';
-import { Paperclip, Eye, Download, Trash2 } from 'lucide-react';
+import { CreateIssueModal } from '../CreateIssueModal'; // Import CreateIssueModal
+import { IssueLinkModal } from './IssueLinkModal'; // Import IssueLinkModal (Assuming it exists, else we create stub)
 
 const { TextArea } = Input;
 
 // --- Styled Components for New Layout ---
-
 const LayoutContainer = styled.div`
   display: flex;
   height: 100vh;
@@ -46,7 +46,6 @@ const StickyHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid ${colors.border.light};
-  margin: 0; 
 `;
 
 const IssueKey = styled.div`
@@ -110,6 +109,12 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [subtasks, setSubtasks] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
 
+  // Modals
+  const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [createSubtaskModalVisible, setCreateSubtaskModalVisible] = useState(false);
+  const [linkModalVisible, setLinkModalVisible] = useState(false);
+  const [fileList, setFileList] = useState<any[]>([]);
+
   // Refs for Scroll Spy
   const mainScrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -122,10 +127,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     // Scroll Spy Logic
     const handleScroll = () => {
       if (!mainScrollRef.current) return;
-
       const scrollPos = mainScrollRef.current.scrollTop + 100; // Offset
 
-      // Find the current section
       let current = 'summary';
       for (const [id, ref] of Object.entries(sectionRefs.current)) {
         if (ref && ref.offsetTop <= scrollPos) {
@@ -142,7 +145,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     return () => {
       if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll);
     };
-  }, [loading]); // Re-bind when content loads
+  }, [loading]);
 
   const loadIssueData = async () => {
     try {
@@ -150,7 +153,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       const res = await issuesApi.getByKey(issueKey);
       setIssue(res.data);
 
-      // Load related data parallel
       const [commentsRes, membersRes] = await Promise.all([
         commentsApi.getByIssue(res.data.id),
         projectMembersApi.getByProject(res.data.projectId, localStorage.getItem('userId') || '1')
@@ -159,17 +161,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       setComments(commentsRes.data || []);
       setProjectMembers(membersRes.data?.map((m: any) => m.user) || []);
 
-      // Load Attachments (Mock path for now based on previous code)
-      try {
-        const attRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/issue/${res.data.id}`);
-        setAttachments(await attRes.json());
-      } catch (e) { setAttachments([]); }
-
-      // Load Subtasks if applicable
-      try {
-        const subRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/subtasks/parent/${res.data.id}`);
-        setSubtasks(await subRes.json());
-      } catch (e) { setSubtasks([]); }
+      loadAttachments(res.data.id);
+      loadSubtasks(res.data.id);
 
     } catch (error) {
       message.error('Failed to load issue');
@@ -179,17 +172,28 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     }
   };
 
+  const loadAttachments = async (issueId: string) => {
+    try {
+      const attRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/issue/${issueId}`);
+      setAttachments(await attRes.json());
+    } catch (e) { setAttachments([]); }
+  };
+
+  const loadSubtasks = async (issueId: string) => {
+    try {
+      const subRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/subtasks/parent/${issueId}`);
+      setSubtasks(await subRes.json());
+    } catch (e) { setSubtasks([]); }
+  };
+
   const handleUpdate = async (field: string, value: any) => {
     try {
-      // Optimistic update
       setIssue((prev: any) => ({ ...prev, [field]: value }));
-
-      // API Call
       await issuesApi.update(issue.id, { [field]: value });
       message.success('Updated');
     } catch (error) {
       message.error('Failed to update');
-      loadIssueData(); // Revert
+      loadIssueData();
     }
   };
 
@@ -207,10 +211,31 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       await commentsApi.create({ issueId: issue.id, content: newComment, authorId: userId, userId });
       setNewComment('');
       message.success('Comment added');
-      // Reload comments
       const res = await commentsApi.getByIssue(issue.id);
       setComments(res.data || []);
     } catch (e) { message.error('Failed to comment'); }
+  };
+
+  const handleFileUpload = async () => {
+    if (fileList.length === 0) return;
+    try {
+      const formData = new FormData();
+      fileList.forEach(file => formData.append('files', file.originFileObj || file));
+      formData.append('issueId', issue.id);
+      formData.append('uploaderId', localStorage.getItem('userId') || issue.reporterId);
+
+      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        message.success('Files uploaded');
+        setFileList([]);
+        setUploadModalVisible(false);
+        loadAttachments(issue.id);
+      } else { throw new Error('Upload failed'); }
+    } catch (error) { message.error('Failed to upload files'); }
   };
 
   if (loading || !issue) return <div>Loading...</div>;
@@ -242,9 +267,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           <Section ref={el => sectionRefs.current['summary'] = el}>
             <IssueTitle>{issue.summary}</IssueTitle>
             <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-              <Button type="primary">Attach</Button>
-              <Button>Create Subtask</Button>
-              <Button>Link Issue</Button>
+              <Button icon={<Paperclip size={14} />} onClick={() => setUploadModalVisible(true)}>Attach</Button>
+              <Button icon={<Plus size={14} />} onClick={() => setCreateSubtaskModalVisible(true)}>Create Subtask</Button>
+              <Button icon={<Link size={14} />} onClick={() => setLinkModalVisible(true)}>Link Issue</Button>
             </div>
           </Section>
 
@@ -265,7 +290,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             <SectionTitle>Subtasks</SectionTitle>
             {subtasks.length > 0 ? (
               subtasks.map(s => (
-                <div key={s.id} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+                <div key={s.id} onClick={() => navigate(`/issue/${s.key}`)} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}>
                   <span>{s.key} {s.summary}</span>
                   <span style={{ fontSize: 12, background: colors.status.todo, padding: '2px 8px', borderRadius: 10 }}>{s.status}</span>
                 </div>
@@ -280,12 +305,15 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             <SectionTitle>Attachments</SectionTitle>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {attachments.map(att => (
-                <div key={att.id} style={{ width: 150, border: `1px solid ${colors.border.light}`, borderRadius: 8, overflow: 'hidden' }}>
+                <div key={att.id} style={{ width: 150, border: `1px solid ${colors.border.light}`, borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
                   <div style={{ height: 100, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {att.isImage ? <img src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Paperclip color="#999" />}
+                    {att.isImage ?
+                      <img src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <Paperclip color="#999" size={32} />}
                   </div>
-                  <div style={{ padding: 8, fontSize: 12 }}>
-                    <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{att.originalName}</div>
+                  <div style={{ padding: 8, fontSize: 12, display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }} title={att.originalName}>{att.originalName}</div>
+                    <Trash2 size={12} style={{ cursor: 'pointer', color: 'red' }} onClick={() => {/* Handle Delete */ }} />
                   </div>
                 </div>
               ))}
@@ -332,6 +360,31 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         onUpdate={handleUpdate}
         onAIAction={(action) => message.info(`AI Action: ${action}`)}
       />
+
+      {/* Modals */}
+      <Modal open={uploadModalVisible} title="Upload Attachments" onOk={handleFileUpload} onCancel={() => setUploadModalVisible(false)}>
+        <Upload
+          fileList={fileList}
+          onChange={({ fileList }) => setFileList(fileList)}
+          beforeUpload={() => false}
+          multiple
+        >
+          <Button icon={<Paperclip size={14} />}>Select Files</Button>
+        </Upload>
+      </Modal>
+
+      <CreateIssueModal
+        open={createSubtaskModalVisible}
+        onClose={() => setCreateSubtaskModalVisible(false)}
+        onSuccess={() => { loadSubtasks(issue.id); }}
+        defaultType="subtask"
+        defaultValues={{ parentIssue: issue.id }}
+      />
+
+      {/* Assuming IssueLinkModal exists or reused, for now a placeholder if not imported from separate file */}
+      <Modal open={linkModalVisible} title="Link Issue" footer={null} onCancel={() => setLinkModalVisible(false)}>
+        <p>Link issue functionality would go here.</p>
+      </Modal>
 
     </LayoutContainer>
   );

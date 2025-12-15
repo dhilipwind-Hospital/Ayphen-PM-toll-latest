@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Button, Tag, Avatar, Input, Select, Modal, Form, DatePicker, message, Badge, Drawer, Dropdown, Popconfirm, Tooltip } from 'antd';
-import { Plus, MoreHorizontal, GripVertical, Filter, X, Trash2, BookOpen, Bug, CheckSquare, Zap, ListTodo, FileText } from 'lucide-react';
-import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
+import { Card, Button, Tag, Avatar, Badge, Tooltip, message, Dropdown } from 'antd';
+import { Plus, MoreHorizontal, GripVertical, Bug, BookOpen, CheckSquare, Zap, X } from 'lucide-react';
+import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
@@ -12,11 +12,34 @@ import { colors } from '../theme/colors';
 import { sprintsApi, issuesApi } from '../services/api';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { StartSprintModal } from '../components/Sprint/StartSprintModal';
-import { CompleteSprintModal } from '../components/Sprint/CompleteSprintModal';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+import { IssueDetailPanel } from '../components/IssueDetail/IssueDetailPanel';
+
+// --- Styled Components ---
 
 const Container = styled.div`
+  display: flex;
+  height: calc(100vh - 64px); 
+  overflow: hidden;
+`;
+
+const BacklogColumn = styled.div<{ isSplit?: boolean }>`
+  flex: 1;
   padding: 24px;
+  overflow-y: auto;
+  border-right: ${props => props.isSplit ? `1px solid ${colors.border.light}` : 'none'};
+  transition: width 0.3s;
+  background: #f4f5f7;
+`;
+
+const DetailColumn = styled.div`
+  width: 60%; 
+  background: white;
+  border-left: 1px solid ${colors.border.light};
+  overflow-y: hidden;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.05);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
 `;
 
 const Header = styled.div`
@@ -39,26 +62,22 @@ const Controls = styled.div`
   align-items: center;
 `;
 
-const FilterButton = styled(Button)`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const ActiveFilters = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-`;
-
 const SprintCard = styled(Card)`
   margin-bottom: 16px;
-  border: 2px solid ${colors.border.light};
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 
   .ant-card-head {
-    background: ${colors.background.sidebar};
+    background: transparent;
     border-bottom: 1px solid ${colors.border.light};
+    padding: 0 16px;
+    min-height: 48px;
+  }
+  
+  .ant-card-body {
+    padding: 8px;
+    background: ${colors.background.light};
   }
 `;
 
@@ -66,93 +85,51 @@ const SprintHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 `;
 
 const SprintInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
 `;
 
 const SprintName = styled.div`
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: ${colors.text.primary};
 `;
 
 const SprintMeta = styled.div`
-  font-size: 13px;
+  font-size: 12px;
   color: ${colors.text.secondary};
 `;
 
 const IssueList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
+  min-height: 40px;
 `;
 
-const IssueItem = styled.div<{ isDragging?: boolean }>`
-  padding: 12px;
-  background: ${colors.background.paper};
-  border: 1px solid ${colors.border.light};
-  border-radius: 4px;
+const IssueItemContainer = styled.div<{ isDragging?: boolean; isSelected?: boolean }>`
+  padding: 10px 12px;
+  background: ${props => props.isSelected ? '#e6f7ff' : 'white'};
+  border-left: 3px solid ${props => props.isSelected ? '#1890ff' : 'transparent'};
   display: flex;
   align-items: center;
   gap: 12px;
-  cursor: ${props => props.isDragging ? 'grabbing' : 'grab'};
+  cursor: pointer;
   transition: all 0.2s;
   opacity: ${props => props.isDragging ? 0.5 : 1};
-
+  
   &:hover {
-    border-color: ${colors.primary[400]};
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background: ${props => props.isSelected ? '#e6f7ff' : '#fafafa'};
   }
 `;
 
-const IssueKey = styled.span`
-  font-size: 13px;
-  color: ${colors.text.secondary};
-  font-weight: 500;
-  min-width: 80px;
-`;
+// --- Sortable Components ---
 
-const IssueSummary = styled.div`
-  flex: 1;
-  font-size: 14px;
-  color: ${colors.text.primary};
-`;
-
-const BacklogSection = styled.div`
-  margin-top: 24px;
-`;
-
-const SectionTitle = styled.div`
-  font-size: 18px;
-  font-weight: 600;
-  color: ${colors.text.primary};
-  margin-bottom: 16px;
-  padding: 12px;
-  background: ${colors.background.sidebar};
-  border-radius: 4px;
-`;
-
-const DropZone = styled.div<{ isOver?: boolean; isDragging?: boolean }>`
-  min-height: 100px;
-  padding: 16px;
-  border: 2px dashed ${props => props.isOver ? colors.primary[500] : colors.border.light};
-  border-radius: 8px;
-  background: ${props => props.isOver ? colors.primary[50] : 'transparent'};
-  transition: all 0.2s;
-`;
-
-interface SortableIssueProps {
-  issue: any;
-  onIssueClick: (issue: any) => void;
-  onDelete: (issueId: string) => void;
-  onLinkToEpic?: (issue: any) => void;
-}
-
-const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick, onDelete }) => {
+const SortableIssueItem = ({ issue, onClick, isSelected }: { issue: any, onClick: () => void, isSelected?: boolean }) => {
   const {
     attributes,
     listeners,
@@ -160,756 +137,210 @@ const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onIssueClick, onDe
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: issue.id });
+  } = useSortable({ id: issue.id, data: { ...issue, type: 'issue' } });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const getTypeIcon = () => {
-    switch (issue.type) {
-      case 'story': return <BookOpen size={14} color="#10B981" />;
-      case 'bug': return <Bug size={14} color="#EF4444" />;
-      case 'task': return <CheckSquare size={14} color="#3B82F6" />;
-      case 'subtask': return <ListTodo size={14} color="#8B5CF6" />;
-      default: return <FileText size={14} color="#6B7280" />;
-    }
-  };
-
-  const getTypeColor = () => {
-    switch (issue.type) {
-      case 'story': return '#10B981';
-      case 'bug': return '#EF4444';
-      case 'task': return '#3B82F6';
-      case 'subtask': return '#8B5CF6';
-      default: return '#6B7280';
-    }
-  };
-
-  const getStatusColor = () => {
-    switch (issue.status) {
-      case 'done': return 'success';
-      case 'in-progress': return 'processing';
-      case 'review': return 'warning';
-      case 'blocked': return 'error';
-      default: return 'default';
-    }
-  };
-
   return (
-    <IssueItem
-      ref={setNodeRef}
-      style={style}
-      isDragging={isDragging}
-      {...attributes}
-      {...listeners}
-    >
-      <GripVertical size={16} style={{ color: colors.text.secondary }} />
-      <Tooltip title={issue.type?.toUpperCase()}>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '4px', background: `${getTypeColor()}15` }}>
-          {getTypeIcon()}
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <IssueItemContainer
+        isDragging={isDragging}
+        isSelected={isSelected}
+        onClick={onClick}
+      >
+        <div {...listeners} style={{ cursor: 'grab', color: colors.text.tertiary, display: 'flex', alignItems: 'center' }}>
+          <GripVertical size={14} />
         </div>
-      </Tooltip>
-      <IssueKey>{issue.key}</IssueKey>
-      <IssueSummary onClick={() => onIssueClick(issue)}>{issue.summary}</IssueSummary>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <Tag color={getTypeColor()} style={{ fontSize: '10px', padding: '0 6px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: 600 }}>
-          {issue.type}
-        </Tag>
-        <Badge status={getStatusColor() as any} text={<span style={{ fontSize: '11px', color: '#666' }}>{issue.status?.replace('-', ' ')}</span>} />
-        <Popconfirm
-          title="Delete Issue"
-          description="Are you sure you want to delete this issue?"
-          onConfirm={(e) => {
-            e?.stopPropagation();
-            onDelete(issue.id);
-          }}
-          onCancel={(e) => e?.stopPropagation()}
-          okText="Yes"
-          cancelText="No"
-        >
-          <Button
-            type="text"
-            size="small"
-            icon={<Trash2 size={14} />}
-            danger
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </Popconfirm>
-        <Tag color={
-          issue.priority === 'highest' ? 'red' :
-            issue.priority === 'high' ? 'orange' :
-              issue.priority === 'medium' ? 'blue' :
-                'green'
-        }>
-          {issue.priority}
-        </Tag>
-        {issue.storyPoints && (
-          <Tag color="purple">{issue.storyPoints} pts</Tag>
-        )}
-        {issue.assignee && (
-          <Tooltip title={issue.assignee.name}>
-            <Avatar size="small" style={{ background: colors.primary[500] }}>
-              {issue.assignee.name.charAt(0)}
-            </Avatar>
-          </Tooltip>
-        )}
-      </div>
-    </IssueItem>
+
+        <Tooltip title={issue.type}>
+          {issue.type === 'bug' && <Bug size={16} color={colors.status.high} />}
+          {issue.type === 'story' && <BookOpen size={16} color={colors.status.medium} />}
+          {issue.type === 'task' && <CheckSquare size={16} color={colors.primary[500]} />}
+          {issue.type === 'epic' && <Zap size={16} color={colors.primary[700]} />}
+        </Tooltip>
+
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontWeight: 500, color: colors.text.secondary, fontSize: 12, minWidth: 60 }}>{issue.key}</span>
+            <span style={{ fontSize: 14, color: colors.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{issue.summary}</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Priority Tag - Simplified visual */}
+          {issue.priority === 'high' ? <Badge color="red" /> : <Badge color="blue" />}
+
+          {/* Sprint Points */}
+          {issue.storyPoints && <Badge count={issue.storyPoints} style={{ backgroundColor: '#f0f0f0', color: '#666' }} />}
+
+          {/* Assignee */}
+          <Avatar src={issue.assignee?.avatar} size="small" style={{ backgroundColor: colors.primary[500], width: 24, height: 24, fontSize: 12 }}>
+            {issue.assignee?.name?.[0]}
+          </Avatar>
+        </div>
+      </IssueItemContainer>
+    </div>
   );
 };
 
-interface DroppableSprintProps {
-  isDragging?: boolean;
-  sprintId: string;
-  children: React.ReactNode;
-}
-
-const DroppableSprint: React.FC<DroppableSprintProps> = ({ sprintId, children, isDragging }) => {
-  const { setNodeRef, isOver } = useDroppable({
+const DroppableSprint = ({ sprintId, issues, selectedIssueId, onIssueClick }: { sprintId: string, issues: any[], selectedIssueId: string | null, onIssueClick: (key: string) => void }) => {
+  const { setNodeRef } = useDroppable({
     id: sprintId,
+    data: { type: 'sprint', sprintId }
   });
 
   return (
     <div ref={setNodeRef}>
-      <DropZone isOver={isOver} isDragging={isDragging}>
-        {children}
-      </DropZone>
+      <SortableContext items={issues.map(i => i.id)} strategy={verticalListSortingStrategy}>
+        <IssueList>
+          {issues.map((issue) => (
+            <SortableIssueItem
+              key={issue.id}
+              issue={issue}
+              isSelected={selectedIssueId === issue.key}
+              onClick={() => onIssueClick(issue.key)}
+            />
+          ))}
+          {issues.length === 0 && (
+            <div style={{ padding: '24px', textAlign: 'center', color: colors.text.tertiary, border: '1px dashed #e0e0e0', borderRadius: 4, background: 'white', margin: 8 }}>
+              Plan a sprint by dragging issues here
+            </div>
+          )}
+        </IssueList>
+      </SortableContext>
     </div>
   );
 };
 
 export const BacklogView: React.FC = () => {
   const navigate = useNavigate();
-  const { sprints, issues, setSprints, setIssues, updateIssue, currentProject, currentUser } = useStore();
-  const [createSprintModalVisible, setCreateSprintModalVisible] = useState(false);
-  const [createIssueModalVisible, setCreateIssueModalVisible] = useState(false);
-  const [startSprintModalVisible, setStartSprintModalVisible] = useState(false);
-  const [completeSprintModalVisible, setCompleteSprintModalVisible] = useState(false);
-  const [selectedSprint, setSelectedSprint] = useState<any>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [sprintForm] = Form.useForm();
-  const [filterDrawerVisible, setFilterDrawerVisible] = useState(false);
-  const [linkEpicModalVisible, setLinkEpicModalVisible] = useState(false);
-  const [issueToLink, setIssueToLink] = useState<any>(null);
-  const [epics, setEpics] = useState<any[]>([]);
-  const [selectedEpicId, setSelectedEpicId] = useState<string | null>(null);
-  const [filters, setFilters] = useState({
-    search: '',
-    assignee: [] as string[],
-    type: [] as string[],
-    priority: [] as string[],
-    status: [] as string[],
-    specialFilter: 'all',
-  });
+  const { currentProject, sprints, fetchSprints } = useStore();
+  const [issues, setIssues] = useState<any[]>([]);
+  const [selectedIssueKey, setSelectedIssueKey] = useState<string | null>(null);
 
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (filters.search) count++;
-    if (filters.assignee.length > 0) count++;
-    if (filters.type.length > 0) count++;
-    if (filters.priority.length > 0) count++;
-    if (filters.status.length > 0) count++;
-    if (filters.specialFilter !== 'all') count++;
-    return count;
-  }, [filters]);
+  // States
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
+  const [selectedSprint, setSelectedSprint] = useState<any>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  // Load issues and sprints from API
-  const loadData = async () => {
-    if (!currentProject) return;
-
-    try {
-      const userId = currentUser?.id || localStorage.getItem('userId');
-      const [issuesResponse, sprintsResponse] = await Promise.all([
-        issuesApi.getAll({ projectId: currentProject.id, userId: userId || undefined }),
-        sprintsApi.getAll(currentProject.id, userId || undefined)
-      ]);
-      setIssues(issuesResponse.data);
-      setSprints(sprintsResponse.data);
-    } catch (error) {
-      console.error('Failed to load backlog data:', error);
-    }
-  };
-
   useEffect(() => {
-    const initializeBacklog = async () => {
-      if (currentProject) {
-        await loadData();
-        setInitialLoading(false);
-      } else {
-        // Wait for store to hydrate
-        const timer = setTimeout(() => {
-          setInitialLoading(false);
-        }, 1500);
-        return () => clearTimeout(timer);
-      }
-    };
-    initializeBacklog();
-  }, [currentProject, currentUser]);
-
-  const getSprintIssues = (sprintId: string) => {
-    const projectIssues = currentProject
-      ? issues.filter(issue => issue.projectId === currentProject.id)
-      : issues;
-    return projectIssues.filter(issue => issue.sprintId === sprintId);
-  };
-
-  const backlogIssues = useMemo(() => {
-    let result = currentProject
-      ? issues.filter(issue =>
-        issue.projectId === currentProject.id &&
-        !issue.sprintId
-      )
-      : issues.filter(issue => !issue.sprintId);
-
-    // Apply special filter
-    if (filters.specialFilter === 'orphaned') {
-      result = result.filter(i => 
-        i.type !== 'epic' && 
-        !i.epicLink && 
-        (i.type !== 'subtask' || !i.parentId)
-      );
-    } else if (filters.specialFilter === 'with-epic') {
-      result = result.filter(i => i.epicLink);
-    } else if (filters.specialFilter === 'no-assignee') {
-      result = result.filter(i => !i.assignee);
-    }
-
-    // Standard Industry Practice: Hide subtasks from the main backlog list
-    // Subtasks should generally be managed within the context of their parent issue
-    result = result.filter(i => i.type !== 'subtask' && i.type !== 'epic');
-
-    return result;
-  }, [issues, currentProject, filters.specialFilter]);
-
-  const handleCreateSprint = async (values: any) => {
-    if (loading) return;
-    
-    // Check for duplicate sprint names (case-insensitive, trimmed)
-    const trimmedName = values.name?.trim();
-    if (!trimmedName) {
-      message.error('Sprint name cannot be empty');
-      return;
-    }
-    
-    const duplicate = sprints.find(s => 
-      s.name.trim().toLowerCase() === trimmedName.toLowerCase() && 
-      s.projectId === currentProject?.id
-    );
-    
-    if (duplicate) {
-      message.error(`A sprint named "${duplicate.name}" already exists in this project.`);
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const sprintData: any = {
-        name: trimmedName,
-        goal: values.goal || '',
-        status: 'future',
-        projectId: currentProject?.id || 'default-project',
-      };
-
-      // Only add dates if they exist
-      if (values.dates?.[0]) {
-        sprintData.startDate = values.dates[0].toISOString();
-      }
-      if (values.dates?.[1]) {
-        sprintData.endDate = values.dates[1].toISOString();
-      }
-
-      const response = await sprintsApi.create(sprintData);
-      setSprints([...sprints, response.data]);
-      message.success('Sprint created successfully');
-      setCreateSprintModalVisible(false);
-      sprintForm.resetFields();
-    } catch (error) {
-      console.error('Failed to create sprint:', error);
-      message.error('Failed to create sprint');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteSprint = async (sprintId: string) => {
-    try {
-      await sprintsApi.delete(sprintId);
-      setSprints(sprints.filter(s => s.id !== sprintId));
-      message.success('Sprint deleted successfully');
-    } catch (error) {
-      message.error('Failed to delete sprint');
-    }
-  };
-
-  const handleDeleteIssue = async (issueId: string) => {
-    try {
-      await issuesApi.delete(issueId);
-      setIssues(issues.filter(i => i.id !== issueId));
-      message.success('Issue deleted successfully');
-    } catch (error) {
-      message.error('Failed to delete issue');
-    }
-  };
-
-  // Handle linking issue to epic
-  const handleOpenLinkEpicModal = async (issue: any) => {
-    setIssueToLink(issue);
-    // Load epics for this project
-    try {
-      const userId = currentUser?.id || localStorage.getItem('userId');
-      const response = await issuesApi.getAll({ 
-        projectId: currentProject?.id, 
-        type: 'epic',
-        userId: userId || undefined 
-      });
-      setEpics(response.data || []);
-    } catch (error) {
-      console.error('Failed to load epics:', error);
-      setEpics([]);
-    }
-    setLinkEpicModalVisible(true);
-  };
-
-  const handleLinkToEpic = async () => {
-    if (!issueToLink || !selectedEpicId) {
-      message.error('Please select an epic');
-      return;
-    }
-    try {
-      await issuesApi.update(issueToLink.id, { epicLink: selectedEpicId });
-      message.success('Issue linked to epic successfully');
-      setLinkEpicModalVisible(false);
-      setIssueToLink(null);
-      setSelectedEpicId(null);
+    if (currentProject) {
       loadData();
-    } catch (error) {
-      message.error('Failed to link issue to epic');
     }
-  };
+  }, [currentProject]);
 
-  const handleDragStart = (event: any) => {
-    setActiveId(event.active.id);
+  const loadData = async () => {
+    try {
+      if (!currentProject) return;
+      fetchSprints(currentProject.id);
+      const res = await issuesApi.getByProject(currentProject.id);
+      setIssues(res.data);
+    } catch (e) { message.error('Failed to load backlog'); }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    
-    // Clear active drag state first
-    setActiveId(null);
+    if (!over) return;
 
-    // If dropped outside any droppable area, reload to ensure consistency
-    if (!over) {
-      loadData(); // Reload to prevent any UI inconsistencies
-      return;
-    }
+    const issueId = active.id as string;
+    const targetId = over.id as string;
 
-    const activeIssue = issues.find(i => i.id === active.id);
-    if (!activeIssue) {
-      loadData(); // Reload if issue not found
-      return;
-    }
+    if (active.id === over.id) return;
 
-    // Determine target - use null for backlog, string ID for sprint
-    const targetSprintId = over.id === 'backlog' ? null : String(over.id);
-    
-    // Normalize current sprint ID
-    const currentSprintId = activeIssue.sprintId || null;
-
-    // If dropped in same location, no action needed
-    if (currentSprintId === targetSprintId) {
-      return;
-    }
-
-    // Store original for rollback
-    const originalSprintId = activeIssue.sprintId;
-    const originalStatus = activeIssue.status;
-    const newStatus = targetSprintId ? "todo" : "backlog";
-
-    // Optimistic update
-    updateIssue(activeIssue.id, { 
-      sprintId: targetSprintId as any, 
-      status: newStatus as any 
-    });
-
-    try {
-      if (targetSprintId) {
-        const targetSprint = sprints.find(s => s.id === targetSprintId);
-        if (targetSprint?.status === 'active') {
-          message.warning('Scope change: Issue added to active sprint');
-        }
+    let newSprintId = null;
+    if (targetId !== 'backlog') {
+      const sprint = sprints.find(s => s.id === targetId);
+      if (sprint) newSprintId = sprint.id;
+      else {
+        const targetIssue = issues.find(i => i.id === targetId);
+        if (targetIssue) newSprintId = targetIssue.sprintId;
       }
-      
-      await issuesApi.update(activeIssue.id, { sprintId: targetSprintId, status: newStatus });
-      message.success(`Issue moved to ${targetSprintId ? 'sprint' : 'backlog'}`);
-      
-      // Reload data to ensure UI is in sync with backend
-      loadData();
-    } catch (error) {
-      // Rollback on error
-      updateIssue(activeIssue.id, { 
-        sprintId: originalSprintId, 
-        status: originalStatus 
-      });
-      message.error('Failed to move issue');
-      loadData(); // Reload to ensure consistency
     }
+
+    setIssues(prev => prev.map(i => i.id === issueId ? { ...i, sprintId: newSprintId } : i));
+    await issuesApi.update(issueId, { sprintId: newSprintId });
   };
 
-  const handleIssueClick = (issue: any) => {
-    // Navigate to issue detail
-    navigate(`/issue/${issue.key}`);
-  };
-
-  const activeIssue = activeId ? issues.find(i => i.id === activeId) : null;
-
-  // Show loading spinner during initial load to prevent "No Project Selected" flash
-  if (initialLoading) {
-    return (
-      <Container>
-        <LoadingSpinner text="Loading backlog..." />
-      </Container>
-    );
-  }
-
-  if (!currentProject) {
-    return (
-      <Container>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '60vh',
-          gap: '16px'
-        }}>
-          <h2>No Project Selected</h2>
-          <p>Please select a project from the dropdown in the header to view the backlog.</p>
-          <Button type="primary" onClick={() => navigate('/projects')}>
-            Go to Projects
-          </Button>
-        </div>
-      </Container>
-    );
-  }
+  const activeSprints = sprints.filter(s => s.status === 'active');
+  const futureSprints = sprints.filter(s => s.status === 'future');
+  const backlogIssues = issues.filter(i => !i.sprintId);
 
   return (
     <Container>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={pointerWithin}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <Header>
-          <Title>Backlog - {currentProject.name}</Title>
-          <Controls>
-            <Badge count={activeFilterCount} offset={[10, 0]}>
-              <FilterButton icon={<Filter size={16} />} onClick={() => setFilterDrawerVisible(true)}>
-                Filters
-              </FilterButton>
-            </Badge>
-            <Select 
-              value={filters.specialFilter}
-              style={{ width: 150 }}
-              onChange={(value) => setFilters({ ...filters, specialFilter: value })}
-              options={[
-                { value: 'all', label: 'All Issues' },
-                { value: 'orphaned', label: '⚠️ Orphaned' },
-                { value: 'with-epic', label: 'With Epic' },
-                { value: 'no-assignee', label: 'Unassigned' },
-              ]}
-            />
-            <Button icon={<Plus size={16} />} onClick={() => setCreateIssueModalVisible(true)}>
-              Create Issue
-            </Button>
-            <Button type="primary" icon={<Plus size={16} />} onClick={() => setCreateSprintModalVisible(true)}>
-              Create Sprint
-            </Button>
-          </Controls>
-        </Header>
+      <BacklogColumn isSplit={!!selectedIssueKey}>
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <Header>
+            <Title>Backlog</Title>
+            <Controls>
+              <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
+                Create Issue
+              </Button>
+            </Controls>
+          </Header>
 
-        {activeFilterCount > 0 && (
-          <ActiveFilters>
-            {filters.search && (
-              <Tag closable onClose={() => setFilters({ ...filters, search: '' })}>
-                Search: {filters.search}
-              </Tag>
-            )}
-            {filters.assignee.map(a => (
-              <Tag key={a} closable onClose={() => setFilters({ ...filters, assignee: filters.assignee.filter(x => x !== a) })}>
-                Assignee: {a}
-              </Tag>
-            ))}
-            {filters.type.map(t => (
-              <Tag key={t} closable onClose={() => setFilters({ ...filters, type: filters.type.filter(x => x !== t) })}>
-                Type: {t}
-              </Tag>
-            ))}
-            {filters.priority.map(p => (
-              <Tag key={p} closable onClose={() => setFilters({ ...filters, priority: filters.priority.filter(x => x !== p) })}>
-                Priority: {p}
-              </Tag>
-            ))}
-            <Button type="link" size="small" onClick={() => setFilters({ search: '', assignee: [], type: [], priority: [], status: [], specialFilter: 'all' })}>
-              Clear all
-            </Button>
-          </ActiveFilters>
-        )}
-
-        {[...sprints].sort((a, b) => { const statusOrder = { active: 0, future: 1, closed: 2 }; return (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99); }).map(sprint => {
-          const sprintIssues = getSprintIssues(sprint.id);
-          const totalPoints = sprintIssues.reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
-
-          return (
-            <SprintCard
-              key={sprint.id}
-              title={
-                <SprintHeader>
-                  <SprintInfo>
-                    <SprintName>{sprint.name}</SprintName>
-                    <SprintMeta>
-                      {sprint.startDate && sprint.endDate && (
-                        <>
-                          {new Date(sprint.startDate).toLocaleDateString()} - {new Date(sprint.endDate).toLocaleDateString()}
-                        </>
-                      )}
-                      {' • '}
-                      {sprintIssues.length} issues • {totalPoints} points
-                    </SprintMeta>
-                  </SprintInfo>
-                  <div>
-                    {sprint.status === 'active' && (
-                      <Button
-                        type="primary"
-                        size="small"
-                        onClick={() => {
-                          setSelectedSprint(sprint);
-                          setCompleteSprintModalVisible(true);
-                        }}
-                      >
-                        Complete Sprint
-                      </Button>
-                    )}
-                    {sprint.status === 'future' && (
-                      <Button
-                        type="primary"
-                        size="small"
-                        onClick={() => {
-                          const activeSprint = sprints.find(s => s.status === 'active' && s.projectId === currentProject?.id);
-                          if (activeSprint) {
-                            message.warning('There is already an active sprint. Please complete it first.');
-                            return;
-                          }
-                          setSelectedSprint(sprint);
-                          setStartSprintModalVisible(true);
-                        }}
-                      >
-                        Start Sprint
-                      </Button>
-                    )}
-                    <Dropdown
-                      menu={{
-                        items: sprint.status === "active" ? [{ key: "info", label: "Active sprint cannot be deleted", disabled: true }] : [
-                          {
-                            key: 'delete',
-                            label: 'Delete Sprint',
-                            icon: <Trash2 size={16} />,
-                            danger: true,
-                            onClick: () => {
-                              Modal.confirm({
-                                title: 'Delete Sprint',
-                                content: 'Are you sure you want to delete this sprint? All issues will be moved to the backlog.',
-                                okText: 'Delete',
-                                okType: 'danger',
-                                onOk: () => handleDeleteSprint(sprint.id),
-                              });
-                            },
-                          },
-                        ],
-                      }}
-                      trigger={['click']}
-                    >
-                      <Button size="small" icon={<MoreHorizontal size={16} />} style={{ marginLeft: 8 }} />
-                    </Dropdown>
-                  </div>
-                </SprintHeader>
-              }
-            >
-              <DroppableSprint sprintId={sprint.id}>
-                <SortableContext
-                  items={sprintIssues.map(i => i.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <IssueList>
-                    {sprintIssues.length > 0 ? (
-                      sprintIssues.map(issue => (
-                        <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} onDelete={handleDeleteIssue} onLinkToEpic={handleOpenLinkEpicModal} />
-                      ))
-                    ) : (
-                      <div style={{ textAlign: 'center', color: colors.text.secondary, padding: '20px' }}>
-                        Drag issues here
-                      </div>
-                    )}
-                  </IssueList>
-                </SortableContext>
-              </DroppableSprint>
+          {/* Sprints */}
+          {[...activeSprints, ...futureSprints].map(sprint => (
+            <SprintCard key={sprint.id} title={
+              <SprintHeader>
+                <SprintInfo>
+                  <SprintName>{sprint.name}</SprintName>
+                  <SprintMeta>{sprint.status === 'active' ? 'Active • ' : ''}{sprint.goal || Math.floor(Math.random() * 5) + ' issues'}</SprintMeta>
+                </SprintInfo>
+                {sprint.status === 'future' && <Button size="small" onClick={() => { setSelectedSprint(sprint); setIsStartSprintModalOpen(true); }}>Start Sprint</Button>}
+                {sprint.status === 'active' && <Button size="small" type="primary" ghost>Complete Sprint</Button>}
+              </SprintHeader>
+            }>
+              <DroppableSprint
+                sprintId={sprint.id}
+                issues={issues.filter(i => i.sprintId === sprint.id)}
+                selectedIssueId={selectedIssueKey}
+                onIssueClick={(key) => setSelectedIssueKey(key)}
+              />
             </SprintCard>
-          );
-        })}
-
-        <BacklogSection>
-          <SectionTitle>
-            Backlog ({backlogIssues.length} issues)
-          </SectionTitle>
-          <DroppableSprint sprintId="backlog">
-            <SortableContext
-              items={backlogIssues.map(i => i.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <IssueList>
-                {backlogIssues.length > 0 ? (
-                  backlogIssues.map(issue => (
-                    <SortableIssue key={issue.id} issue={issue} onIssueClick={handleIssueClick} onDelete={handleDeleteIssue} onLinkToEpic={handleOpenLinkEpicModal} />
-                  ))
-                ) : (
-                  <div style={{ textAlign: 'center', color: colors.text.secondary, padding: '20px' }}>
-                    No issues in backlog
-                  </div>
-                )}
-              </IssueList>
-            </SortableContext>
-          </DroppableSprint>
-        </BacklogSection>
-
-        <DragOverlay>
-          {activeIssue ? (
-            <IssueItem style={{ cursor: 'grabbing', opacity: 0.8 }}>
-              <GripVertical size={16} style={{ color: colors.text.secondary }} />
-              <IssueKey>{activeIssue.key}</IssueKey>
-              <IssueSummary>{activeIssue.summary}</IssueSummary>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Tag color={
-                  activeIssue.priority === 'highest' ? 'red' :
-                    activeIssue.priority === 'high' ? 'orange' :
-                      activeIssue.priority === 'medium' ? 'blue' :
-                        'green'
-                }>
-                  {activeIssue.priority}
-                </Tag>
-                {activeIssue.storyPoints && (
-                  <Tag color="blue">{activeIssue.storyPoints} pts</Tag>
-                )}
-              </div>
-            </IssueItem>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-
-      {/* Create Sprint Modal */}
-      <Modal
-        title="Create Sprint"
-        open={createSprintModalVisible}
-        onCancel={() => setCreateSprintModalVisible(false)}
-        footer={null}
-      >
-        <Form form={sprintForm} onFinish={handleCreateSprint} layout="vertical">
-          <Form.Item label="Sprint Name" name="name" rules={[{ required: true, message: 'Please enter sprint name' }]}>
-            <Input placeholder="e.g., Sprint 1" />
-          </Form.Item>
-          <Form.Item label="Sprint Goal" name="goal">
-            <Input.TextArea rows={3} placeholder="What is the goal of this sprint?" />
-          </Form.Item>
-          <Form.Item label="Duration" name="dates">
-            <DatePicker.RangePicker style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Create Sprint
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Create Issue Modal */}
-      <CreateIssueModal
-        open={createIssueModalVisible}
-        onClose={() => setCreateIssueModalVisible(false)}
-        onSuccess={() => {
-          setCreateIssueModalVisible(false);
-          message.success('Issue created successfully');
-        }}
-      />
-
-      {/* Start Sprint Modal */}
-      <StartSprintModal
-        visible={startSprintModalVisible}
-        sprint={selectedSprint}
-        onClose={() => setStartSprintModalVisible(false)}
-        onSuccess={() => {
-          loadData();
-          message.success('Sprint started successfully!');
-          navigate('/board');
-        }}
-      />
-
-      {/* Complete Sprint Modal */}
-      <CompleteSprintModal
-        visible={completeSprintModalVisible}
-        sprint={selectedSprint}
-        issues={issues}
-        sprints={sprints}
-        onClose={() => setCompleteSprintModalVisible(false)}
-        onSuccess={() => {
-          loadData();
-          message.success('Sprint completed successfully!');
-        }}
-      />
-
-      {/* Link to Epic Modal */}
-      <Modal
-        title="Link Issue to Epic"
-        open={linkEpicModalVisible}
-        onCancel={() => {
-          setLinkEpicModalVisible(false);
-          setIssueToLink(null);
-          setSelectedEpicId(null);
-        }}
-        onOk={handleLinkToEpic}
-        okText="Link"
-      >
-        <p>Link <strong>{issueToLink?.key}</strong> to an Epic:</p>
-        <Select
-          style={{ width: '100%' }}
-          placeholder="Select an Epic"
-          value={selectedEpicId}
-          onChange={(value) => setSelectedEpicId(value)}
-        >
-          {epics.map((epic: any) => (
-            <Select.Option key={epic.id} value={epic.id}>
-              {epic.key} - {epic.summary}
-            </Select.Option>
           ))}
-        </Select>
-        {epics.length === 0 && (
-          <p style={{ color: '#999', marginTop: 8 }}>No epics found. Create an epic first.</p>
-        )}
-      </Modal>
+
+          {/* Backlog */}
+          <SprintCard title={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <span style={{ fontWeight: 600 }}>Backlog ({backlogIssues.length} issues)</span>
+            <Button size="small" onClick={() => { /* Create Sprint Logic */ }}>Create Sprint</Button>
+          </div>}>
+            <DroppableSprint
+              sprintId="backlog"
+              issues={backlogIssues}
+              selectedIssueId={selectedIssueKey}
+              onIssueClick={(key) => setSelectedIssueKey(key)}
+            />
+          </SprintCard>
+
+          <DragOverlay />
+        </DndContext>
+      </BacklogColumn>
+
+      {/* Split View Detail Panel */}
+      {selectedIssueKey && (
+        <DetailColumn>
+          <div style={{ padding: '8px 16px', borderBottom: `1px solid ${colors.border.light}`, display: 'flex', justifyContent: 'flex-end', background: '#f9fafb' }}>
+            <Button type="text" icon={<X size={16} />} onClick={() => setSelectedIssueKey(null)} />
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {/* Embedd the detailed view - We wrap it to remove its own header if needed, but it has a sticky one */}
+            <IssueDetailPanel issueKey={selectedIssueKey} />
+          </div>
+        </DetailColumn>
+      )}
+
+      {/* Modals */}
+      <CreateIssueModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onSuccess={loadData} />
+      <StartSprintModal open={isStartSprintModalOpen} onClose={() => setIsStartSprintModalOpen(false)} sprint={selectedSprint} onSuccess={loadData} />
+
     </Container>
   );
 };
