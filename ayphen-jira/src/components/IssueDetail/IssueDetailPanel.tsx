@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress } from 'antd';
-import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search } from 'lucide-react';
+import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi, historyApi } from '../../services/api';
@@ -402,7 +402,17 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 style={{ fontSize: 20, fontWeight: 600, marginLeft: 16, width: 400, color: '#1A1A1A' }}
               />
             ) : (
-              <HeaderTitle onClick={() => setIsEditingTitle(true)}>{issue.summary}</HeaderTitle>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <HeaderTitle onClick={() => setIsEditingTitle(true)}>{issue.summary}</HeaderTitle>
+                <Tooltip title="Edit Title">
+                  <Button 
+                    type="text" 
+                    icon={<Pencil size={16} color="#E91E63" />} 
+                    onClick={() => setIsEditingTitle(true)}
+                    style={{ padding: 4 }}
+                  />
+                </Tooltip>
+              </div>
             )}
           </div>
 
