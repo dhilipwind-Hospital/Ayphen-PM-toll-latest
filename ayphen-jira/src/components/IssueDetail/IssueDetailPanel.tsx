@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress } from 'antd';
-import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi, historyApi } from '../../services/api';
@@ -18,7 +18,7 @@ const { TextArea } = Input;
 const LayoutContainer = styled.div`
   display: flex;
   height: 100vh;
-  background: ${colors.neutral[0]};
+  background: white; /* Pure white */
   overflow: hidden;
 `;
 
@@ -31,8 +31,8 @@ const MainColumn = styled.div`
 `;
 
 const ContentWrapper = styled.div`
-  padding: 32px 40px;
-  max-width: 900px;
+  padding: 40px 60px; /* Generous padding */
+  max-width: 1000px;
   margin: 0 auto;
 `;
 
@@ -40,51 +40,43 @@ const StickyHeader = styled.div`
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  padding: 12px 40px;
+  background: rgba(255, 255, 255, 1); /* Opaque white */
+  padding: 16px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid ${colors.border.light};
+  /* No border as requested */
 `;
 
 const IssueKeyBadge = styled.div`
   font-size: 13px;
   font-weight: 600;
   color: white;
-  background: ${colors.primary[500]};
+  background: #E91E63; /* Pink pill */
   padding: 4px 12px;
-  border-radius: 999px; /* Pill shape */
+  border-radius: 999px;
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 `;
 
-const IssueUrlText = styled.div`
-  font-size: 14px;
-  font-weight: 500;
+const HeaderTitle = styled.div`
+  font-size: 18px;
+  font-weight: 600;
   color: ${colors.text.primary};
-  margin-left: 12px;
+  margin-left: 16px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 400px;
-`;
-
-const IssueTitle = styled.h1`
-  font-size: 24px;
-  font-weight: 600;
-  color: ${colors.text.primary};
-  margin: 0 0 24px 0;
-  line-height: 1.3;
   cursor: text;
-  &:hover { background: #f5f5f5; border-radius: 4px; }
+  max-width: 600px;
+  
+  &:hover { opacity: 0.8; }
 `;
 
 const Section = styled.div`
-  margin-bottom: 32px;
-  scroll-margin-top: 80px; 
+  margin-bottom: 48px; /* Large gaps */
 `;
 
 const SectionHeader = styled.div`
@@ -96,37 +88,32 @@ const SectionHeader = styled.div`
 
 const SectionTitle = styled.h3`
   font-size: 16px;
-  font-weight: 600;
-  color: ${colors.neutral[800]};
+  font-weight: 700;
+  color: ${colors.text.primary};
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 `;
 
-const EmptyStateBox = styled.div`
-  background: ${colors.neutral[50]};
-  border: 1px solid ${colors.neutral[200]};
-  border-radius: 8px;
-  padding: 32px;
+const EmptyStateText = styled.div`
+  padding: 24px;
   text-align: center;
-  color: ${colors.neutral[500]};
+  color: #9E9E9E; /* Gray */
   font-size: 14px;
   font-style: italic;
 `;
 
 const CommentButton = styled(Button)`
   && {
-    background-color: ${colors.secondary[700]};
+    background-color: #E91E63; /* Bright Pink */
     color: white;
     border: none;
     border-radius: 4px;
-    padding: 8px 24px;
+    padding: 10px 24px;
     height: auto;
     font-weight: 500;
+    margin-top: 12px;
     
     &:hover {
-      background-color: ${colors.secondary[800]} !important;
+      background-color: #D81B60 !important;
       color: white !important;
     }
   }
@@ -134,25 +121,26 @@ const CommentButton = styled(Button)`
 
 const StyledTabs = styled(Tabs)`
   .ant-tabs-nav {
-    margin-bottom: 24px !important;
+    margin-bottom: 32px !important;
     border-bottom: 1px solid ${colors.border.light};
+    &::before { border-bottom: none; }
   }
   .ant-tabs-tab {
     padding: 12px 0 !important;
-    margin: 0 24px 0 0 !important;
+    margin: 0 32px 0 0 !important;
     font-size: 14px;
     color: ${colors.text.secondary};
     
     &:hover {
-      color: ${colors.primary[500]};
+      color: #E91E63;
     }
   }
   .ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: ${colors.primary[500]} !important;
+    color: #E91E63 !important;
     font-weight: 500;
   }
   .ant-tabs-ink-bar {
-    background: ${colors.primary[500]} !important;
+    background: #E91E63 !important;
     height: 3px !important;
   }
 `;
@@ -163,9 +151,9 @@ const MarkdownContent = styled.div`
   font-size: 15px;
   h1, h2, h3 { margin-top: 1em; font-weight: 600; }
   p { margin-bottom: 1em; }
-  ul, ol { padding-left: 20px; margin-bottom: 1em; }
-  code { background: ${colors.neutral[100]}; padding: 2px 4px; borderRadius: 4px; }
 `;
+
+// --- Component ---
 
 interface IssueDetailPanelProps {
   issueKey: string;
@@ -177,7 +165,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [issue, setIssue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [projectMembers, setProjectMembers] = useState<any[]>([]);
-  const [activeSection, setActiveSection] = useState('summary'); // Kept for scroll spy, but tabs will manage their own active state
 
   // Data States
   const [comments, setComments] = useState<any[]>([]);
@@ -200,34 +187,12 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [fileList, setFileList] = useState<any[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Maintain active tab state
+  // Active Tab
   const [activeTab, setActiveTab] = useState('comments');
-
-  // Refs for Scroll Spy
-  const mainScrollRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (issueKey) loadIssueData();
   }, [issueKey]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!mainScrollRef.current) return;
-      const scrollPos = mainScrollRef.current.scrollTop + 120;
-      let current = 'summary';
-      for (const [id, ref] of Object.entries(sectionRefs.current)) {
-        if (ref && ref.offsetTop <= scrollPos) {
-          current = id;
-        }
-      }
-      setActiveSection(current);
-    };
-
-    const scrollContainer = mainScrollRef.current;
-    if (scrollContainer) scrollContainer.addEventListener('scroll', handleScroll);
-    return () => { if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll); };
-  }, [loading]);
 
   const loadIssueData = async () => {
     try {
@@ -315,14 +280,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     setIsEditingTitle(false);
   };
 
-  const scrollToSection = (id: string) => {
-    const element = sectionRefs.current[id];
-    if (element) {
-      // Small timeout to allow render
-      setTimeout(() => element.scrollIntoView({ behavior: 'smooth' }), 0);
-    }
-  };
-
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
@@ -370,56 +327,42 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   if (loading || !issue) return <div>Loading...</div>;
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
-
   return (
     <LayoutContainer>
-      {/* 1. Left Nav Rail Removed */}
-
-      {/* 2. Main Content Area */}
-      <MainColumn ref={mainScrollRef}>
+      <MainColumn>
         <StickyHeader>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Button icon={<ArrowLeft size={16} />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} style={{ marginRight: 16 }} />
+            <Button icon={<ArrowLeft size={20} />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} style={{ marginRight: 24, padding: 0 }} />
             <IssueKeyBadge>{issue.key}</IssueKeyBadge>
-            <IssueUrlText>{currentUrl}</IssueUrlText>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Tooltip title="Copy Link"><Button icon={<Link size={16} />} type="text" onClick={() => { navigator.clipboard.writeText(currentUrl); message.success('Copied link'); }} /></Tooltip>
-            <VoiceDescriptionButton issueType={issue.type} issueSummary={issue.summary} projectId={issue.projectId} currentDescription={issue.description} onTextGenerated={(text) => handleUpdate('description', text)} />
-          </div>
-        </StickyHeader>
 
-        <ContentWrapper>
-          {/* Summary Section */}
-          <Section ref={el => { sectionRefs.current['summary'] = el; }}>
             {isEditingTitle ? (
               <Input
-                size="large"
                 value={titleInput}
                 onChange={e => setTitleInput(e.target.value)}
                 onBlur={handleTitleUpdate}
                 onPressEnter={handleTitleUpdate}
                 autoFocus
-                style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}
+                style={{ fontSize: 18, fontWeight: 600, marginLeft: 16, width: 400 }}
               />
             ) : (
-              <IssueTitle onClick={() => setIsEditingTitle(true)}>{issue.summary}</IssueTitle>
+              <HeaderTitle onClick={() => setIsEditingTitle(true)}>{issue.summary}</HeaderTitle>
             )}
+          </div>
 
-            <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
-              <Button icon={<Paperclip size={14} />} onClick={() => setUploadModalVisible(true)}>Attach</Button>
-              <Button icon={<Plus size={14} />} onClick={() => setCreateSubtaskModalVisible(true)}>Create Subtask</Button>
-              <Button icon={<Link size={14} />} onClick={() => setLinkModalVisible(true)}>Link Issue</Button>
-            </div>
-          </Section>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Tooltip title="Copy Link"><Button icon={<Link size={18} />} type="text" onClick={() => { navigator.clipboard.writeText(window.location.href); message.success('Copied link'); }} /></Tooltip>
+            <VoiceDescriptionButton issueType={issue.type} issueSummary={issue.summary} projectId={issue.projectId} currentDescription={issue.description} onTextGenerated={(text) => handleUpdate('description', text)} />
+          </div>
+        </StickyHeader>
+
+        <ContentWrapper>
 
           {/* Description Section */}
-          <Section ref={el => { sectionRefs.current['description'] = el; }}>
+          <Section>
             <SectionHeader>
               <SectionTitle>Description</SectionTitle>
               <Button
-                size="small"
+                size="middle"
                 icon={<Edit size={14} />}
                 onClick={() => setIsEditingDescription(!isEditingDescription)}
               >
@@ -430,7 +373,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             {isEditingDescription ? (
               <div style={{ marginBottom: 24 }}>
                 <TextArea
-                  rows={10}
+                  rows={8}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
                   style={{ marginBottom: 12 }}
@@ -444,139 +387,46 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 </div>
               </div>
             ) : (
-              <MarkdownContent onClick={() => setIsEditingDescription(true)} style={{ cursor: 'pointer', minHeight: 60 }}>
+              <MarkdownContent onClick={() => setIsEditingDescription(true)} style={{ cursor: 'pointer', minHeight: 40 }}>
                 {issue.description ? (
                   <ReactMarkdown>{issue.description}</ReactMarkdown>
                 ) : (
-                  <EmptyStateBox>No description provided. Click to add Vision, Goals, Scope, and Success Criteria.</EmptyStateBox>
+                  <EmptyStateText>No description provided. Click to add Vision, Goals, Scope, and Success Criteria.</EmptyStateText>
                 )}
               </MarkdownContent>
             )}
           </Section>
 
-          {/* Subtasks Section */}
-          <Section ref={el => { sectionRefs.current['subtasks'] = el; }}>
-            <SectionHeader>
-              <SectionTitle>Subtasks ({subtasks.length})</SectionTitle>
-              <Button size="small" icon={<Plus size={14} />} onClick={() => setCreateSubtaskModalVisible(true)}>Create Subtask</Button>
-            </SectionHeader>
-
-            {subtasks.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <Progress
-                  percent={Math.round((subtasks.filter(s => s.status === 'done').length / subtasks.length) * 100)}
-                  strokeColor={colors.status.done}
-                  size="small"
-                  format={percent => `${subtasks.filter(s => s.status === 'done').length} of ${subtasks.length} done`}
-                />
-              </div>
-            )}
-
-            {subtasks.length > 0 ? (
-              subtasks.map(s => (
-                <div key={s.id} onClick={() => navigate(`/issue/${s.key}`)} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'white' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-
-                    {/* Priority Icon Mockup - assuming basic mapping if priority data present */}
-                    {s.priority === 'high' || s.priority === 'highest' ? <ArrowUp size={14} color={colors.priority.high} /> :
-                      s.priority === 'low' || s.priority === 'lowest' ? <ArrowDown size={14} color={colors.priority.low} /> :
-                        <Minus size={14} color={colors.priority.medium} />}
-
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontWeight: 500, color: colors.text.secondary }}>{s.key}</span>
-                        <span style={{ color: colors.text.primary }}>{s.summary}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    {/* Assignee Avatar Mockup - assuming s.assignee object might exist, else fallback */}
-                    <Tooltip title={s.assignee?.name || 'Unassigned'}>
-                      <Avatar size={24} src={s.assignee?.avatar} style={{ backgroundColor: s.assignee ? undefined : '#f56a00' }}>
-                        {s.assignee?.name?.[0] || 'U'}
-                      </Avatar>
-                    </Tooltip>
-
-                    <span style={{ fontSize: 12, background: s.status === 'done' ? colors.status.done : colors.neutral[200], color: s.status === 'done' ? 'white' : colors.text.primary, padding: '2px 8px', borderRadius: 10, alignSelf: 'center' }}>{s.status}</span>
-                    <Tooltip title="Unlink/Delete Subtask">
-                      <Button
-                        type="text"
-                        size="small"
-                        danger
-                        icon={<Trash2 size={14} />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          Modal.confirm({
-                            title: 'Delete Subtask',
-                            content: `Are you sure you want to delete ${s.key}? This action cannot be undone.`,
-                            okText: 'Delete',
-                            okType: 'danger',
-                            onOk: async () => {
-                              try {
-                                await issuesApi.delete(s.id);
-                                message.success('Subtask deleted');
-                                loadSubtasks(issue.id);
-                              } catch (e) {
-                                message.error('Failed to delete subtask');
-                              }
-                            }
-                          });
-                        }}
-                      />
-                    </Tooltip>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <EmptyStateBox>No subtasks. Break down this issue into smaller tasks.</EmptyStateBox>
-            )}
-          </Section>
-
           {/* Linked Issues Section */}
-          <Section ref={el => { sectionRefs.current['linkedIssues'] = el; }}>
+          <Section>
             <SectionHeader>
               <SectionTitle>Linked Issues ({linkedIssues.length})</SectionTitle>
-              <Button size="small" icon={<Link size={14} />} onClick={() => setLinkModalVisible(true)}>Link Issue</Button>
+              <Button size="middle" icon={<Link size={16} />} onClick={() => setLinkModalVisible(true)}>Link Issue</Button>
             </SectionHeader>
+
             {linkedIssues.length > 0 ? (
               linkedIssues.map(l => (
-                <div key={l.id} onClick={() => navigate(`/issue/${l.targetIssue?.key}`)} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'white' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: colors.neutral[100], padding: '2px 6px', borderRadius: 4 }}>
+                <div key={l.id} onClick={() => navigate(`/issue/${l.targetIssue?.key}`)} style={{ padding: '12px 0', borderBottom: `1px solid ${colors.border.light}`, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: colors.neutral[100], padding: '2px 8px', borderRadius: 4 }}>
                       {getLinkIcon(l.linkType)}
                       <span style={{ fontSize: 12 }}>{l.linkType.replace('_', ' ')}</span>
                     </div>
-                    <span style={{ fontWeight: 500, color: colors.text.secondary }}>{l.targetIssue?.key}</span>
+                    <span style={{ fontWeight: 500, color: '#E91E63' }}>{l.targetIssue?.key}</span>
                     <span style={{ color: colors.text.primary }}>{l.targetIssue?.summary}</span>
                   </div>
                   <Tooltip title="Remove Link">
-                    <Button
-                      type="text"
-                      size="small"
-                      danger
-                      icon={<Trash2 size={14} />}
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        try {
-                          await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/${l.id}`, { method: 'DELETE' });
-                          message.success('Link removed');
-                          loadLinkedIssues(issue.id);
-                        } catch (err) {
-                          message.error('Failed to remove link');
-                        }
-                      }}
-                    />
+                    <Button type="text" danger icon={<Trash2 size={14} />} onClick={async (e) => { e.stopPropagation(); try { await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/${l.id}`, { method: 'DELETE' }); message.success('Link removed'); loadLinkedIssues(issue.id); } catch (e) { message.error('Failed to remove'); } }} />
                   </Tooltip>
                 </div>
               ))
             ) : (
-              <EmptyStateBox>No child issues. Link stories, bugs, or tasks to this epic.</EmptyStateBox>
+              <EmptyStateText>No child issues. Link stories, bugs, or tasks to this epic.</EmptyStateText>
             )}
           </Section>
 
           {/* Combined Tabs Section */}
-          <Section ref={el => { sectionRefs.current['activity'] = el; }}>
+          <Section>
             <StyledTabs
               activeKey={activeTab}
               onChange={setActiveTab}
@@ -585,44 +435,46 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   key: 'comments',
                   label: `Comments (${comments.length})`,
                   children: (
-                    <div>
+                    <div style={{ paddingTop: 8 }}>
                       <TextArea
                         rows={4}
                         placeholder="Add a comment..."
                         value={newComment}
                         onChange={e => setNewComment(e.target.value)}
-                        style={{ marginBottom: 16, borderRadius: 8, padding: 16, border: `1px solid ${colors.neutral[300]}` }}
+                        style={{ marginBottom: 8, borderRadius: 4, padding: 16, border: `1px solid ${colors.neutral[200]}`, resize: 'vertical' }}
                       />
-                      <div style={{ marginBottom: 32 }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                         <CommentButton onClick={handleAddComment}>Add Comment</CommentButton>
                       </div>
 
-                      {comments.length > 0 ? comments.map(c => (
-                        <div key={c.id} style={{ marginBottom: 24, display: 'flex', gap: 16 }}>
-                          <Avatar size={32} src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                              <span style={{ fontWeight: 600, color: colors.text.primary }}>{c.user?.name}</span>
-                              <span style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(c.createdAt).toLocaleString()}</span>
+                      <div style={{ marginTop: 40 }}>
+                        {comments.length > 0 ? comments.map(c => (
+                          <div key={c.id} style={{ marginBottom: 32, display: 'flex', gap: 16 }}>
+                            <Avatar size={40} src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <span style={{ fontWeight: 600, color: colors.text.primary, fontSize: 15 }}>{c.user?.name}</span>
+                                <span style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(c.createdAt).toLocaleString()}</span>
+                              </div>
+                              <div style={{ fontSize: 15, color: colors.text.primary, lineHeight: 1.6 }}>{c.content}</div>
                             </div>
-                            <div style={{ fontSize: 14, color: colors.text.primary, lineHeight: 1.5 }}>{c.content}</div>
                           </div>
-                        </div>
-                      )) : <EmptyStateBox>No comments yet.</EmptyStateBox>}
+                        )) : <EmptyStateText>No comments yet.</EmptyStateText>}
+                      </div>
                     </div>
                   )
                 },
                 {
                   key: 'test_cases',
                   label: 'Test Cases',
-                  children: <EmptyStateBox>No test cases linked to this issue.</EmptyStateBox>
+                  children: <EmptyStateText>No test cases linked.</EmptyStateText>
                 },
                 {
                   key: 'attachments',
                   label: `Attachments (${attachments.length})`,
                   children: (
-                    <div>
-                      <div style={{ marginBottom: 16 }}>
+                    <div style={{ paddingTop: 16 }}>
+                      <div style={{ marginBottom: 24 }}>
                         <Button icon={<Paperclip size={14} />} onClick={() => setUploadModalVisible(true)}>Add Attachment</Button>
                       </div>
                       {attachments.length > 0 ? (
@@ -633,27 +485,14 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                 style={{ height: 100, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: att.isImage ? 'zoom-in' : 'default' }}
                                 onClick={() => att.isImage && setPreviewImage(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`)}
                               >
-                                {att.isImage ?
-                                  <img
-                                    src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`}
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.src = `https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`;
-                                      target.onerror = null;
-                                    }}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  />
-                                  : <Paperclip color="#999" size={32} />}
+                                {att.isImage ? <img src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).src = `https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}` }} /> : <Paperclip color="#999" size={32} />}
                               </div>
-                              <div style={{ padding: 8, fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }} title={att.originalName}>{att.originalName}</div>
-                                <Trash2 size={12} style={{ cursor: 'pointer', color: 'red' }} onClick={() => {/* Handle Delete */ }} />
-                              </div>
+                              <div style={{ padding: 8, fontSize: 12 }}>{att.originalName}</div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <EmptyStateBox>No files attached.</EmptyStateBox>
+                        <EmptyStateText>No files attached.</EmptyStateText>
                       )}
                     </div>
                   )
@@ -662,17 +501,13 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   key: 'history',
                   label: `History (${history.length})`,
                   children: (
-                    <div>
+                    <div style={{ paddingTop: 16 }}>
                       {history.length > 0 ? history.map((h, index) => (
-                        <div key={index} style={{ display: 'flex', gap: 12, marginBottom: 12, paddingBottom: 12, borderBottom: `1px solid ${colors.border.light}` }}>
-                          <Avatar size="small" icon={<Clock size={12} />} />
-                          <div style={{ fontSize: 13 }}>
-                            <b style={{ marginRight: 4 }}>{h.user?.name || 'User'}</b>
-                            {h.description}
-                            <div style={{ color: colors.text.secondary, fontSize: 11, marginTop: 2 }}>{new Date(h.createdAt || h.timestamp).toLocaleString()}</div>
-                          </div>
+                        <div key={index} style={{ padding: '12px 0', borderBottom: `1px solid ${colors.border.light}` }}>
+                          <div><b>{h.user?.name}</b> {h.description}</div>
+                          <div style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(h.createdAt || h.timestamp).toLocaleString()}</div>
                         </div>
-                      )) : <EmptyStateBox>No history available.</EmptyStateBox>}
+                      )) : <EmptyStateText>No history available.</EmptyStateText>}
                     </div>
                   )
                 },
@@ -690,7 +525,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         onAIAction={(action) => message.info(`AI Action: ${action}`)}
       />
 
-      {/* Modals */}
+      {/* Modals & Hidden Logic */}
       <Modal open={uploadModalVisible} title="Upload Attachments" onOk={handleFileUpload} onCancel={() => setUploadModalVisible(false)}>
         <Upload
           fileList={fileList}
@@ -710,7 +545,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         open={createSubtaskModalVisible}
         onClose={() => setCreateSubtaskModalVisible(false)}
         onSuccess={async () => {
-          // Small delay to ensure backend consistency/indexing
           await new Promise(resolve => setTimeout(resolve, 500));
           await loadSubtasks(issue.id);
           await loadIssueData();
