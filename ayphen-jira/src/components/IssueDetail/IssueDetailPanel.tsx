@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress } from 'antd';
-import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock } from 'lucide-react';
+import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi, historyApi } from '../../services/api';
@@ -18,7 +18,7 @@ const { TextArea } = Input;
 const LayoutContainer = styled.div`
   display: flex;
   height: 100vh;
-  background: white; /* Pure white */
+  background: #FAF9F7; /* Light beige/off-white */
   overflow: hidden;
 `;
 
@@ -31,8 +31,8 @@ const MainColumn = styled.div`
 `;
 
 const ContentWrapper = styled.div`
-  padding: 40px 60px; /* Generous padding */
-  max-width: 1000px;
+  padding: 32px 40px;
+  max-width: 1200px;
   margin: 0 auto;
 `;
 
@@ -40,21 +40,20 @@ const StickyHeader = styled.div`
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(255, 255, 255, 1); /* Opaque white */
-  padding: 16px 40px;
+  background: #FFFFFF;
+  padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* No border as requested */
 `;
 
 const IssueKeyBadge = styled.div`
   font-size: 13px;
   font-weight: 600;
   color: white;
-  background: ${colors.primary[400]}; /* Pink pill (Softer Top Gradient Color) */
-  padding: 4px 12px;
-  border-radius: 999px;
+  background: #E91E63;
+  padding: 6px 12px;
+  border-radius: 8px; /* Rounded corners */
   display: flex;
   align-items: center;
   gap: 8px;
@@ -62,10 +61,10 @@ const IssueKeyBadge = styled.div`
 `;
 
 const HeaderTitle = styled.div`
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: ${colors.text.primary};
-  margin-left: 16px;
+  color: #1A1A1A;
+  margin-left: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -75,80 +74,125 @@ const HeaderTitle = styled.div`
   &:hover { opacity: 0.8; }
 `;
 
+const HeaderIconButton = styled(Button)`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #F5F5F5;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #E0E0E0 !important;
+    color: #424242 !important;
+  }
+`;
+
 const Section = styled.div`
-  margin-bottom: 48px; /* Large gaps */
+  margin: 24px 0;
+  background: #FAFAFA; /* Very light gray */
+  border-radius: 8px;
+  padding: 24px;
 `;
 
 const SectionHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 0px; 
 `;
 
 const SectionTitle = styled.h3`
   font-size: 16px;
-  font-weight: 700;
-  color: ${colors.text.primary};
+  font-weight: 600;
+  color: #2C3E50; /* Dark navy */
   margin: 0;
 `;
 
 const EmptyStateText = styled.div`
-  padding: 24px;
-  text-align: center;
-  color: #9E9E9E; /* Gray */
+  text-align: left;
+  color: #999999;
   font-size: 14px;
   font-style: italic;
+  margin-top: 16px;
+  line-height: 1.6;
 `;
 
-const CommentButton = styled(Button)`
-  && {
-    background-color: ${colors.primary[400]}; /* Softer Pink */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 24px;
-    height: auto;
-    font-weight: 500;
-    margin-top: 12px;
-    
-    &:hover {
-      background-color: ${colors.primary[500]} !important;
-      color: white !important;
-    }
-  }
+// Tabs Container - White background, connected to comment area
+const TabsContainer = styled.div`
+  background: #FFFFFF;
+  margin-top: 32px;
+  /* padding: 0 24px; remove padding here, padding inside tabs */
 `;
 
 const StyledTabs = styled(Tabs)`
   .ant-tabs-nav {
-    margin-bottom: 32px !important;
-    border-bottom: 1px solid ${colors.border.light};
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid #E0E0E0;
+    padding: 0 24px; /* Padding for the nav bar specifically */
     &::before { border-bottom: none; }
   }
   .ant-tabs-tab {
-    padding: 12px 0 !important;
-    margin: 0 32px 0 0 !important;
+    padding: 12px 16px !important;
+    margin: 0 !important;
     font-size: 14px;
-    color: ${colors.text.secondary};
+    color: #666666;
+    font-weight: 500;
     
     &:hover {
-      color: ${colors.primary[400]};
+      background: #F5F5F5;
+      color: #666666;
     }
   }
   .ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: ${colors.primary[400]} !important;
-    font-weight: 500;
+    color: #E91E63 !important;
+    font-weight: 600;
   }
   .ant-tabs-ink-bar {
-    background: ${colors.primary[400]} !important;
+    background: #E91E63 !important;
     height: 3px !important;
+  }
+    
+  /* Content area connection */
+  .ant-tabs-content-holder {
+     background: #FFFFFF;
+     padding: 24px;
+  }
+`;
+
+const CommentButton = styled(Button)`
+  && {
+    background-color: #E91E63;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    height: auto;
+    font-weight: 600;
+    margin-top: 12px;
+    font-size: 14px;
+    box-shadow: none;
+    
+    &:hover {
+      background-color: #D81B60 !important;
+      color: white !important;
+    }
+    &:active {
+      background-color: #C2185B !important;
+    }
   }
 `;
 
 const MarkdownContent = styled.div`
   line-height: 1.6;
-  color: ${colors.text.primary};
-  font-size: 15px;
+  color: #1A1A1A;
+  font-size: 14px;
+  margin-top: 16px; 
   h1, h2, h3 { margin-top: 1em; font-weight: 600; }
   p { margin-bottom: 1em; }
 `;
@@ -332,7 +376,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       <MainColumn>
         <StickyHeader>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Button icon={<ArrowLeft size={20} />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} style={{ marginRight: 24, padding: 0 }} />
+            <Button icon={<ArrowLeft size={20} color="#424242" />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} style={{ marginRight: 24, padding: 0 }} />
             <IssueKeyBadge>{issue.key}</IssueKeyBadge>
 
             {isEditingTitle ? (
@@ -342,15 +386,19 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 onBlur={handleTitleUpdate}
                 onPressEnter={handleTitleUpdate}
                 autoFocus
-                style={{ fontSize: 18, fontWeight: 600, marginLeft: 16, width: 400 }}
+                style={{ fontSize: 20, fontWeight: 600, marginLeft: 16, width: 400, color: '#1A1A1A' }}
               />
             ) : (
               <HeaderTitle onClick={() => setIsEditingTitle(true)}>{issue.summary}</HeaderTitle>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: 16 }}>
-            <Tooltip title="Copy Link"><Button icon={<Link size={18} />} type="text" onClick={() => { navigator.clipboard.writeText(window.location.href); message.success('Copied link'); }} /></Tooltip>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Tooltip title="Copy Link">
+              <HeaderIconButton onClick={() => { navigator.clipboard.writeText(window.location.href); message.success('Copied link'); }}>
+                <Link size={18} />
+              </HeaderIconButton>
+            </Tooltip>
             <VoiceDescriptionButton issueType={issue.type} issueSummary={issue.summary} projectId={issue.projectId} currentDescription={issue.description} onTextGenerated={(text) => handleUpdate('description', text)} />
           </div>
         </StickyHeader>
@@ -362,16 +410,18 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             <SectionHeader>
               <SectionTitle>Description</SectionTitle>
               <Button
-                size="middle"
+                size="small"
+                type="text"
                 icon={<Edit size={14} />}
                 onClick={() => setIsEditingDescription(!isEditingDescription)}
+                style={{ color: '#666', fontSize: 13 }}
               >
                 {isEditingDescription ? 'Cancel' : 'Edit'}
               </Button>
             </SectionHeader>
 
             {isEditingDescription ? (
-              <div style={{ marginBottom: 24 }}>
+              <div style={{ marginBottom: 24, marginTop: 16 }}>
                 <TextArea
                   rows={8}
                   value={descriptionInput}
@@ -401,32 +451,34 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           <Section>
             <SectionHeader>
               <SectionTitle>Linked Issues ({linkedIssues.length})</SectionTitle>
-              <Button size="middle" icon={<Link size={16} />} onClick={() => setLinkModalVisible(true)}>Link Issue</Button>
+              <Button size="small" type="text" icon={<Link size={14} />} onClick={() => setLinkModalVisible(true)} style={{ color: '#666', fontSize: 13 }}>Link Issue</Button>
             </SectionHeader>
 
             {linkedIssues.length > 0 ? (
-              linkedIssues.map(l => (
-                <div key={l.id} onClick={() => navigate(`/issue/${l.targetIssue?.key}`)} style={{ padding: '12px 0', borderBottom: `1px solid ${colors.border.light}`, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: colors.neutral[100], padding: '2px 8px', borderRadius: 4 }}>
-                      {getLinkIcon(l.linkType)}
-                      <span style={{ fontSize: 12 }}>{l.linkType.replace('_', ' ')}</span>
+              <div style={{ marginTop: 16 }}>
+                {linkedIssues.map(l => (
+                  <div key={l.id} onClick={() => navigate(`/issue/${l.targetIssue?.key}`)} style={{ padding: '12px 0', borderBottom: `1px solid ${colors.border.light}`, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: colors.neutral[100], padding: '2px 8px', borderRadius: 4 }}>
+                        {getLinkIcon(l.linkType)}
+                        <span style={{ fontSize: 12 }}>{l.linkType.replace('_', ' ')}</span>
+                      </div>
+                      <span style={{ fontWeight: 500, color: '#E91E63' }}>{l.targetIssue?.key}</span>
+                      <span style={{ color: colors.text.primary }}>{l.targetIssue?.summary}</span>
                     </div>
-                    <span style={{ fontWeight: 500, color: colors.primary[400] }}>{l.targetIssue?.key}</span>
-                    <span style={{ color: colors.text.primary }}>{l.targetIssue?.summary}</span>
+                    <Tooltip title="Remove Link">
+                      <Button type="text" danger icon={<Trash2 size={14} />} onClick={async (e) => { e.stopPropagation(); try { await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/${l.id}`, { method: 'DELETE' }); message.success('Link removed'); loadLinkedIssues(issue.id); } catch (e) { message.error('Failed to remove'); } }} />
+                    </Tooltip>
                   </div>
-                  <Tooltip title="Remove Link">
-                    <Button type="text" danger icon={<Trash2 size={14} />} onClick={async (e) => { e.stopPropagation(); try { await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/${l.id}`, { method: 'DELETE' }); message.success('Link removed'); loadLinkedIssues(issue.id); } catch (e) { message.error('Failed to remove'); } }} />
-                  </Tooltip>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
               <EmptyStateText>No child issues. Link stories, bugs, or tasks to this epic.</EmptyStateText>
             )}
           </Section>
 
-          {/* Combined Tabs Section */}
-          <Section>
+          {/* Combined Tabs Section - Separate White Container */}
+          <TabsContainer>
             <StyledTabs
               activeKey={activeTab}
               onChange={setActiveTab}
@@ -437,11 +489,11 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   children: (
                     <div style={{ paddingTop: 8 }}>
                       <TextArea
-                        rows={4}
+                        rows={6}
                         placeholder="Add a comment..."
                         value={newComment}
                         onChange={e => setNewComment(e.target.value)}
-                        style={{ marginBottom: 8, borderRadius: 4, padding: 16, border: `1px solid ${colors.neutral[200]}`, resize: 'vertical' }}
+                        style={{ marginBottom: 8, borderRadius: 6, padding: 12, border: `1px solid #D0D0D0`, resize: 'vertical' }}
                       />
                       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                         <CommentButton onClick={handleAddComment}>Add Comment</CommentButton>
@@ -453,13 +505,13 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                             <Avatar size={40} src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                <span style={{ fontWeight: 600, color: colors.text.primary, fontSize: 15 }}>{c.user?.name}</span>
+                                <span style={{ fontWeight: 600, color: '#1A1A1A', fontSize: 15 }}>{c.user?.name}</span>
                                 <span style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(c.createdAt).toLocaleString()}</span>
                               </div>
-                              <div style={{ fontSize: 15, color: colors.text.primary, lineHeight: 1.6 }}>{c.content}</div>
+                              <div style={{ fontSize: 14, color: '#333333', lineHeight: 1.6 }}>{c.content}</div>
                             </div>
                           </div>
-                        )) : <EmptyStateText>No comments yet.</EmptyStateText>}
+                        )) : <EmptyStateText style={{ textAlign: 'center' }}>No comments yet.</EmptyStateText>}
                       </div>
                     </div>
                   )
@@ -467,7 +519,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 {
                   key: 'test_cases',
                   label: 'Test Cases',
-                  children: <EmptyStateText>No test cases linked.</EmptyStateText>
+                  children: <EmptyStateText style={{ textAlign: 'center' }}>No test cases linked.</EmptyStateText>
                 },
                 {
                   key: 'attachments',
@@ -492,7 +544,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                           ))}
                         </div>
                       ) : (
-                        <EmptyStateText>No files attached.</EmptyStateText>
+                        <EmptyStateText style={{ textAlign: 'center' }}>No files attached.</EmptyStateText>
                       )}
                     </div>
                   )
@@ -507,13 +559,13 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                           <div><b>{h.user?.name}</b> {h.description}</div>
                           <div style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(h.createdAt || h.timestamp).toLocaleString()}</div>
                         </div>
-                      )) : <EmptyStateText>No history available.</EmptyStateText>}
+                      )) : <EmptyStateText style={{ textAlign: 'center' }}>No history available.</EmptyStateText>}
                     </div>
                   )
                 },
               ]}
             />
-          </Section>
+          </TabsContainer>
         </ContentWrapper>
       </MainColumn>
 
