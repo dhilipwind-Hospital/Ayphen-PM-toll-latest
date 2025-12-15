@@ -87,7 +87,7 @@ const MarkdownContent = styled.div`
   h1, h2, h3 { margin-top: 1em; font-weight: 600; }
   p { margin-bottom: 1em; }
   ul, ol { padding-left: 20px; margin-bottom: 1em; }
-  code { background: ${colors.background.neutral}; padding: 2px 4px; borderRadius: 4px; }
+  code { background: ${colors.neutral[100]}; padding: 2px 4px; borderRadius: 4px; }
 `;
 
 interface IssueDetailPanelProps {
@@ -180,11 +180,19 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   const loadSubtasks = async (issueId: string) => {
     try {
-      // Mocked endpoint until backend route verified
-      // const subRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/subtasks/parent/${issueId}`);
-      // setSubtasks(await subRes.json());
-      setSubtasks([]); // Clearing for safety if endpoint 404s
-    } catch (e) { setSubtasks([]); }
+      const getUrl = issue.type === 'epic'
+        ? `https://ayphen-pm-toll-latest.onrender.com/api/issues?epicLink=${issue.key}&userId=${localStorage.getItem('userId')}`
+        : `https://ayphen-pm-toll-latest.onrender.com/api/issues?parentId=${issueId}&userId=${localStorage.getItem('userId')}`;
+
+      const subRes = await fetch(getUrl);
+      if (subRes.ok) {
+        setSubtasks(await subRes.json());
+      } else {
+        setSubtasks([]);
+      }
+    } catch (e) {
+      setSubtasks([]);
+    }
   };
 
   const handleUpdate = async (field: string, value: any) => {
@@ -267,7 +275,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
         <ContentWrapper>
           {/* Summary Section */}
-          <Section ref={el => sectionRefs.current['summary'] = el}>
+          <Section ref={el => { sectionRefs.current['summary'] = el; }}>
             <IssueTitle>{issue.summary}</IssueTitle>
             <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
               <Button icon={<Paperclip size={14} />} onClick={() => setUploadModalVisible(true)}>Attach</Button>
@@ -277,7 +285,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           </Section>
 
           {/* Description Section */}
-          <Section ref={el => sectionRefs.current['description'] = el}>
+          <Section ref={el => { sectionRefs.current['description'] = el; }}>
             <SectionTitle>Description</SectionTitle>
             <MarkdownContent>
               {issue.description ? (
@@ -289,7 +297,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           </Section>
 
           {/* Subtasks Section */}
-          <Section ref={el => sectionRefs.current['subtasks'] = el}>
+          <Section ref={el => { sectionRefs.current['subtasks'] = el; }}>
             <SectionTitle>Subtasks</SectionTitle>
             {subtasks.length > 0 ? (
               subtasks.map(s => (
@@ -304,7 +312,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           </Section>
 
           {/* Attachments Section */}
-          <Section ref={el => sectionRefs.current['attachments'] = el}>
+          <Section ref={el => { sectionRefs.current['attachments'] = el; }}>
             <SectionTitle>Attachments</SectionTitle>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {attachments.map(att => (
@@ -325,7 +333,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           </Section>
 
           {/* Activity Section */}
-          <Section ref={el => sectionRefs.current['activity'] = el}>
+          <Section ref={el => { sectionRefs.current['activity'] = el; }}>
             <SectionTitle>Activity</SectionTitle>
             <Tabs
               items={[
@@ -386,8 +394,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
       <IssueLinkModal
         open={linkModalVisible}
-        onClose={() => setLinkModalVisible(false)}
-        issueId={issue.id}
+        onCancel={() => setLinkModalVisible(false)}
+        sourceIssueId={issue.id}
+        projectId={issue.projectId}
         onSuccess={() => message.success('Issue linked')}
       />
 

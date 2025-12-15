@@ -23,20 +23,20 @@ async function generateIssueKey(projectId: string): Promise<string> {
       console.error('Project not found:', projectId);
       return `PROJ-${Date.now()}`;
     }
-    
+
     const prefix = project.key || 'PROJ';
-    
+
     // Use the stored lastIssueNumber for true sequential numbering
     // This ensures deleted issues don't cause number reuse
     let nextNumber = (project.lastIssueNumber || 0) + 1;
-    
+
     // Also check current issues as a fallback (for existing data migration)
     const allIssues = await issueRepo
       .createQueryBuilder('issue')
       .where('issue.projectId = :projectId', { projectId })
       .andWhere('issue.key LIKE :prefix', { prefix: `${prefix}-%` })
       .getMany();
-    
+
     let maxExistingNumber = 0;
     allIssues.forEach(issue => {
       if (issue.key) {
@@ -49,16 +49,16 @@ async function generateIssueKey(projectId: string): Promise<string> {
         }
       }
     });
-    
+
     // Use the higher of stored counter or existing max
     nextNumber = Math.max(nextNumber, maxExistingNumber + 1);
-    
+
     const newKey = `${prefix}-${nextNumber}`;
-    
+
     // Update project's lastIssueNumber to track this allocation
     project.lastIssueNumber = nextNumber;
     await projectRepo.save(project);
-    
+
     // Double-check key doesn't exist (race condition protection)
     const existingIssue = await issueRepo.findOne({ where: { key: newKey } });
     if (existingIssue) {
@@ -68,7 +68,7 @@ async function generateIssueKey(projectId: string): Promise<string> {
       await projectRepo.save(project);
       return `${prefix}-${retryNumber}`;
     }
-    
+
     return newKey;
   } catch (error) {
     console.error('Error generating issue key:', error);
@@ -81,18 +81,18 @@ async function generateIssueKey(projectId: string): Promise<string> {
 router.get('/', async (req, res) => {
   try {
     const { projectId, status, assigneeId, userId, type } = req.query;
-    
+
     // REQUIRE userId FOR DATA ISOLATION
     if (!userId) {
       return res.json([]); // No userId = No data
     }
-    
+
     // Get user's accessible projects
     const accessibleProjectIds = await getUserProjectIds(userId as string);
-    
+
     // Build where clause
     const where: any = {};
-    
+
     if (projectId) {
       // Check if user has access to the requested project
       if (!accessibleProjectIds.includes(projectId as string)) {
@@ -103,10 +103,12 @@ router.get('/', async (req, res) => {
       // Filter by all accessible projects
       where.projectId = In(accessibleProjectIds);
     }
-    
+
     if (status) where.status = status;
     if (assigneeId) where.assigneeId = assigneeId;
     if (type) where.type = type;
+    if (req.query.parentId) where.parentId = req.query.parentId;
+    if (req.query.epicLink) where.epicLink = req.query.epicLink;
 
     const issues = await issueRepo.find({
       where,
@@ -155,7 +157,7 @@ router.get('/key/:key', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     console.log('📝 Creating issue with data:', req.body);
-    
+
     // Check for exact duplicates (98%+ confidence) unless override is set
     if (req.body.summary && req.body.projectId && !req.body.overrideDuplicate) {
       try {
@@ -165,7 +167,7 @@ router.post('/', async (req, res) => {
           req.body.projectId,
           req.body.type
         );
-        
+
         // Block if exact duplicate found (98%+ confidence)
         if (duplicateCheck.confidence >= 98 && duplicateCheck.duplicates.length > 0) {
           console.log(`⛔ Blocking duplicate creation: ${duplicateCheck.confidence}% match with ${duplicateCheck.duplicates[0].key}`);
@@ -182,30 +184,30 @@ router.post('/', async (req, res) => {
         // Continue with creation if duplicate check fails
       }
     }
-    
+
     // Generate unique key if not provided
     if (!req.body.key && req.body.projectId) {
       req.body.key = await generateIssueKey(req.body.projectId);
       console.log('🔑 Generated issue key:', req.body.key);
     }
-    
+
     // Force status to backlog for new issues if not specified or todo
     if (!req.body.status || req.body.status === 'todo') {
       req.body.status = 'backlog';
     }
-    
+
     // Validate assigneeId - if invalid or placeholder, set to null
     if (req.body.assigneeId && !req.body.assigneeId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
       console.log('⚠️  Invalid assigneeId, setting to null:', req.body.assigneeId);
       req.body.assigneeId = null;
     }
-    
+
     // Validate reporterId - if invalid, use first user or fail
     if (req.body.reporterId && !req.body.reporterId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
       console.log('⚠️  Invalid reporterId, setting to null:', req.body.reporterId);
       req.body.reporterId = null;
     }
-    
+
     const issue = issueRepo.create(req.body);
     const savedIssue = await issueRepo.save(issue) as any;
     console.log('✅ Issue created:', savedIssue.id);
@@ -261,10 +263,10 @@ router.put('/:id', async (req, res) => {
 
     // Record history for field changes
     const userId = req.body.updatedBy || 'system';
-    const changedFields = Object.keys(req.body).filter(key => 
+    const changedFields = Object.keys(req.body).filter(key =>
       key !== 'updatedBy' && existingIssue[key] !== req.body[key]
     );
-    
+
     for (const field of changedFields) {
       try {
         const historyEntry = {
@@ -290,17 +292,17 @@ router.put('/:id', async (req, res) => {
     // Notify via WebSocket
     if (websocketService && updatedIssue) {
       const userId = req.body.updatedBy || 'system'; // Client should send updatedBy
-      
+
       websocketService.notifyIssueUpdated(updatedIssue, userId, req.body);
 
       if (existingIssue.status !== updatedIssue.status) {
         websocketService.notifyStatusChanged(
-          updatedIssue, 
-          existingIssue.status, 
-          updatedIssue.status, 
+          updatedIssue,
+          existingIssue.status,
+          updatedIssue.status,
           userId
         );
-        
+
         // Send email notification for status change
         if (updatedIssue.assignee && updatedIssue.assignee.id) {
           try {
@@ -326,7 +328,7 @@ router.put('/:id', async (req, res) => {
           updatedIssue.assigneeId,
           userId
         );
-        
+
         // Send email notification for assignment change
         if (updatedIssue.assignee && updatedIssue.assignee.id) {
           try {
@@ -385,9 +387,9 @@ router.patch('/bulk/update', async (req, res) => {
       relations: ['reporter', 'assignee', 'project'],
     });
 
-    res.json({ 
+    res.json({
       message: `${issueIds.length} issues updated successfully`,
-      issues: updatedIssues 
+      issues: updatedIssues
     });
   } catch (error: any) {
     console.error('Bulk update failed:', error);
@@ -398,11 +400,11 @@ router.patch('/bulk/update', async (req, res) => {
 // POST clone issue
 router.post('/:id/clone', async (req, res) => {
   try {
-    const original = await issueRepo.findOne({ 
+    const original = await issueRepo.findOne({
       where: { id: req.params.id },
       relations: ['reporter', 'assignee', 'project']
     });
-    
+
     if (!original) {
       return res.status(404).json({ error: 'Issue not found' });
     }
@@ -431,10 +433,10 @@ router.post('/:id/clone', async (req, res) => {
 
     // Clone subtasks if requested
     if (includeSubtasks) {
-      const subtasks = await issueRepo.find({ 
-        where: { parentId: original.id } 
+      const subtasks = await issueRepo.find({
+        where: { parentId: original.id }
       });
-      
+
       for (const subtask of subtasks) {
         const clonedSubtask = issueRepo.create({
           ...subtask,
@@ -465,15 +467,15 @@ router.patch('/:id/convert-type', async (req, res) => {
   try {
     const { id } = req.params;
     const { newType } = req.body;
-    
+
     const issue = await issueRepo.findOne({ where: { id } });
     if (!issue) {
       return res.status(404).json({ error: 'Issue not found' });
     }
-    
+
     const oldType = issue.type;
     issue.type = newType;
-    
+
     // Handle type-specific field adjustments
     if (newType === 'epic') {
       // Converting to epic - clear epic link
@@ -482,11 +484,11 @@ router.patch('/:id/convert-type', async (req, res) => {
       // Converting from epic - handle child stories
       // Child stories will need to be unlinked separately
     }
-    
+
     await issueRepo.save(issue);
-    
+
     console.log(`🔄 Converted issue ${issue.key} from ${oldType} to ${newType}`);
-    
+
     res.json({
       success: true,
       issue,
@@ -503,7 +505,7 @@ router.get('/epic/:epicKey/stories', async (req, res) => {
   try {
     const { epicKey } = req.params;
     console.log(`📊 Fetching stories for epic: ${epicKey}`);
-    
+
     // Get all stories linked to this epic
     const stories = await issueRepo.find({
       where: {
@@ -513,14 +515,14 @@ router.get('/epic/:epicKey/stories', async (req, res) => {
       relations: ['reporter', 'assignee'],
       order: { createdAt: 'ASC' },
     });
-    
+
     // Calculate progress
     const total = stories.length;
     const completed = stories.filter(s => s.status === 'done').length;
     const inProgress = stories.filter(s => s.status === 'in-progress').length;
     const todo = stories.filter(s => s.status === 'todo' || s.status === 'backlog').length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    
+
     const progress = {
       total,
       completed,
@@ -528,9 +530,9 @@ router.get('/epic/:epicKey/stories', async (req, res) => {
       todo,
       percentage,
     };
-    
+
     console.log(`✅ Found ${total} stories for epic ${epicKey} (${percentage}% complete)`);
-    
+
     res.json({
       epicKey,
       stories,
@@ -546,18 +548,18 @@ router.get('/epic/:epicKey/stories', async (req, res) => {
 router.post('/bulk-edit', async (req, res) => {
   try {
     const { issueIds, updates } = req.body;
-    
+
     if (!issueIds || !Array.isArray(issueIds)) {
       return res.status(400).json({ error: 'issueIds array required' });
     }
-    
+
     const results = [];
     for (const issueId of issueIds) {
       await issueRepo.update(issueId, updates);
       const updated = await issueRepo.findOne({ where: { id: issueId } });
       results.push(updated);
     }
-    
+
     res.json({ success: true, updated: results.length, issues: results });
   } catch (error) {
     console.error('Failed to bulk edit issues:', error);
@@ -572,7 +574,7 @@ router.post('/:id/duplicate', async (req, res) => {
     if (!original) {
       return res.status(404).json({ error: 'Issue not found' });
     }
-    
+
     const duplicate = issueRepo.create({
       ...original,
       id: undefined,
@@ -581,7 +583,7 @@ router.post('/:id/duplicate', async (req, res) => {
       createdAt: undefined,
       updatedAt: undefined,
     });
-    
+
     const saved = await issueRepo.save(duplicate);
     res.json(saved);
   } catch (error) {
@@ -627,17 +629,17 @@ router.post('/templates/create', async (req, res) => {
 router.post('/:id/convert', async (req, res) => {
   try {
     const { newType } = req.body;
-    
+
     if (!newType) {
       return res.status(400).json({ error: 'newType required' });
     }
-    
+
     await issueRepo.update(req.params.id, { type: newType });
     const updated = await issueRepo.findOne({
       where: { id: req.params.id },
       relations: ['reporter', 'assignee', 'project'],
     });
-    
+
     res.json(updated);
   } catch (error) {
     console.error('Failed to convert issue:', error);
@@ -649,17 +651,17 @@ router.post('/:id/convert', async (req, res) => {
 router.post('/:id/move', async (req, res) => {
   try {
     const { targetProjectId } = req.body;
-    
+
     if (!targetProjectId) {
       return res.status(400).json({ error: 'targetProjectId required' });
     }
-    
+
     await issueRepo.update(req.params.id, { projectId: targetProjectId });
     const updated = await issueRepo.findOne({
       where: { id: req.params.id },
       relations: ['reporter', 'assignee', 'project'],
     });
-    
+
     res.json(updated);
   } catch (error) {
     console.error('Failed to move issue:', error);
@@ -674,14 +676,14 @@ router.get('/:id/time-tracking', async (req, res) => {
     if (!issue) {
       return res.status(404).json({ error: 'Issue not found' });
     }
-    
+
     const timeTracking = {
       originalEstimate: issue.originalEstimate || 0,
       remainingEstimate: issue.remainingEstimate || 0,
       timeSpent: issue.timeSpent || 0,
       workLogs: issue.workLogs || [],
     };
-    
+
     res.json(timeTracking);
   } catch (error) {
     console.error('Failed to fetch time tracking:', error);
@@ -693,12 +695,12 @@ router.get('/:id/time-tracking', async (req, res) => {
 router.post('/:id/time-tracking', async (req, res) => {
   try {
     const { timeSpentMinutes, comment, userId } = req.body;
-    
+
     const issue = await issueRepo.findOne({ where: { id: req.params.id } });
     if (!issue) {
       return res.status(404).json({ error: 'Issue not found' });
     }
-    
+
     const workLogs = issue.workLogs || [];
     workLogs.push({
       id: `log-${Date.now()}`,
@@ -707,14 +709,14 @@ router.post('/:id/time-tracking', async (req, res) => {
       userId,
       createdAt: new Date(),
     });
-    
+
     const totalTimeSpent = (issue.timeSpent || 0) + timeSpentMinutes;
-    
+
     await issueRepo.update(req.params.id, {
       workLogs,
       timeSpent: totalTimeSpent,
     });
-    
+
     res.json({ success: true, timeSpent: totalTimeSpent, workLogs });
   } catch (error) {
     console.error('Failed to log work:', error);
@@ -729,7 +731,7 @@ router.get('/:id/worklog', async (req, res) => {
     if (!issue) {
       return res.status(404).json({ error: 'Issue not found' });
     }
-    
+
     res.json({
       workLogs: issue.workLogs || [],
       totalTimeSpent: issue.timeSpent || 0,
@@ -744,18 +746,18 @@ router.get('/:id/worklog', async (req, res) => {
 router.post('/:id/flag', async (req, res) => {
   try {
     const { flagged, userId } = req.body;
-    
+
     await issueRepo.update(req.params.id, {
       isFlagged: flagged,
       flaggedAt: flagged ? new Date() : null,
       flaggedBy: flagged ? userId : null,
     });
-    
+
     const updated = await issueRepo.findOne({
       where: { id: req.params.id },
       relations: ['reporter', 'assignee', 'project'],
     });
-    
+
     res.json(updated);
   } catch (error) {
     console.error('Failed to flag issue:', error);

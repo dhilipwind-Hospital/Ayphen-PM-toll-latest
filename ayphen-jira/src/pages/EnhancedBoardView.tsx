@@ -30,7 +30,7 @@ const BoardGrid = styled.div<{ columns: number }>`
 `;
 
 const Column = styled.div`
-  background: ${colors.background.light};
+  background: ${colors.background.paper};
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -93,12 +93,12 @@ const BoardIssueCard = ({ issue, onClick }: { issue: any, onClick: () => void })
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {/* Type Icon */}
-            {issue.type === 'bug' && <Bug size={14} color={colors.status.high} />}
-            {issue.type === 'story' && <BookOpen size={14} color={colors.status.medium} />}
+            {issue.type === 'bug' && <Bug size={14} color={colors.issueType.bug} />}
+            {issue.type === 'story' && <BookOpen size={14} color={colors.issueType.story} />}
             <span style={{ color: colors.text.secondary, fontSize: 12, fontWeight: 500 }}>{issue.key}</span>
           </div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            {issue.priority === 'high' && <Flag size={12} color="red" fill="red" />}
+            {issue.priority === 'high' && <Flag size={12} color={colors.priority.high} fill={colors.priority.high} />}
             <Avatar size={20} src={issue.assignee?.avatar} style={{ fontSize: 10, background: '#6366f1' }}>{issue.assignee?.name?.[0]}</Avatar>
           </div>
         </div>
@@ -130,7 +130,7 @@ const BoardColumn = ({ id, title, issues, onCardClick }: { id: string, title: st
 // --- Main View ---
 export const EnhancedBoardView: React.FC = () => {
   const navigate = useNavigate();
-  const { currentProject, sprints, issues, fetchIssues, fetchSprints } = useStore();
+  const { currentProject, sprints, issues, setIssues, setSprints } = useStore();
   const [activeSprint, setActiveSprint] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -150,10 +150,15 @@ export const EnhancedBoardView: React.FC = () => {
     try {
       if (!currentProject) return;
 
+      const userId = localStorage.getItem('userId') || undefined;
+
       // 1. Fetch Sprints (needed for Scrum)
-      await fetchSprints(currentProject.id);
+      const sprintsRes = await sprintsApi.getAll(currentProject.id, userId);
+      setSprints(sprintsRes.data || []);
+
       // 2. Fetch Issues
-      await fetchIssues(currentProject.id);
+      const issuesRes = await issuesApi.getAll({ projectId: currentProject.id, userId });
+      setIssues(issuesRes.data || []);
 
     } finally {
       setLoading(false);
