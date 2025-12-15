@@ -49,9 +49,13 @@ const StickyHeader = styled.div`
   border-bottom: 1px solid ${colors.border.light};
 `;
 
-const IssueKey = styled.div`
-  font-size: 14px;
-  color: ${colors.text.secondary};
+const IssueKeyBadge = styled.div`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${colors.primary[700]};
+  background: ${colors.primary[100]};
+  padding: 4px 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -68,18 +72,34 @@ const IssueTitle = styled.h1`
 `;
 
 const Section = styled.div`
-  margin-bottom: 40px;
+  margin-bottom: 32px;
   scroll-margin-top: 80px; 
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 `;
 
 const SectionTitle = styled.h3`
   font-size: 16px;
   font-weight: 600;
   color: ${colors.text.primary};
-  margin-bottom: 16px;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+`;
+
+const EmptyStateBox = styled.div`
+  background: ${colors.neutral[50]};
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  color: ${colors.text.secondary};
+  font-size: 14px;
 `;
 
 const MarkdownContent = styled.div`
@@ -299,13 +319,13 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       {/* 2. Main Content Area */}
       <MainColumn ref={mainScrollRef}>
         <StickyHeader>
-          <IssueKey>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <Button icon={<ArrowLeft size={16} />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} />
-            {issue.key} / {issue.type}
-          </IssueKey>
+            <IssueKeyBadge>{issue.key}</IssueKeyBadge>
+          </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Tooltip title="Share"><Button icon={<Share2 size={16} />} type="text" /></Tooltip>
-            <Button icon={<MoreHorizontal size={16} />} type="text" />
+            <Tooltip title="Copy Link"><Button icon={<Link size={16} />} type="text" onClick={() => { navigator.clipboard.writeText(window.location.href); message.success('Copied link'); }} /></Tooltip>
+            <VoiceDescriptionButton issueType={issue.type} issueSummary={issue.summary} projectId={issue.projectId} currentDescription={issue.description} onTextGenerated={(text) => handleUpdate('description', text)} />
           </div>
         </StickyHeader>
 
@@ -335,25 +355,16 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
           {/* Description Section */}
           <Section ref={el => { sectionRefs.current['description'] = el; }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <SectionTitle style={{ marginBottom: 0 }}>Description</SectionTitle>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <VoiceDescriptionButton
-                  issueType={issue.type}
-                  issueSummary={issue.summary}
-                  projectId={issue.projectId}
-                  currentDescription={issue.description}
-                  onTextGenerated={(text) => handleUpdate('description', text)}
-                />
-                <Button
-                  size="small"
-                  icon={<Edit size={14} />}
-                  onClick={() => setIsEditingDescription(!isEditingDescription)}
-                >
-                  {isEditingDescription ? 'Cancel' : 'Edit'}
-                </Button>
-              </div>
-            </div>
+            <SectionHeader>
+              <SectionTitle>Description</SectionTitle>
+              <Button
+                size="small"
+                icon={<Edit size={14} />}
+                onClick={() => setIsEditingDescription(!isEditingDescription)}
+              >
+                {isEditingDescription ? 'Cancel' : 'Edit'}
+              </Button>
+            </SectionHeader>
 
             {isEditingDescription ? (
               <div style={{ marginBottom: 24 }}>
@@ -376,7 +387,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 {issue.description ? (
                   <ReactMarkdown>{issue.description}</ReactMarkdown>
                 ) : (
-                  <p style={{ color: colors.text.secondary, fontStyle: 'italic' }}>No description provided. Click to add.</p>
+                  <EmptyStateBox>No description provided. Click to add Vision, Goals, Scope, and Success Criteria.</EmptyStateBox>
                 )}
               </MarkdownContent>
             )}
@@ -384,7 +395,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
           {/* Subtasks Section */}
           <Section ref={el => { sectionRefs.current['subtasks'] = el; }}>
-            <SectionTitle>Subtasks</SectionTitle>
+            <SectionHeader>
+              <SectionTitle>Subtasks ({subtasks.length})</SectionTitle>
+              <Button size="small" icon={<Plus size={14} />} onClick={() => setCreateSubtaskModalVisible(true)}>Create Subtask</Button>
+            </SectionHeader>
 
             {subtasks.length > 0 && (
               <div style={{ marginBottom: 16 }}>
@@ -454,13 +468,16 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 </div>
               ))
             ) : (
-              <div style={{ color: colors.text.secondary }}>No subtasks linked.</div>
+              <EmptyStateBox>No subtasks linked. Break down this issue into smaller tasks.</EmptyStateBox>
             )}
           </Section>
 
           {/* Linked Issues Section */}
           <Section ref={el => { sectionRefs.current['linkedIssues'] = el; }}>
-            <SectionTitle>Linked Issues</SectionTitle>
+            <SectionHeader>
+              <SectionTitle>Linked Issues ({linkedIssues.length})</SectionTitle>
+              <Button size="small" icon={<Link size={14} />} onClick={() => setLinkModalVisible(true)}>Link Issue</Button>
+            </SectionHeader>
             {linkedIssues.length > 0 ? (
               linkedIssues.map(l => (
                 <div key={l.id} onClick={() => navigate(`/issue/${l.targetIssue?.key}`)} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'white' }}>
@@ -493,55 +510,22 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 </div>
               ))
             ) : (
-              <div style={{ color: colors.text.secondary }}>No linked issues.</div>
+              <EmptyStateBox>No linked issues. Link related stories, bugs, or tasks.</EmptyStateBox>
             )}
           </Section>
 
-          {/* Attachments Section */}
-          <Section ref={el => { sectionRefs.current['attachments'] = el; }}>
-            <SectionTitle>Attachments</SectionTitle>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
-              {attachments.map(att => (
-                <div key={att.id} style={{ border: `1px solid ${colors.border.light}`, borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
-                  <div
-                    style={{ height: 100, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: att.isImage ? 'zoom-in' : 'default' }}
-                    onClick={() => att.isImage && setPreviewImage(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`)}
-                  >
-                    {att.isImage ?
-                      <img
-                        src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = `https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`;
-                          target.onerror = null;
-                        }}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      : <Paperclip color="#999" size={32} />}
-                  </div>
-                  <div style={{ padding: 8, fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }} title={att.originalName}>{att.originalName}</div>
-                    <Trash2 size={12} style={{ cursor: 'pointer', color: 'red' }} onClick={() => {/* Handle Delete */ }} />
-                  </div>
-                </div>
-              ))}
-              {attachments.length === 0 && <span style={{ color: colors.text.secondary }}>No attachments</span>}
-            </div>
-          </Section>
-
-          {/* Activity Section */}
+          {/* Combined Tabs Section */}
           <Section ref={el => { sectionRefs.current['activity'] = el; }}>
-            <SectionTitle>Activity</SectionTitle>
             <Tabs
               items={[
                 {
-                  key: 'comments', label: 'Comments', children: (
+                  key: 'comments', label: `Comments (${comments.length})`, children: (
                     <div>
                       <div style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
                         <TextArea rows={2} placeholder="Add a comment..." value={newComment} onChange={e => setNewComment(e.target.value)} />
                         <Button type="primary" onClick={handleAddComment}>Save</Button>
                       </div>
-                      {comments.map(c => (
+                      {comments.length > 0 ? comments.map(c => (
                         <div key={c.id} style={{ marginBottom: 16, display: 'flex', gap: 12 }}>
                           <Avatar src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
                           <div>
@@ -549,16 +533,62 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                             <div>{c.content}</div>
                           </div>
                         </div>
-                      ))}
+                      )) : <EmptyStateBox>No comments yet.</EmptyStateBox>}
+                    </div>
+                  )
+                },
+                {
+                  key: 'test_cases',
+                  label: 'Test Cases',
+                  children: <EmptyStateBox>No test cases linked to this issue.</EmptyStateBox>
+                },
+                {
+                  key: 'attachments',
+                  label: `Attachments (${attachments.length})`,
+                  children: (
+                    <div>
+                      <div style={{ marginBottom: 16 }}>
+                        <Button icon={<Paperclip size={14} />} onClick={() => setUploadModalVisible(true)}>Add Attachment</Button>
+                      </div>
+                      {attachments.length > 0 ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
+                          {attachments.map(att => (
+                            <div key={att.id} style={{ border: `1px solid ${colors.border.light}`, borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
+                              <div
+                                style={{ height: 100, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: att.isImage ? 'zoom-in' : 'default' }}
+                                onClick={() => att.isImage && setPreviewImage(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`)}
+                              >
+                                {att.isImage ?
+                                  <img
+                                    src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`}
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.src = `https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`;
+                                      target.onerror = null;
+                                    }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  />
+                                  : <Paperclip color="#999" size={32} />}
+                              </div>
+                              <div style={{ padding: 8, fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }} title={att.originalName}>{att.originalName}</div>
+                                <Trash2 size={12} style={{ cursor: 'pointer', color: 'red' }} onClick={() => {/* Handle Delete */ }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyStateBox>No files attached.</EmptyStateBox>
+                      )}
                     </div>
                   )
                 },
                 {
                   key: 'history',
-                  label: 'History',
+                  label: `History (${history.length})`,
                   children: (
                     <div>
-                      {history.map((h, index) => (
+                      {history.length > 0 ? history.map((h, index) => (
                         <div key={index} style={{ display: 'flex', gap: 12, marginBottom: 12, paddingBottom: 12, borderBottom: `1px solid ${colors.border.light}` }}>
                           <Avatar size="small" icon={<Clock size={12} />} />
                           <div style={{ fontSize: 13 }}>
@@ -567,12 +597,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                             <div style={{ color: colors.text.secondary, fontSize: 11, marginTop: 2 }}>{new Date(h.createdAt || h.timestamp).toLocaleString()}</div>
                           </div>
                         </div>
-                      ))}
-                      {history.length === 0 && <div style={{ color: colors.text.secondary, fontStyle: 'italic' }}>No history available</div>}
+                      )) : <EmptyStateBox>No history available.</EmptyStateBox>}
                     </div>
                   )
                 },
-                { key: 'worklog', label: 'Work Log', children: <div>Work logs...</div> }
               ]}
             />
           </Section>
