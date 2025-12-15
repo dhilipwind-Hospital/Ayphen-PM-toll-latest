@@ -4,12 +4,11 @@ import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload } from 'an
 import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Plus, Trash2 } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
-import { issuesApi, commentsApi, projectMembersApi } from '../../services/api';
+import { commentsApi, issuesApi, projectMembersApi } from '../../services/api';
 import { colors } from '../../theme/colors';
-import { IssueNavigationRail } from './IssueNavigationRail'; // Restored
-import { IssueRightSidebar } from './Sidebar/IssueRightSidebar';
 import { CreateIssueModal } from '../CreateIssueModal';
 import { IssueLinkModal } from './IssueLinkModal';
+import { IssueRightSidebar } from './Sidebar/IssueRightSidebar';
 
 const { TextArea } = Input;
 
@@ -250,11 +249,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   return (
     <LayoutContainer>
-      {/* 1. New Vertical Nav Rail matching spec */}
-      <IssueNavigationRail
-        activeSection={activeSection}
-        onNavigate={scrollToSection}
-      />
+      {/* 1. Left Nav Rail Removed */}
 
       {/* 2. Main Content Area */}
       <MainColumn ref={mainScrollRef}>
