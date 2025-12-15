@@ -89,8 +89,18 @@ export const colors = {
     subtask: '#6366F1',
   },
 
+  sidebar: {
+    background: '#F8F9FA',
+    backgroundHover: '#F3F4F6',
+    text: '#374151',
+    textHover: '#111827',
+    active: '#EC4899',
+    border: '#E5E7EB',
+  },
+
   glass: {
     background: 'rgba(255, 255, 255, 0.8)',
+    backgroundHover: 'rgba(255, 255, 255, 0.9)',
     border: 'rgba(0, 0, 0, 0.1)',
   },
 };
