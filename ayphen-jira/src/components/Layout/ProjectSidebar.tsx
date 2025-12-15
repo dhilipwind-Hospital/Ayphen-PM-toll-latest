@@ -69,14 +69,14 @@ const ProjectAvatar = styled.div`
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #F472B6, #EC4899);
+  background: linear-gradient(135deg, ${colors.primary[400]}, ${colors.primary[500]});
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 700;
   font-size: 14px;
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.3);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
 `;
 
 const ProjectDetails = styled.div`

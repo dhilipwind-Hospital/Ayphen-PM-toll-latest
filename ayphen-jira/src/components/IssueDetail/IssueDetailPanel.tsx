@@ -52,7 +52,7 @@ const IssueKeyBadge = styled.div`
   font-size: 13px;
   font-weight: 600;
   color: white;
-  background: ${colors.primary[500]}; /* Pink pill */
+  background: ${colors.primary[400]}; /* Pink pill (Softer Top Gradient Color) */
   padding: 4px 12px;
   border-radius: 999px;
   display: flex;
@@ -103,7 +103,7 @@ const EmptyStateText = styled.div`
 
 const CommentButton = styled(Button)`
   && {
-    background-color: ${colors.primary[500]}; /* Bright Pink */
+    background-color: ${colors.primary[400]}; /* Softer Pink */
     color: white;
     border: none;
     border-radius: 4px;
@@ -113,7 +113,7 @@ const CommentButton = styled(Button)`
     margin-top: 12px;
     
     &:hover {
-      background-color: ${colors.primary[600]} !important;
+      background-color: ${colors.primary[500]} !important;
       color: white !important;
     }
   }
@@ -132,15 +132,15 @@ const StyledTabs = styled(Tabs)`
     color: ${colors.text.secondary};
     
     &:hover {
-      color: ${colors.primary[500]};
+      color: ${colors.primary[400]};
     }
   }
   .ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: ${colors.primary[500]} !important;
+    color: ${colors.primary[400]} !important;
     font-weight: 500;
   }
   .ant-tabs-ink-bar {
-    background: ${colors.primary[500]} !important;
+    background: ${colors.primary[400]} !important;
     height: 3px !important;
   }
 `;
@@ -412,7 +412,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                       {getLinkIcon(l.linkType)}
                       <span style={{ fontSize: 12 }}>{l.linkType.replace('_', ' ')}</span>
                     </div>
-                    <span style={{ fontWeight: 500, color: colors.primary[500] }}>{l.targetIssue?.key}</span>
+                    <span style={{ fontWeight: 500, color: colors.primary[400] }}>{l.targetIssue?.key}</span>
                     <span style={{ color: colors.text.primary }}>{l.targetIssue?.summary}</span>
                   </div>
                   <Tooltip title="Remove Link">
