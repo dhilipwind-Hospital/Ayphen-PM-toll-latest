@@ -18,7 +18,7 @@ const { TextArea } = Input;
 const LayoutContainer = styled.div`
   display: flex;
   height: 100vh;
-  background: white;
+  background: ${colors.neutral[0]};
   overflow: hidden;
 `;
 
@@ -52,13 +52,24 @@ const StickyHeader = styled.div`
 const IssueKeyBadge = styled.div`
   font-size: 13px;
   font-weight: 600;
-  color: ${colors.primary[700]};
-  background: ${colors.primary[100]};
-  padding: 4px 8px;
-  border-radius: 4px;
+  color: white;
+  background: ${colors.primary[500]};
+  padding: 4px 12px;
+  border-radius: 999px; /* Pill shape */
   display: flex;
   align-items: center;
   gap: 8px;
+`;
+
+const IssueUrlText = styled.div`
+  font-size: 14px;
+  font-weight: 500;
+  color: ${colors.text.primary};
+  margin-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
 `;
 
 const IssueTitle = styled.h1`
@@ -86,7 +97,7 @@ const SectionHeader = styled.div`
 const SectionTitle = styled.h3`
   font-size: 16px;
   font-weight: 600;
-  color: ${colors.text.primary};
+  color: ${colors.neutral[800]};
   margin: 0;
   display: flex;
   align-items: center;
@@ -95,11 +106,55 @@ const SectionTitle = styled.h3`
 
 const EmptyStateBox = styled.div`
   background: ${colors.neutral[50]};
+  border: 1px solid ${colors.neutral[200]};
   border-radius: 8px;
   padding: 32px;
   text-align: center;
-  color: ${colors.text.secondary};
+  color: ${colors.neutral[500]};
   font-size: 14px;
+  font-style: italic;
+`;
+
+const CommentButton = styled(Button)`
+  && {
+    background-color: ${colors.secondary[700]};
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 24px;
+    height: auto;
+    font-weight: 500;
+    
+    &:hover {
+      background-color: ${colors.secondary[800]} !important;
+      color: white !important;
+    }
+  }
+`;
+
+const StyledTabs = styled(Tabs)`
+  .ant-tabs-nav {
+    margin-bottom: 24px !important;
+    border-bottom: 1px solid ${colors.border.light};
+  }
+  .ant-tabs-tab {
+    padding: 12px 0 !important;
+    margin: 0 24px 0 0 !important;
+    font-size: 14px;
+    color: ${colors.text.secondary};
+    
+    &:hover {
+      color: ${colors.primary[500]};
+    }
+  }
+  .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: ${colors.primary[500]} !important;
+    font-weight: 500;
+  }
+  .ant-tabs-ink-bar {
+    background: ${colors.primary[500]} !important;
+    height: 3px !important;
+  }
 `;
 
 const MarkdownContent = styled.div`
@@ -122,7 +177,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [issue, setIssue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [projectMembers, setProjectMembers] = useState<any[]>([]);
-  const [activeSection, setActiveSection] = useState('summary');
+  const [activeSection, setActiveSection] = useState('summary'); // Kept for scroll spy, but tabs will manage their own active state
 
   // Data States
   const [comments, setComments] = useState<any[]>([]);
@@ -144,6 +199,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const [fileList, setFileList] = useState<any[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // Maintain active tab state
+  const [activeTab, setActiveTab] = useState('comments');
 
   // Refs for Scroll Spy
   const mainScrollRef = useRef<HTMLDivElement>(null);
@@ -312,6 +370,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   if (loading || !issue) return <div>Loading...</div>;
 
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+
   return (
     <LayoutContainer>
       {/* 1. Left Nav Rail Removed */}
@@ -319,12 +379,13 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       {/* 2. Main Content Area */}
       <MainColumn ref={mainScrollRef}>
         <StickyHeader>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <Button icon={<ArrowLeft size={16} />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} />
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Button icon={<ArrowLeft size={16} />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} style={{ marginRight: 16 }} />
             <IssueKeyBadge>{issue.key}</IssueKeyBadge>
+            <IssueUrlText>{currentUrl}</IssueUrlText>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Tooltip title="Copy Link"><Button icon={<Link size={16} />} type="text" onClick={() => { navigator.clipboard.writeText(window.location.href); message.success('Copied link'); }} /></Tooltip>
+            <Tooltip title="Copy Link"><Button icon={<Link size={16} />} type="text" onClick={() => { navigator.clipboard.writeText(currentUrl); message.success('Copied link'); }} /></Tooltip>
             <VoiceDescriptionButton issueType={issue.type} issueSummary={issue.summary} projectId={issue.projectId} currentDescription={issue.description} onTextGenerated={(text) => handleUpdate('description', text)} />
           </div>
         </StickyHeader>
@@ -468,7 +529,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 </div>
               ))
             ) : (
-              <EmptyStateBox>No subtasks linked. Break down this issue into smaller tasks.</EmptyStateBox>
+              <EmptyStateBox>No subtasks. Break down this issue into smaller tasks.</EmptyStateBox>
             )}
           </Section>
 
@@ -510,27 +571,41 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 </div>
               ))
             ) : (
-              <EmptyStateBox>No linked issues. Link related stories, bugs, or tasks.</EmptyStateBox>
+              <EmptyStateBox>No child issues. Link stories, bugs, or tasks to this epic.</EmptyStateBox>
             )}
           </Section>
 
           {/* Combined Tabs Section */}
           <Section ref={el => { sectionRefs.current['activity'] = el; }}>
-            <Tabs
+            <StyledTabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
               items={[
                 {
-                  key: 'comments', label: `Comments (${comments.length})`, children: (
+                  key: 'comments',
+                  label: `Comments (${comments.length})`,
+                  children: (
                     <div>
-                      <div style={{ marginBottom: 24, display: 'flex', gap: 12 }}>
-                        <TextArea rows={2} placeholder="Add a comment..." value={newComment} onChange={e => setNewComment(e.target.value)} />
-                        <Button type="primary" onClick={handleAddComment}>Save</Button>
+                      <TextArea
+                        rows={4}
+                        placeholder="Add a comment..."
+                        value={newComment}
+                        onChange={e => setNewComment(e.target.value)}
+                        style={{ marginBottom: 16, borderRadius: 8, padding: 16, border: `1px solid ${colors.neutral[300]}` }}
+                      />
+                      <div style={{ marginBottom: 32 }}>
+                        <CommentButton onClick={handleAddComment}>Add Comment</CommentButton>
                       </div>
+
                       {comments.length > 0 ? comments.map(c => (
-                        <div key={c.id} style={{ marginBottom: 16, display: 'flex', gap: 12 }}>
-                          <Avatar src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
-                          <div>
-                            <div style={{ fontWeight: 600, fontSize: 13 }}>{c.user?.name} <span style={{ fontWeight: 400, color: colors.text.secondary }}>{new Date(c.createdAt).toLocaleString()}</span></div>
-                            <div>{c.content}</div>
+                        <div key={c.id} style={{ marginBottom: 24, display: 'flex', gap: 16 }}>
+                          <Avatar size={32} src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                              <span style={{ fontWeight: 600, color: colors.text.primary }}>{c.user?.name}</span>
+                              <span style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(c.createdAt).toLocaleString()}</span>
+                            </div>
+                            <div style={{ fontSize: 14, color: colors.text.primary, lineHeight: 1.5 }}>{c.content}</div>
                           </div>
                         </div>
                       )) : <EmptyStateBox>No comments yet.</EmptyStateBox>}
