@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload } from 'antd';
-import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Link, Share2, MoreHorizontal, Paperclip, Plus, Trash2, Edit } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi } from '../../services/api';
@@ -9,6 +9,7 @@ import { colors } from '../../theme/colors';
 import { CreateIssueModal } from '../CreateIssueModal';
 import { IssueLinkModal } from './IssueLinkModal';
 import { IssueRightSidebar } from './Sidebar/IssueRightSidebar';
+import { VoiceDescriptionButton } from '../VoiceDescription/VoiceDescriptionButton';
 
 const { TextArea } = Input;
 
@@ -107,6 +108,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [subtasks, setSubtasks] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
 
+  // Description Edit State
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionInput, setDescriptionInput] = useState('');
+
   // Modals
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [createSubtaskModalVisible, setCreateSubtaskModalVisible] = useState(false);
@@ -145,6 +150,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       setLoading(true);
       const res = await issuesApi.getByKey(issueKey);
       setIssue(res.data);
+      setDescriptionInput(res.data.description || '');
 
       const [commentsRes, membersRes] = await Promise.all([
         commentsApi.getByIssue(res.data.id),
@@ -277,14 +283,51 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
           {/* Description Section */}
           <Section ref={el => { sectionRefs.current['description'] = el; }}>
-            <SectionTitle>Description</SectionTitle>
-            <MarkdownContent>
-              {issue.description ? (
-                <ReactMarkdown>{issue.description}</ReactMarkdown>
-              ) : (
-                <p style={{ color: colors.text.secondary, fontStyle: 'italic' }}>No description provided.</p>
-              )}
-            </MarkdownContent>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <SectionTitle style={{ marginBottom: 0 }}>Description</SectionTitle>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <VoiceDescriptionButton
+                  issueType={issue.type}
+                  issueSummary={issue.summary}
+                  projectId={issue.projectId}
+                  currentDescription={issue.description}
+                  onTextGenerated={(text) => handleUpdate('description', text)}
+                />
+                <Button
+                  size="small"
+                  icon={<Edit size={14} />}
+                  onClick={() => setIsEditingDescription(!isEditingDescription)}
+                >
+                  {isEditingDescription ? 'Cancel' : 'Edit'}
+                </Button>
+              </div>
+            </div>
+
+            {isEditingDescription ? (
+              <div style={{ marginBottom: 24 }}>
+                <TextArea
+                  rows={10}
+                  value={descriptionInput}
+                  onChange={(e) => setDescriptionInput(e.target.value)}
+                  style={{ marginBottom: 12 }}
+                />
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <Button onClick={() => setIsEditingDescription(false)}>Cancel</Button>
+                  <Button type="primary" onClick={() => {
+                    handleUpdate('description', descriptionInput);
+                    setIsEditingDescription(false);
+                  }}>Save</Button>
+                </div>
+              </div>
+            ) : (
+              <MarkdownContent onClick={() => setIsEditingDescription(true)} style={{ cursor: 'pointer', minHeight: 60 }}>
+                {issue.description ? (
+                  <ReactMarkdown>{issue.description}</ReactMarkdown>
+                ) : (
+                  <p style={{ color: colors.text.secondary, fontStyle: 'italic' }}>No description provided. Click to add.</p>
+                )}
+              </MarkdownContent>
+            )}
           </Section>
 
           {/* Subtasks Section */}
