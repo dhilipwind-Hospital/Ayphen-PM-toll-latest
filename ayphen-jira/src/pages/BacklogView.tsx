@@ -217,7 +217,7 @@ const DroppableSprint = ({ sprintId, issues, selectedIssueId, onIssueClick }: { 
 
 export const BacklogView: React.FC = () => {
   const navigate = useNavigate();
-  const { currentProject, sprints, fetchSprints } = useStore();
+  const { currentProject, sprints, setSprints } = useStore();
   const [issues, setIssues] = useState<any[]>([]);
   const [selectedIssueKey, setSelectedIssueKey] = useState<string | null>(null);
 
@@ -240,7 +240,7 @@ export const BacklogView: React.FC = () => {
   const loadData = async () => {
     try {
       if (!currentProject) return;
-      fetchSprints(currentProject.id);
+      setSprints(currentProject.id);
       const res = await issuesApi.getByProject(currentProject.id);
       setIssues(res.data);
     } catch (e) { message.error('Failed to load backlog'); }
