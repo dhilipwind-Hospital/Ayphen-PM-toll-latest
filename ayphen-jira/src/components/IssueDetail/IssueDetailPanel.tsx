@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { issuesApi, commentsApi, projectMembersApi } from '../../services/api';
 import { colors } from '../../theme/colors';
-import { IssueNavigationRail } from './IssueNavigationRail';
+import { IssueNavigationRail } from './IssueNavigationRail'; // Restored
 import { IssueRightSidebar } from './Sidebar/IssueRightSidebar';
 import { CreateIssueModal } from '../CreateIssueModal';
 import { IssueLinkModal } from './IssueLinkModal';
@@ -100,7 +100,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [issue, setIssue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [projectMembers, setProjectMembers] = useState<any[]>([]);
-  const [activeSection, setActiveSection] = useState('summary');
+  const [activeSection, setActiveSection] = useState('summary'); // State for rail
 
   // Data States
   const [comments, setComments] = useState<any[]>([]);
@@ -123,10 +123,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   }, [issueKey]);
 
   useEffect(() => {
+    // Spy Scroll Logic
     const handleScroll = () => {
       if (!mainScrollRef.current) return;
-      const scrollPos = mainScrollRef.current.scrollTop + 120; // Offset for header
-
+      const scrollPos = mainScrollRef.current.scrollTop + 120; // Offset
       let current = 'summary';
       for (const [id, ref] of Object.entries(sectionRefs.current)) {
         if (ref && ref.offsetTop <= scrollPos) {
@@ -137,12 +137,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     };
 
     const scrollContainer = mainScrollRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-    }
-    return () => {
-      if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll);
-    };
+    if (scrollContainer) scrollContainer.addEventListener('scroll', handleScroll);
+    return () => { if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll); };
   }, [loading]);
 
   const loadIssueData = async () => {
@@ -180,7 +176,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   const loadSubtasks = async (issueId: string) => {
     try {
-      const getUrl = issue.type === 'epic'
+      const getUrl = issue?.type === 'epic'
         ? `https://ayphen-pm-toll-latest.onrender.com/api/issues?epicLink=${issue.key}&userId=${localStorage.getItem('userId')}`
         : `https://ayphen-pm-toll-latest.onrender.com/api/issues?parentId=${issueId}&userId=${localStorage.getItem('userId')}`;
 
@@ -209,7 +205,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const scrollToSection = (id: string) => {
     const element = sectionRefs.current[id];
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      // Small timeout to allow render
+      setTimeout(() => element.scrollIntoView({ behavior: 'smooth' }), 0);
     }
   };
 
@@ -253,7 +250,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   return (
     <LayoutContainer>
-      {/* 1. Left Nav Rail */}
+      {/* 1. New Vertical Nav Rail matching spec */}
       <IssueNavigationRail
         activeSection={activeSection}
         onNavigate={scrollToSection}
@@ -268,7 +265,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           </IssueKey>
           <div style={{ display: 'flex', gap: 8 }}>
             <Tooltip title="Share"><Button icon={<Share2 size={16} />} type="text" /></Tooltip>
-            <Tooltip title="Copy Link"><Button icon={<Link size={16} />} type="text" /></Tooltip>
             <Button icon={<MoreHorizontal size={16} />} type="text" />
           </div>
         </StickyHeader>
@@ -301,9 +297,13 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             <SectionTitle>Subtasks</SectionTitle>
             {subtasks.length > 0 ? (
               subtasks.map(s => (
-                <div key={s.id} onClick={() => navigate(`/issue/${s.key}`)} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}>
-                  <span>{s.key} {s.summary}</span>
-                  <span style={{ fontSize: 12, background: colors.status.todo, padding: '2px 8px', borderRadius: 10 }}>{s.status}</span>
+                <div key={s.id} onClick={() => navigate(`/issue/${s.key}`)} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {/* You can add type icon here if available */}
+                    <span style={{ fontWeight: 500, color: colors.text.secondary }}>{s.key}</span>
+                    <span style={{ color: colors.text.primary }}>{s.summary}</span>
+                  </div>
+                  <span style={{ fontSize: 12, background: colors.status.todo, padding: '2px 8px', borderRadius: 10, alignSelf: 'center' }}>{s.status}</span>
                 </div>
               ))
             ) : (
@@ -387,7 +387,11 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       <CreateIssueModal
         open={createSubtaskModalVisible}
         onClose={() => setCreateSubtaskModalVisible(false)}
-        onSuccess={() => { loadSubtasks(issue.id); }}
+        onSuccess={() => {
+          // Refresh both subtasks and main data (counts etc)
+          loadSubtasks(issue.id);
+          loadIssueData();
+        }}
         defaultType="subtask"
         defaultValues={{ parentId: issue.id, parentIssue: issue.id }}
       />
@@ -397,7 +401,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         onCancel={() => setLinkModalVisible(false)}
         sourceIssueId={issue.id}
         projectId={issue.projectId}
-        onSuccess={() => message.success('Issue linked')}
+        onSuccess={() => {
+          message.success('Issue linked');
+          loadIssueData(); // Reload to reflect changes
+        }}
       />
 
     </LayoutContainer>
