@@ -65,6 +65,7 @@ export const projectInvitationsApi = {
 export const issuesApi = {
   getAll: (params?: { projectId?: string; status?: string; assigneeId?: string; userId?: string; epicLink?: string; type?: string }) =>
     api.get('/issues', { params }),
+  getByProject: (projectId: string) => api.get('/issues', { params: { projectId, userId: localStorage.getItem('userId') } }),
   getById: (id: string) => api.get(`/issues/${id}`),
   getByKey: (key: string) => api.get(`/issues/key/${key}`),
   create: (data: any) => api.post('/issues', data),
