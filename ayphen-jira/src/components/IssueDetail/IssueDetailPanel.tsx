@@ -114,6 +114,14 @@ const SectionTitle = styled.h3`
   margin: 0;
 `;
 
+const ContentBox = styled.div`
+  background: #FAFAFA;
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin-top: 12px;
+  border: 1px solid #F0F0F0;
+`;
+
 const EmptyStateText = styled.div`
   text-align: left;
   color: #999999;
@@ -399,7 +407,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 <Link size={18} />
               </HeaderIconButton>
             </Tooltip>
-            <VoiceDescriptionButton issueType={issue.type} issueSummary={issue.summary} projectId={issue.projectId} currentDescription={issue.description} onTextGenerated={(text) => handleUpdate('description', text)} />
           </div>
         </StickyHeader>
 
@@ -409,15 +416,18 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           <Section>
             <SectionHeader>
               <SectionTitle>Description</SectionTitle>
-              <Button
-                size="small"
-                type="text"
-                icon={<Edit size={14} />}
-                onClick={() => setIsEditingDescription(!isEditingDescription)}
-                style={{ color: '#666', fontSize: 13 }}
-              >
-                {isEditingDescription ? 'Cancel' : 'Edit'}
-              </Button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <VoiceDescriptionButton issueType={issue.type} issueSummary={issue.summary} projectId={issue.projectId} currentDescription={issue.description} onTextGenerated={(text) => handleUpdate('description', text)} />
+                <Button
+                  size="small"
+                  type="text"
+                  icon={<Edit size={14} />}
+                  onClick={() => setIsEditingDescription(!isEditingDescription)}
+                  style={{ color: '#666', fontSize: 13 }}
+                >
+                  {isEditingDescription ? 'Cancel' : 'Edit'}
+                </Button>
+              </div>
             </SectionHeader>
 
             {isEditingDescription ? (
@@ -437,13 +447,15 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 </div>
               </div>
             ) : (
-              <MarkdownContent onClick={() => setIsEditingDescription(true)} style={{ cursor: 'pointer', minHeight: 40 }}>
-                {issue.description ? (
-                  <ReactMarkdown>{issue.description}</ReactMarkdown>
-                ) : (
-                  <EmptyStateText>No description provided. Click to add Vision, Goals, Scope, and Success Criteria.</EmptyStateText>
-                )}
-              </MarkdownContent>
+              <ContentBox onClick={() => setIsEditingDescription(true)} style={{ cursor: 'pointer', minHeight: 60 }}>
+                <MarkdownContent style={{ marginTop: 0 }}>
+                  {issue.description ? (
+                    <ReactMarkdown>{issue.description}</ReactMarkdown>
+                  ) : (
+                    <EmptyStateText style={{ marginTop: 0 }}>No description provided. Click to add Vision, Goals, Scope, and Success Criteria.</EmptyStateText>
+                  )}
+                </MarkdownContent>
+              </ContentBox>
             )}
           </Section>
 
@@ -455,7 +467,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             </SectionHeader>
 
             {linkedIssues.length > 0 ? (
-              <div style={{ marginTop: 16 }}>
+              <ContentBox>
                 {linkedIssues.map(l => (
                   <div key={l.id} onClick={() => navigate(`/issue/${l.targetIssue?.key}`)} style={{ padding: '12px 0', borderBottom: `1px solid ${colors.border.light}`, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -471,9 +483,11 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                     </Tooltip>
                   </div>
                 ))}
-              </div>
+              </ContentBox>
             ) : (
-              <EmptyStateText>No child issues. Link stories, bugs, or tasks to this epic.</EmptyStateText>
+              <ContentBox>
+                <EmptyStateText style={{ marginTop: 0 }}>No child issues. Link stories, bugs, or tasks to this epic.</EmptyStateText>
+              </ContentBox>
             )}
           </Section>
 
