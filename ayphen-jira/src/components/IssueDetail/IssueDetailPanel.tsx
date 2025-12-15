@@ -314,7 +314,16 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 <div key={att.id} style={{ width: 150, border: `1px solid ${colors.border.light}`, borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
                   <div style={{ height: 100, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {att.isImage ?
-                      <img src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img
+                        src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`}
+                        onError={(e) => {
+                          // Fallback to main image if thumbnail fails or blocked
+                          const target = e.target as HTMLImageElement;
+                          target.src = `https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`;
+                          target.onerror = null;
+                        }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                       : <Paperclip color="#999" size={32} />}
                   </div>
                   <div style={{ padding: 8, fontSize: 12, display: 'flex', justifyContent: 'space-between' }}>
@@ -382,10 +391,11 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       <CreateIssueModal
         open={createSubtaskModalVisible}
         onClose={() => setCreateSubtaskModalVisible(false)}
-        onSuccess={() => {
-          // Refresh both subtasks and main data (counts etc)
-          loadSubtasks(issue.id);
-          loadIssueData();
+        onSuccess={async () => {
+          // Small delay to ensure backend consistency/indexing
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await loadSubtasks(issue.id);
+          await loadIssueData();
         }}
         defaultType="subtask"
         defaultValues={{ parentId: issue.id, parentIssue: issue.id }}
@@ -396,9 +406,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         onCancel={() => setLinkModalVisible(false)}
         sourceIssueId={issue.id}
         projectId={issue.projectId}
-        onSuccess={() => {
+        onSuccess={async () => {
           message.success('Issue linked');
-          loadIssueData(); // Reload to reflect changes
+          await new Promise(resolve => setTimeout(resolve, 500));
+          loadIssueData();
         }}
       />
 
