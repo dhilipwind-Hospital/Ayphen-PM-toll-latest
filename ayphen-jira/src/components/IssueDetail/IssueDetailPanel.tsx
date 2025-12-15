@@ -255,6 +255,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const [fileList, setFileList] = useState<any[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Active Tab
   const [activeTab, setActiveTab] = useState('comments');
@@ -333,9 +334,24 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   const handleUpdate = async (field: string, value: any) => {
     try {
+      const oldValue = issue[field];
       setIssue((prev: any) => ({ ...prev, [field]: value }));
-      await issuesApi.update(issue.id, { [field]: value });
+      
+      // Include userId to properly record history
+      const userId = localStorage.getItem('userId') || issue.reporterId;
+      await issuesApi.update(issue.id, { 
+        [field]: value,
+        userId,
+        // Send old value for history tracking
+        _oldValue: oldValue,
+        _fieldChanged: field
+      });
+      
       message.success('Updated');
+      
+      // Reload history to show the change
+      const historyRes = await historyApi.getByIssue(issue.id);
+      setHistory(historyRes.data || []);
     } catch (error) {
       message.error('Failed to update');
       loadIssueData();
@@ -362,7 +378,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   };
 
   const handleFileUpload = async () => {
-    if (fileList.length === 0) return;
+    if (fileList.length === 0 || isUploading) return;
+    
+    setIsUploading(true);
     try {
       const formData = new FormData();
       fileList.forEach(file => formData.append('files', file.originFileObj || file));
@@ -379,9 +397,15 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         setFileList([]);
         setUploadModalVisible(false);
         loadAttachments(issue.id);
+        
+        // Reload history to show attachment upload
+        const historyRes = await historyApi.getByIssue(issue.id);
+        setHistory(historyRes.data || []);
       } else { throw new Error('Upload failed'); }
     } catch (error) {
       message.error('Failed to upload files');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -733,14 +757,25 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       />
 
       {/* Modals & Hidden Logic */}
-      <Modal open={uploadModalVisible} title="Upload Attachments" onOk={handleFileUpload} onCancel={() => setUploadModalVisible(false)}>
+      <Modal 
+        open={uploadModalVisible} 
+        title="Upload Attachments" 
+        onOk={handleFileUpload} 
+        onCancel={() => !isUploading && setUploadModalVisible(false)}
+        okText={isUploading ? 'Uploading...' : 'Upload'}
+        okButtonProps={{ loading: isUploading, disabled: fileList.length === 0 || isUploading }}
+        cancelButtonProps={{ disabled: isUploading }}
+        closable={!isUploading}
+        maskClosable={!isUploading}
+      >
         <Upload
           fileList={fileList}
-          onChange={({ fileList }) => setFileList(fileList)}
+          onChange={({ fileList: newFileList }) => setFileList(newFileList)}
           beforeUpload={() => false}
           multiple
+          disabled={isUploading}
         >
-          <Button icon={<Paperclip size={14} />}>Select Files</Button>
+          <Button icon={<Paperclip size={14} />} disabled={isUploading}>Select Files</Button>
         </Upload>
       </Modal>
 

@@ -261,29 +261,67 @@ router.put('/:id', async (req, res) => {
       relations: ['reporter', 'assignee', 'project'],
     });
 
-    // Record history for field changes
-    const userId = req.body.updatedBy || 'system';
-    const changedFields = Object.keys(req.body).filter(key =>
-      key !== 'updatedBy' && existingIssue[key] !== req.body[key]
+    // Record history for field changes - save to database
+    const userId = req.body.userId || req.body.updatedBy || null;
+    const trackableFields = ['status', 'priority', 'assigneeId', 'summary', 'description', 'type', 'storyPoints', 'dueDate', 'labels', 'sprintId', 'epicLink'];
+    const changedFields = trackableFields.filter(key =>
+      req.body[key] !== undefined && existingIssue[key] !== req.body[key]
     );
+
+    // Import History entity and save to database
+    const { History } = require('../entities/History');
+    const historyRepo = AppDataSource.getRepository(History);
 
     for (const field of changedFields) {
       try {
-        const historyEntry = {
-          id: `history-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          issueId: req.params.id,
-          userId,
-          field,
-          oldValue: JSON.stringify(existingIssue[field]),
-          newValue: JSON.stringify(req.body[field]),
-          changeType: 'field_change',
-          projectId: existingIssue.projectId,
-          createdAt: new Date().toISOString(),
-        };
-        // Store in global history array (imported from history route)
-        if (global.historyEntries) {
-          global.historyEntries.push(historyEntry);
+        // Generate human-readable description
+        let description = `updated ${field}`;
+        const oldVal = existingIssue[field];
+        const newVal = req.body[field];
+        
+        switch (field) {
+          case 'status':
+            description = `changed status from "${oldVal || 'none'}" to "${newVal}"`;
+            break;
+          case 'priority':
+            description = `changed priority from "${oldVal || 'none'}" to "${newVal}"`;
+            break;
+          case 'assigneeId':
+            description = `changed assignee`;
+            break;
+          case 'summary':
+            description = `updated summary`;
+            break;
+          case 'description':
+            description = `updated description`;
+            break;
+          case 'type':
+            description = `changed type from "${oldVal}" to "${newVal}"`;
+            break;
+          case 'storyPoints':
+            description = `changed story points from "${oldVal || 0}" to "${newVal}"`;
+            break;
+          case 'dueDate':
+            description = `changed due date`;
+            break;
+          case 'sprintId':
+            description = `moved to a different sprint`;
+            break;
         }
+
+        const historyEntry = historyRepo.create({
+          issueId: req.params.id,
+          userId: userId,
+          field,
+          oldValue: oldVal !== undefined ? JSON.stringify(oldVal) : null,
+          newValue: newVal !== undefined ? JSON.stringify(newVal) : null,
+          changeType: 'field_change',
+          description,
+          projectId: existingIssue.projectId,
+        });
+        
+        await historyRepo.save(historyEntry);
+        console.log(`📝 History recorded: ${description} for issue ${existingIssue.key}`);
       } catch (historyError) {
         console.error('Failed to record history:', historyError);
       }
