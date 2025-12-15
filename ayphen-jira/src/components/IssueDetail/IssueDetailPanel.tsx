@@ -458,19 +458,36 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             </SectionHeader>
 
             {isEditingDescription ? (
-              <div style={{ marginBottom: 24, marginTop: 16 }}>
+              <div style={{ marginBottom: 24, marginTop: 16, width: '100%' }}>
                 <TextArea
-                  rows={8}
+                  rows={12}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
-                  style={{ marginBottom: 12 }}
+                  style={{ 
+                    marginBottom: 12, 
+                    width: '100%', 
+                    minHeight: 200,
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    padding: 16,
+                    borderRadius: 8,
+                    border: '1px solid #E0E0E0',
+                    resize: 'vertical'
+                  }}
+                  placeholder="Enter description using Markdown format..."
                 />
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <Button onClick={() => setIsEditingDescription(false)}>Cancel</Button>
-                  <Button type="primary" onClick={() => {
-                    handleUpdate('description', descriptionInput);
-                    setIsEditingDescription(false);
-                  }}>Save</Button>
+                  <Button 
+                    type="primary" 
+                    style={{ background: '#E91E63', borderColor: '#E91E63' }}
+                    onClick={() => {
+                      handleUpdate('description', descriptionInput);
+                      setIsEditingDescription(false);
+                    }}
+                  >
+                    Save
+                  </Button>
                 </div>
               </div>
             ) : (
