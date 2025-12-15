@@ -48,7 +48,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                     type="primary"
                     block
                     style={{
-                        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                        background: '#E91E63',
                         border: 'none',
                         fontWeight: 600
                     }}

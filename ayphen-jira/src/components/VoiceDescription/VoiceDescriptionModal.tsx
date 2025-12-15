@@ -53,8 +53,8 @@ const MicButton = styled.button<{ $isRecording?: boolean }>`
   height: 80px;
   border-radius: 50%;
   border: none;
-  background: ${props => props.$isRecording 
-    ? 'linear-gradient(135deg, #EF4444, #DC2626)' 
+  background: ${props => props.$isRecording
+    ? 'linear-gradient(135deg, #EF4444, #DC2626)'
     : 'linear-gradient(135deg, #EC4899, #F472B6)'};
   color: white;
   cursor: pointer;
@@ -103,7 +103,7 @@ const SuggestionsContainer = styled.div`
   gap: 12px;
 `;
 
-const SuggestionCard = styled(Card)<{ $selected?: boolean }>`
+const SuggestionCard = styled(Card) <{ $selected?: boolean }>`
   cursor: pointer;
   border: 2px solid ${props => props.$selected ? '#EC4899' : '#f0f0f0'};
   background: ${props => props.$selected ? '#FDF2F8' : 'white'};
@@ -179,12 +179,18 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
 
   const recognitionRef = useRef<any>(null);
 
-  // Load context when modal opens
+  // Load context and initialize description when modal opens
   useEffect(() => {
-    if (open && (projectId || epicId || parentIssueId)) {
-      loadContext();
+    if (open) {
+      if (currentDescription && !transcript) {
+        setTranscript(currentDescription); // Pre-fill with existing description
+      }
+
+      if (projectId || epicId || parentIssueId) {
+        loadContext();
+      }
     }
-  }, [open, projectId, epicId, parentIssueId]);
+  }, [open, projectId, epicId, parentIssueId, currentDescription]);
 
   // Initialize speech recognition
   useEffect(() => {
@@ -207,7 +213,7 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
           }
         }
 
-        setTranscript(prev => prev + finalTranscript || interimTranscript);
+        setTranscript(prev => prev + (finalTranscript || interimTranscript));
       };
 
       recognitionRef.current.onerror = (event: any) => {
