@@ -106,6 +106,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [comments, setComments] = useState<any[]>([]);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [subtasks, setSubtasks] = useState<any[]>([]);
+  const [linkedIssues, setLinkedIssues] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
 
   // Description Edit State
@@ -162,6 +163,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
       loadAttachments(res.data.id);
       loadSubtasks(res.data.id);
+      loadLinkedIssues(res.data.id);
 
     } catch (error) {
       message.error('Failed to load issue');
@@ -193,6 +195,19 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       }
     } catch (e) {
       setSubtasks([]);
+    }
+  };
+
+  const loadLinkedIssues = async (issueId: string) => {
+    try {
+      const linkRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/issue/${issueId}`);
+      if (linkRes.ok) {
+        setLinkedIssues(await linkRes.json());
+      } else {
+        setLinkedIssues([]);
+      }
+    } catch (e) {
+      setLinkedIssues([]);
     }
   };
 
@@ -377,6 +392,42 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             )}
           </Section>
 
+          {/* Linked Issues Section */}
+          <Section ref={el => { sectionRefs.current['linkedIssues'] = el; }}>
+            <SectionTitle>Linked Issues</SectionTitle>
+            {linkedIssues.length > 0 ? (
+              linkedIssues.map(l => (
+                <div key={l.id} onClick={() => navigate(`/issue/${l.targetIssue?.key}`)} style={{ padding: '8px 12px', border: `1px solid ${colors.border.light}`, borderRadius: 6, marginBottom: 8, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 12, background: colors.neutral[200], padding: '2px 6px', borderRadius: 4, marginRight: 4 }}>{l.linkType}</span>
+                    <span style={{ fontWeight: 500, color: colors.text.secondary }}>{l.targetIssue?.key}</span>
+                    <span style={{ color: colors.text.primary }}>{l.targetIssue?.summary}</span>
+                  </div>
+                  <Tooltip title="Remove Link">
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<Trash2 size={14} />}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/${l.id}`, { method: 'DELETE' });
+                          message.success('Link removed');
+                          loadLinkedIssues(issue.id);
+                        } catch (err) {
+                          message.error('Failed to remove link');
+                        }
+                      }}
+                    />
+                  </Tooltip>
+                </div>
+              ))
+            ) : (
+              <div style={{ color: colors.text.secondary }}>No linked issues.</div>
+            )}
+          </Section>
+
           {/* Attachments Section */}
           <Section ref={el => { sectionRefs.current['attachments'] = el; }}>
             <SectionTitle>Attachments</SectionTitle>
@@ -480,6 +531,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         onSuccess={async () => {
           message.success('Issue linked');
           await new Promise(resolve => setTimeout(resolve, 500));
+          await loadLinkedIssues(issue.id);
           loadIssueData();
         }}
       />
