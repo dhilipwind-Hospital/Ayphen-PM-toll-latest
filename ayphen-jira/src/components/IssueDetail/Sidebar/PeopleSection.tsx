@@ -33,11 +33,12 @@ const Label = styled.div`
 
 interface PeopleSectionProps {
     issue: any;
-    users: any[]; // List of available users
+    users: any[];
     onUpdate: (field: string, value: any) => Promise<void>;
+    onAIAction?: (action: string) => void;
 }
 
-export const PeopleSection: React.FC<PeopleSectionProps> = ({ issue, users, onUpdate }) => {
+export const PeopleSection: React.FC<PeopleSectionProps> = ({ issue, users, onUpdate, onAIAction }) => {
     return (
         <SidebarSection title="People">
             <FieldWrapper>
@@ -48,7 +49,7 @@ export const PeopleSection: React.FC<PeopleSectionProps> = ({ issue, users, onUp
                             type="text"
                             size="small"
                             icon={<Sparkles size={12} color={colors.primary[500]} />}
-                            onClick={() => onUpdate('assigneeId', 'active-sprint-assignee')} // Mock logic trigger
+                            onClick={() => onAIAction && onAIAction('auto-assign')}
                         />
                     </Tooltip>
                 </div>

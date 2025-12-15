@@ -31,9 +31,10 @@ const Value = styled.div`
 interface DetailsSectionProps {
     issue: any;
     onUpdate: (field: string, value: any) => Promise<void>;
+    onAIAction?: (action: string) => void;
 }
 
-export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate }) => {
+export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate, onAIAction }) => {
     return (
         <SidebarSection title="Details">
             <FieldRow>
@@ -68,7 +69,7 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate 
                             type="text"
                             size="small"
                             icon={<Sparkles size={12} color={colors.primary[500]} />}
-                            onClick={() => onUpdate('priority', 'high')} // Mock AI logic
+                            onClick={() => onAIAction && onAIAction('smart-priority')}
                         />
                     </Tooltip>
                 </div>
@@ -110,7 +111,7 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate 
                             type="text"
                             size="small"
                             icon={<Sparkles size={12} color={colors.primary[500]} />}
-                            onClick={() => onUpdate('labels', ['ai-generated', 'feature'])} // Mock AI logic
+                            onClick={() => onAIAction && onAIAction('auto-tag')}
                         />
                     </Tooltip>
                 </div>

@@ -58,8 +58,8 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                 </Button>
             </TopActions>
 
-            <PeopleSection issue={issue} users={users} onUpdate={onUpdate} />
-            <DetailsSection issue={issue} onUpdate={onUpdate} />
+            <PeopleSection issue={issue} users={users} onUpdate={onUpdate} onAIAction={onAIAction} />
+            <DetailsSection issue={issue} onUpdate={onUpdate} onAIAction={onAIAction} />
             <DatesSection issue={issue} onUpdate={onUpdate} />
             <TimeTrackingSection issue={issue} onUpdate={onUpdate} />
 
