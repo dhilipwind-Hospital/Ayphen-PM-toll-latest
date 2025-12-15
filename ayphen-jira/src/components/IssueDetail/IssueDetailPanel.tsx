@@ -41,10 +41,11 @@ const StickyHeader = styled.div`
   top: 0;
   z-index: 10;
   background: #FFFFFF;
-  padding: 16px 24px;
+  padding: 16px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #F0F0F0;
 `;
 
 const IssueKeyBadge = styled.div`
@@ -64,14 +65,18 @@ const HeaderTitle = styled.div`
   font-size: 20px;
   font-weight: 600;
   color: #1A1A1A;
-  margin-left: 12px;
+  margin-left: 16px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: text;
+  cursor: pointer;
   max-width: 600px;
+  padding: 4px 8px;
+  border-radius: 4px;
   
-  &:hover { opacity: 0.8; }
+  &:hover {
+    background: #F5F5F5;
+  }
 `;
 
 const HeaderIconButton = styled(Button)`
