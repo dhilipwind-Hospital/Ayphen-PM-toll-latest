@@ -341,7 +341,35 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                     <span style={{ fontWeight: 500, color: colors.text.secondary }}>{s.key}</span>
                     <span style={{ color: colors.text.primary }}>{s.summary}</span>
                   </div>
-                  <span style={{ fontSize: 12, background: colors.status.todo, padding: '2px 8px', borderRadius: 10, alignSelf: 'center' }}>{s.status}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 12, background: colors.status.todo, padding: '2px 8px', borderRadius: 10, alignSelf: 'center' }}>{s.status}</span>
+                    <Tooltip title="Unlink/Delete Subtask">
+                      <Button
+                        type="text"
+                        size="small"
+                        danger
+                        icon={<Trash2 size={14} />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          Modal.confirm({
+                            title: 'Delete Subtask',
+                            content: `Are you sure you want to delete ${s.key}? This action cannot be undone.`,
+                            okText: 'Delete',
+                            okType: 'danger',
+                            onOk: async () => {
+                              try {
+                                await issuesApi.delete(s.id);
+                                message.success('Subtask deleted');
+                                loadSubtasks(issue.id);
+                              } catch (e) {
+                                message.error('Failed to delete subtask');
+                              }
+                            }
+                          });
+                        }}
+                      />
+                    </Tooltip>
+                  </div>
                 </div>
               ))
             ) : (
