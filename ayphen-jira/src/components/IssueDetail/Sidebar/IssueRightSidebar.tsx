@@ -48,7 +48,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                     type="primary"
                     block
                     style={{
-                        background: '#E91E63',
+                        background: colors.primary[500],
                         border: 'none',
                         fontWeight: 600
                     }}
