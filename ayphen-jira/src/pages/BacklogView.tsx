@@ -329,7 +329,8 @@ export const BacklogView: React.FC = () => {
 
   const activeSprints = sprints.filter(s => s.status === 'active');
   const futureSprints = sprints.filter(s => s.status === 'future');
-  const backlogIssues = issues.filter(i => !i.sprintId);
+  // Filter out epics - they are containers, not work items for sprints/backlog
+  const backlogIssues = issues.filter(i => !i.sprintId && i.type !== 'epic');
 
   const handleCreateSprint = async () => {
     if (!currentProject) return;
@@ -402,7 +403,7 @@ export const BacklogView: React.FC = () => {
               <SprintHeader>
                 <SprintInfo>
                   <SprintName>{sprint.name}</SprintName>
-                  <SprintMeta>{sprint.status === 'active' ? 'Active • ' : ''}{sprint.goal || `${issues.filter(i => i.sprintId === sprint.id).length} issues`}</SprintMeta>
+                  <SprintMeta>{sprint.status === 'active' ? 'Active • ' : ''}{sprint.goal || `${issues.filter(i => i.sprintId === sprint.id && i.type !== 'epic').length} issues`}</SprintMeta>
                 </SprintInfo>
                 {sprint.status === 'future' && <Button size="small" onClick={() => { setSelectedSprint(sprint); setIsStartSprintModalOpen(true); }}>Start Sprint</Button>}
                 {sprint.status === 'active' && <Button size="small" type="primary" ghost onClick={() => handleCompleteSprint(sprint)}>Complete Sprint</Button>}
@@ -410,7 +411,7 @@ export const BacklogView: React.FC = () => {
             }>
               <DroppableSprint
                 sprintId={sprint.id}
-                issues={issues.filter(i => i.sprintId === sprint.id)}
+                issues={issues.filter(i => i.sprintId === sprint.id && i.type !== 'epic')}
                 selectedIssueId={selectedIssueKey}
                 onIssueClick={(key) => setSelectedIssueKey(key)}
               />
