@@ -202,3 +202,24 @@ html {
   border: 2px solid transparent;
   background-clip: content-box;
 }
+
+/* Global Button Override to match Login Style */
+/* Global Button Override to match Login Style */
+/* Exclude dangerous buttons to keep them red */
+.ant-btn-primary:not(.ant-btn-dangerous):not([class*="danger"]) {
+  background: linear-gradient(to right, #be185d, #db2777) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(190, 24, 93, 0.3) !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+.ant-btn-primary:not(.ant-btn-dangerous):not([class*="danger"]):hover {
+  background: linear-gradient(to right, #9d174d, #be185d) !important;
+  box-shadow: 0 6px 16px rgba(190, 24, 93, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.ant-btn-primary:not(.ant-btn-dangerous):not([class*="danger"]):active {
+  transform: translateY(0);
+}

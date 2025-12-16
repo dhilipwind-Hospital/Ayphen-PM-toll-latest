@@ -12,6 +12,11 @@ import type {
   Version,
 } from '../types';
 
+interface FavoriteItem {
+  type: 'issue' | 'project' | 'filter' | 'dashboard';
+  id: string;
+}
+
 interface AppState {
   // User
   currentUser: User | null;
@@ -88,6 +93,9 @@ interface AppState {
   setSidebarCollapsed: (collapsed: boolean) => void;
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
+  favorites: FavoriteItem[];
+  toggleFavorite: (type: 'issue' | 'project' | 'filter' | 'dashboard', id: string) => void;
+  isFavorite: (type: 'issue' | 'project' | 'filter' | 'dashboard', id: string) => boolean;
 
   // Computed Selectors
   getCurrentProjectIssues: () => Issue[];
@@ -229,22 +237,40 @@ export const useStore = create<AppState>((set, get) => ({
   theme: 'light',
   setTheme: (theme) => set({ theme }),
 
+  // Favorites
+  favorites: JSON.parse(localStorage.getItem('user_favorites') || '[]'),
+  toggleFavorite: (type, id) => set((state) => {
+    const exists = state.favorites.find(f => f.type === type && f.id === id);
+    let newFavorites;
+    if (exists) {
+      newFavorites = state.favorites.filter(f => !(f.type === type && f.id === id));
+    } else {
+      newFavorites = [...state.favorites, { type, id }];
+    }
+    localStorage.setItem('user_favorites', JSON.stringify(newFavorites));
+    return { favorites: newFavorites };
+  }),
+  isFavorite: (type, id) => {
+    const state = get();
+    return state.favorites.some(f => f.type === type && f.id === id);
+  },
+
   // Computed Selectors
   getCurrentProjectIssues: () => {
     const state = get();
-    return state.issues.filter((i: Issue) => 
+    return state.issues.filter((i: Issue) =>
       state.currentProject && i.projectId === state.currentProject.id
     );
   },
   getCurrentProjectSprints: () => {
     const state = get();
-    return state.sprints.filter((s: Sprint) => 
+    return state.sprints.filter((s: Sprint) =>
       state.currentProject && s.projectId === state.currentProject.id
     );
   },
   getCurrentProjectBoards: () => {
     const state = get();
-    return state.boards.filter((b: Board) => 
+    return state.boards.filter((b: Board) =>
       state.currentProject && b.projectId === state.currentProject.id
     );
   },

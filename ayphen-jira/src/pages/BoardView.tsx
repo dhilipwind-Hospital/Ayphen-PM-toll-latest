@@ -8,7 +8,7 @@ import { QuickFilters } from '../components/QuickFilters';
 import { BulkActionsToolbar } from '../components/BulkActionsToolbar';
 import { SavedViewsDropdown } from '../components/SavedViewsDropdown';
 import { bulkOperationsApi, boardViewsApi, sprintsApi } from '../services/api';
-import { DndContext, useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent, pointerWithin } from '@dnd-kit/core';
+import { DndContext, useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent, pointerWithin, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
@@ -142,10 +142,11 @@ const StyledIssueCard = styled(GlassCard) <{ isDragging?: boolean; type: string;
     props.type === 'story' ? '#0052CC' :
       props.type === 'bug' ? '#DE350B' : '#0052CC'
   };
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  padding: 16px;
+  background: white; /* Make opaque for better visibility */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12); /* Standard card shadow */
+  padding: 12px; /* Tighter padding */
   position: relative;
+  border-radius: 8px; /* Slightly smaller radius for cards */
   z-index: ${props => props.isDragging ? 999 : 1};
   
   &:hover {
@@ -725,19 +726,13 @@ export const BoardView: React.FC = () => {
   const getFilteredIssues = () => {
     let filtered = issues;
 
-    // Scrum Board Logic:
     // If we are in a Scrum project, only show issues from the Active Sprint.
     if (currentProject?.type === 'scrum') {
       if (activeSprint) {
         filtered = filtered.filter(i => i.sprintId === activeSprint.id);
       } else {
-        // No active sprint? Show empty or maybe Backlog?
-        // Standard Jira: Shows "Start a sprint" placeholder.
-        // For now, return empty to simulate "Board is empty".
-        // We could conditionally render a "Start Sprint" message in the UI instead of filtering here,
-        // but filtering is safer to ensure no arbitrary issues appear.
-        // But let's allow "done" issues from recent sprints? No, strict active sprint.
-        filtered = [];
+        // Explicitly return a special flag or empty, handled in UI
+        return [];
       }
     }
 
@@ -803,79 +798,79 @@ export const BoardView: React.FC = () => {
   const handleBulkStatusChange = async (status: string) => {
     try {
       await bulkOperationsApi.bulkUpdate(selectedIssues, { status });
-      message.success(`Updated ${selectedIssues.length} issues`);
+      message.success(`Updated status for ${selectedIssues.length} issues`);
       setSelectedIssues([]);
       loadIssues();
     } catch (error) {
-      console.error('Bulk status change failed:', error);
-      message.error('Failed to update issues');
+      console.error('Bulk status update failed:', error);
+      message.error('Failed to update status');
     }
   };
 
   const handleBulkDelete = async () => {
-    try {
-      await bulkOperationsApi.bulkDelete(selectedIssues);
-      message.success(`Deleted ${selectedIssues.length} issues`);
-      setSelectedIssues([]);
-      loadIssues();
-    } catch (error) {
-      console.error('Bulk delete failed:', error);
-      message.error('Failed to delete issues');
-    }
+    Modal.confirm({
+      title: 'Bulk Delete Issues',
+      content: `Are you sure you want to delete ${selectedIssues.length} issues?`,
+      okText: 'Delete',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          // Implement bulk delete API
+          await Promise.all(selectedIssues.map(id => axios.delete(`${API_URL}/issues/${id}`)));
+          message.success('Issues deleted');
+          setSelectedIssues([]);
+          loadIssues();
+        } catch (error) {
+          message.error('Failed to delete issues');
+        }
+      }
+    });
   };
 
   const handleClearSelection = () => {
     setSelectedIssues([]);
   };
 
-  // Saved views handlers
   const handleSaveView = async (name: string) => {
-    if (!currentUser) return;
-
     try {
-      const viewData = {
-        userId: currentUser.id,
-        name,
-        filters: {
-          priority: filterPriority,
-          type: filterType,
-          assignee: filterAssignee,
-          quickFilters,
-        },
-        groupBy,
-        isDefault: false,
-      };
-
-      const res = await boardViewsApi.create(viewData);
-      setSavedViews([...savedViews, res.data]);
-      setCurrentView(res.data);
-      message.success('View saved');
+      if (currentUser) {
+        await boardViewsApi.create({
+          name,
+          userId: currentUser.id,
+          config: {
+            groupBy,
+            filterType,
+            filterPriority,
+            settings: columns
+          }
+        });
+        message.success('View saved');
+        // Reload views
+        const res = await boardViewsApi.getAll(currentUser.id);
+        setSavedViews(res.data);
+      }
     } catch (error) {
-      console.error('Failed to save view:', error);
       message.error('Failed to save view');
     }
   };
 
   const handleLoadView = (view: any) => {
-    setFilterPriority(view.filters.priority || []);
-    setFilterType(view.filters.type || []);
-    setFilterAssignee(view.filters.assignee || []);
-    setQuickFilters(view.filters.quickFilters || []);
-    setGroupBy(view.groupBy || 'none');
     setCurrentView(view);
-    message.success(`Loaded view: ${view.name}`);
+    if (view.config) {
+      if (view.config.groupBy) setGroupBy(view.config.groupBy);
+      if (view.config.filterType) setFilterType(view.config.filterType);
+      if (view.config.filterPriority) setFilterPriority(view.config.filterPriority);
+      if (view.config.settings) setColumns(view.config.settings);
+    }
   };
 
   const handleDeleteView = async (id: string) => {
     try {
       await boardViewsApi.delete(id);
-      setSavedViews(savedViews.filter((v: any) => v.id !== id));
-      if (currentView?.id === id) {
-        setCurrentView(null);
-      }
+      setSavedViews(savedViews.filter(v => v.id !== id));
+      if (currentView?.id === id) setCurrentView(null);
       message.success('View deleted');
     } catch (error) {
-      console.error('Failed to delete view:', error);
       message.error('Failed to delete view');
     }
   };
@@ -963,38 +958,48 @@ export const BoardView: React.FC = () => {
         currentUserId={currentUser?.id}
       />
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={pointerWithin}
-        onDragEnd={handleDragEnd}
-      >
-        <BoardContainer>
-          {(currentProject?.type === 'scrum' && !activeSprint) ? (
-            <div style={{ width: '100%', padding: '60px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.5)', borderRadius: 12 }}>
-              <Layers size={48} color={colors.text.tertiary} style={{ marginBottom: 16 }} />
-              <h3 style={{ color: colors.text.primary, marginBottom: 8 }}>No Active Sprint</h3>
-              <p style={{ color: colors.text.secondary, marginBottom: 24 }}>Start a sprint in the backlog to view issues here.</p>
-              <Button type="primary" onClick={() => navigate(`/project/${currentProject.id}/backlog`)}>
-                Go to Backlog
-              </Button>
-            </div>
-          ) : (
-            columns.map((column) => (
+      {currentProject?.type === 'scrum' && !activeSprint ? (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '60vh',
+          width: '100%',
+          color: colors.text.secondary
+        }}>
+          <Layers size={48} style={{ marginBottom: 16, opacity: 0.5 }} />
+          <h2 style={{ fontSize: 20, marginBottom: 8 }}>No Active Sprint</h2>
+          <p>Start a sprint in the Backlog to see issues on the board.</p>
+          <Button type="primary" onClick={() => navigate('/backlog')} style={{ marginTop: 16 }}>
+            Go to Backlog
+          </Button>
+        </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={pointerWithin}
+          onDragEnd={handleDragEnd}
+        >
+          <BoardContainer>
+            {columns.map(col => (
               <DroppableColumn
-                key={column.id}
-                status={column.id}
-                title={column.title}
-                issues={getIssuesByStatus(column.statuses)}
+                key={col.id}
+                status={col.id}
+                title={col.title}
+                issues={getIssuesByStatus(col.statuses)}
                 onIssueClick={handleIssueClick}
                 onCardSelect={handleCardSelect}
                 selectedIssues={selectedIssues}
                 onContextMenu={handleContextMenu}
-                wipLimit={column.wipLimit}
+                wipLimit={col.wipLimit}
               />
-            ))
-          )}
-        </BoardContainer>
-      </DndContext>
+            ))}
+          </BoardContainer>
+          <DragOverlay>
+          </DragOverlay>
+        </DndContext>
+      )}
 
       <BoardSettings
         visible={settingsVisible}

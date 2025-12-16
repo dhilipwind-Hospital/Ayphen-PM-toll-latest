@@ -385,6 +385,9 @@ export const BacklogView: React.FC = () => {
           <Header>
             <Title>Backlog</Title>
             <Controls>
+              <Button onClick={handleCreateSprint} style={{ marginRight: 8 }}>
+                Create Sprint
+              </Button>
               <Button type="primary" icon={<Plus size={16} />} onClick={() => setIsCreateModalOpen(true)}>
                 Create Issue
               </Button>

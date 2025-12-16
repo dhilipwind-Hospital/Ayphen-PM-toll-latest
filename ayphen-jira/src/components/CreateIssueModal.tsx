@@ -153,6 +153,9 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
         return;
       }
 
+      // 1. Client-side Exact Match Check (Optional/Optimization)
+      // Check against loaded titles if possible, but backend check is source of truth.
+
       try {
         const response = await api.post('/ai-description/check-duplicates', {
           summary,
@@ -162,14 +165,24 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
         });
 
         if (response.data.success && response.data.hasDuplicates) {
-          setDuplicates(response.data.duplicates);
-          setDuplicateConfidence(response.data.confidence);
+          const dups = response.data.duplicates;
+          const maxConfidence = response.data.confidence;
+
+          setDuplicates(dups);
+          setDuplicateConfidence(maxConfidence);
+
+          // EXACT MATCH DETECTION
+          // If confidence is very high (>= 98%), treat as exact match
+          const isExactMatch = maxConfidence >= 98;
+
           setBlockedDuplicate({
-            duplicate: response.data.duplicates[0],
-            confidence: response.data.confidence
+            duplicate: dups[0],
+            confidence: maxConfidence,
+            isExactMatch // Pass this flag to Gatekeeper
           });
-          // Only show modal if confidence is high (>80%)
-          if (response.data.confidence > 80) {
+
+          // Show modal for high confidence
+          if (maxConfidence > 80) {
             setShowBlockModal(true);
           }
         }
@@ -179,6 +192,13 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
     },
     [currentProject, selectedType]
   );
+
+  // Auto-fill Epic Name from Summary
+  useEffect(() => {
+    if (selectedType === 'epic' && summaryValue) {
+      form.setFieldsValue({ epicName: summaryValue });
+    }
+  }, [summaryValue, selectedType, form]);
 
   // Debounce timer for duplicate checking
   useEffect(() => {
@@ -346,7 +366,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               label="Epic Name"
               rules={[{ required: true, message: 'Please enter epic name' }]}
             >
-              <Input placeholder="Enter epic name" />
+              <Input placeholder="Enter epic name" disabled />
             </Form.Item>
             <Form.Item
               name="epicColor"

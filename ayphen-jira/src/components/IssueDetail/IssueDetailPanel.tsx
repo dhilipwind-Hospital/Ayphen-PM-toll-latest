@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress } from 'antd';
-import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen } from 'lucide-react';
+import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen, Star } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi } from '../../services/api';
+import { useStore } from '../../store/useStore';
 import { colors } from '../../theme/colors';
 import { CreateIssueModal } from '../CreateIssueModal';
 import { IssueLinkModal } from './IssueLinkModal';
@@ -234,6 +235,8 @@ interface IssueDetailPanelProps {
 export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, onClose }) => {
   const navigate = useNavigate();
   const [issue, setIssue] = useState<any>(null);
+  const { toggleFavorite, isFavorite } = useStore();
+  const isFavorited = issue ? isFavorite('issue', issue.id) : false;
   const [loading, setLoading] = useState(true);
   const [projectMembers, setProjectMembers] = useState<any[]>([]);
 
@@ -472,6 +475,17 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           </div>
 
           <div style={{ display: 'flex', gap: 12 }}>
+            <Tooltip title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}>
+              <HeaderIconButton
+                onClick={() => {
+                  toggleFavorite('issue', issue.id);
+                  message.success(isFavorited ? 'Removed from favorites' : 'Added to favorites');
+                }}
+              >
+                <Star size={18} fill={isFavorited ? "#FFC107" : "none"} color={isFavorited ? "#FFC107" : "#666"} />
+              </HeaderIconButton>
+            </Tooltip>
+            {/* Share/Copy Link */}
             <Tooltip title="Copy Link">
               <HeaderIconButton onClick={() => { navigator.clipboard.writeText(window.location.href); message.success('Copied link'); }}>
                 <Link size={18} />
@@ -660,8 +674,18 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                         onChange={e => setNewComment(e.target.value)}
                         style={{ marginBottom: 8, borderRadius: 6, padding: 12, border: `1px solid #D0D0D0`, resize: 'vertical' }}
                       />
-                      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                        <CommentButton onClick={handleAddComment}>Add Comment</CommentButton>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <CommentButton onClick={handleAddComment}>Add Comment</CommentButton>
+                          <Button
+                            icon={<Paperclip size={14} />}
+                            onClick={() => setUploadModalVisible(true)}
+                            type="text"
+                            style={{ marginTop: 12 }}
+                          >
+                            Attach
+                          </Button>
+                        </div>
                       </div>
 
                       <div style={{ marginTop: 40 }}>

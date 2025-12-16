@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Input, Select, Button, Tag, Avatar, Tabs, Upload, message, Modal, Tooltip, Progress } from 'antd';
+import { Form, Input, Select, Button, Tag, Avatar, Tabs, Upload, message, Modal, Tooltip, Progress, Empty } from 'antd';
 import { Edit, Paperclip, Calendar, Clock, Flag, Link, User, Trash2, Eye, Download, ArrowLeft, Plus } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
@@ -708,6 +708,43 @@ export const EpicDetailView: React.FC = () => {
                   style={{ marginRight: 8 }}
                 />
                 <IssueKey>{issue?.key}</IssueKey>
+                {issue?.creationMetadata?.method === 'ai' && (
+                  <Tooltip title="Created with AI Assistance">
+                    <div style={{
+                      marginLeft: 8,
+                      marginRight: 8,
+                      background: '#F3E8FF',
+                      color: '#9333EA',
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      border: '1px solid #E9D5FF'
+                    }}>
+                      🤖 AI
+                    </div>
+                  </Tooltip>
+                )}
+                {issue?.creationMetadata?.method === 'template' && (
+                  <Tooltip title="Created from Template">
+                    <div style={{
+                      marginLeft: 8,
+                      marginRight: 8,
+                      background: '#E0F2FE',
+                      color: '#0284C7',
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontSize: 11,
+                      fontWeight: 600
+                    }}>
+                      📋 Template
+                    </div>
+                  </Tooltip>
+                )}
                 <IssueTitle>{issue?.summary}</IssueTitle>
               </IssueTitleRow>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
@@ -912,11 +949,46 @@ export const EpicDetailView: React.FC = () => {
                 key: 'timeline',
                 label: 'Timeline',
                 children: (
-                  <div style={{ padding: 60, textAlign: 'center', color: '#999', background: '#F9FAFB', borderRadius: 12, border: '1px dashed #E2E8F0' }}>
-                    <Calendar size={48} style={{ marginBottom: 16, opacity: 0.2, color: '#334155' }} />
-                    <h3 style={{ color: '#334155' }}>Timeline View</h3>
-                    <p>Visualize your epic roadmap here.</p>
-                    <Tag color="purple">Coming Soon</Tag>
+                  <div style={{ padding: 24, background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+                    <div style={{ marginBottom: 16 }}>
+                      <h3 style={{ margin: 0 }}>Project Roadmap</h3>
+                      <p style={{ color: '#666', margin: 0 }}>Timeline based on Child Issues due dates</p>
+                    </div>
+                    {childIssues.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {childIssues.map((child: any) => (
+                          <div key={child.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ width: 150, flexShrink: 0, fontWeight: 500 }}>{child.key}</div>
+                            <div style={{ flex: 1, background: '#f5f5f5', height: 32, borderRadius: 16, position: 'relative', overflow: 'hidden' }}>
+                              {/* Minimal bar representation */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  left: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  width: child.status === 'done' ? '100%' : '50%',
+                                  background: child.status === 'done' ? '#10B981' : '#3B82F6',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  paddingLeft: 12,
+                                  color: 'white',
+                                  fontSize: 12,
+                                  fontWeight: 500
+                                }}
+                              >
+                                {child.summary}
+                              </div>
+                            </div>
+                            <div style={{ width: 100, flexShrink: 0, fontSize: 12, color: '#666', textAlign: 'right' }}>
+                              {child.dueDate ? new Date(child.dueDate).toLocaleDateString() : 'No Due Date'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <Empty description="No child issues with dates found" />
+                    )}
                   </div>
                 )
               }

@@ -47,7 +47,7 @@ class SocketService {
 
   public joinProject(projectId: string) {
     if (!this.socket || !projectId) return;
-    
+
     if (this.currentProjectId && this.currentProjectId !== projectId) {
       this.leaveProject(this.currentProjectId);
     }
@@ -70,7 +70,7 @@ class SocketService {
     this.socket.on('issue_created', (issue: any) => {
       console.log('🔔 Socket: issue_created', issue);
       const { addIssue, currentProject } = useStore.getState();
-      
+
       // Only add if it belongs to current project (double check)
       if (currentProject && issue.projectId === currentProject.id) {
         addIssue(issue);
@@ -82,7 +82,7 @@ class SocketService {
     this.socket.on('issue_updated', (data: { issue: any, changes: any, updaterId: string }) => {
       console.log('🔔 Socket: issue_updated', data);
       const { updateIssue, currentProject } = useStore.getState();
-      
+
       if (currentProject && data.issue.projectId === currentProject.id) {
         updateIssue(data.issue.id, data.issue);
         // Optional: Show toaster if not the updater? 
@@ -95,10 +95,10 @@ class SocketService {
     this.socket.on('status_changed', (data: { issue: any, oldStatus: string, newStatus: string }) => {
       console.log('🔔 Socket: status_changed', data);
       const { updateIssue, currentProject } = useStore.getState();
-      
+
       if (currentProject && data.issue.projectId === currentProject.id) {
         updateIssue(data.issue.id, { status: data.newStatus as any });
-        message.info(`${data.issue.key} moved to ${data.newStatus.replace('-', ' ')}`);
+        // Removed toast to prevent spam
       }
     });
 

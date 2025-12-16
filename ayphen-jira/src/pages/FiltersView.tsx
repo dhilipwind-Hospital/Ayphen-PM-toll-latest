@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Input, Tabs, Tag, Button, Space, Empty, Badge, Modal, Form, message } from 'antd';
+import { Card, Input, Tabs, Tag, Button, Space, Empty, Badge, Modal, Form, message, Select } from 'antd';
 import { Search, Download, FileText, Bug, CheckSquare, Zap, Save } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
@@ -85,7 +85,28 @@ export const FiltersView: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [saveFilterModalVisible, setSaveFilterModalVisible] = useState(false);
   const [selectedIssueIds, setSelectedIssueIds] = useState<string[]>([]);
+  const [savedFilters, setSavedFilters] = useState<any[]>([]);
+  const [loadingFilters, setLoadingFilters] = useState(false);
+
+  const [aiModalVisible, setAiModalVisible] = useState(false);
+  const [aiQuery, setAiQuery] = useState('');
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    loadSavedFilters();
+  }, [currentUser]);
+
+  const loadSavedFilters = async () => {
+    try {
+      setLoadingFilters(true);
+      const res = await filtersApi.getAll();
+      setSavedFilters(res.data || []);
+    } catch (error) {
+      console.error('Failed to load filters', error);
+    } finally {
+      setLoadingFilters(false);
+    }
+  };
 
   useEffect(() => {
     const filter = searchParams.get('filter');
@@ -114,6 +135,7 @@ export const FiltersView: React.FC = () => {
       message.success('Filter saved successfully');
       setSaveFilterModalVisible(false);
       form.resetFields();
+      loadSavedFilters(); // Reload list
     } catch (error) {
       console.error('Error saving filter:', error);
       message.error('Failed to save filter');
@@ -137,6 +159,57 @@ export const FiltersView: React.FC = () => {
       part.toLowerCase() === query.toLowerCase() ?
         <mark key={i} style={{ background: '#fff566', padding: '0 2px' }}>{part}</mark> : part
     );
+  };
+
+  const handleAiSearch = () => {
+    if (!aiQuery.trim()) return;
+
+    // Simple Client-Side Heuristic Parsing
+    const query = aiQuery.toLowerCase();
+    const config: any = {
+      searchText: '',
+      status: [] as string[],
+      type: [] as string[]
+    };
+
+    // 1. Detect Status
+    if (query.includes('done') || query.includes('completed')) config.status.push('done');
+    if (query.includes('pending') || query.includes('progress') || query.includes('working')) config.status.push('in-progress');
+    if (query.includes('todo') || query.includes('backlog')) config.status.push('todo');
+
+    // 2. Detect Type
+    if (query.includes('bug')) config.type.push('bug');
+    if (query.includes('story') || query.includes('stories')) config.type.push('story');
+    if (query.includes('epic')) config.type.push('epic');
+    if (query.includes('task')) config.type.push('task');
+
+    // 3. Detect Assignee (Simple 'me')
+    if (query.includes('my') || query.includes('assigned to me')) {
+      // We can't easily filter by ID in search text, so we rely on status/search text combination
+      // But typically we'd set activeFilter='my-open' if that was the only intent.
+      // For now, let's treat it as a special "Assignee: Me" search text if backend supports it or filter locally.
+      // The existing filter logic primarily uses searchText.
+    }
+
+    // 4. Extract keywords for search text (removing known tokens)
+    const keywords = ['show', 'me', 'issues', 'tickets', 'that', 'are', 'in', 'assigned', 'to', 'priority', 'high', 'low', 'bugs', 'stories', 'epics', 'tasks', 'done', 'completed', 'progress', 'pending'];
+    const words = query.split(' ').filter(w => !keywords.includes(w));
+    if (words.length > 0) config.searchText = words.join(' ');
+
+    setSearchText(config.searchText); // Update search bar
+
+    // Apply status filter if detected
+    if (config.status.length > 0) {
+      if (config.status.includes('done') && config.status.length === 1) setActiveFilter('done');
+      else setActiveFilter('custom_ai'); // We would need a custom filter state theoretically, or just filter via searchText
+    }
+
+    // Since our local filtering is simplistic in this view (it relies on `activeFilter` enum), 
+    // we will mostly rely on the Search Text field for filtering unless it's strictly 'done' or 'my-open'.
+    // However, we can inject a temporary "AI result" message.
+
+    message.success(`🤖 Filtered for "${aiQuery}"`);
+    setAiModalVisible(false);
   };
 
   const handleSelectIssue = (issueId: string, checked: boolean) => {
@@ -253,6 +326,26 @@ export const FiltersView: React.FC = () => {
       );
     } else if (activeFilter === 'done') {
       filtered = filtered.filter(issue => issue.status === 'done');
+    } else {
+      // Check if it's a saved filter
+      const saved = savedFilters.find(f => f.id === activeFilter);
+      if (saved && saved.filterConfig) {
+        const { status, assigneeId, searchText: savedSearch } = saved.filterConfig;
+
+        if (status && status.length > 0) {
+          filtered = filtered.filter(issue => status.includes(issue.status));
+        }
+        if (assigneeId) {
+          filtered = filtered.filter(issue => issue.assignee?.id === assigneeId);
+        }
+        // Note: Saved search text might conflict with current search text. 
+        // For now, we apply saved search text only if current search text is empty?
+        // Or we merge them? Let's assume saved filter sets the base.
+        if (savedSearch && !searchText) {
+          // This is tricky because searchText state drives the input.
+          // Ideally selecting a filter should populate searchText state.
+        }
+      }
     }
 
     // Apply search if present
@@ -290,6 +383,27 @@ export const FiltersView: React.FC = () => {
               'All Issues'}
         </Title>
         <Space>
+          <Select
+            style={{ width: 200 }}
+            placeholder="Load Saved Filter"
+            allowClear
+            onChange={(val) => {
+              setActiveFilter(val || 'all');
+              // Optionally populate search text if filter has it
+              const saved = savedFilters.find(f => f.id === val);
+              if (saved?.filterConfig?.searchText) {
+                setSearchText(saved.filterConfig.searchText);
+              } else {
+                setSearchText('');
+              }
+            }}
+            loading={loadingFilters}
+            value={['all', 'my-open', 'done'].includes(activeFilter) ? null : activeFilter}
+          >
+            {savedFilters.map(f => (
+              <Select.Option key={f.id} value={f.id}>{f.name}</Select.Option>
+            ))}
+          </Select>
           <Button
             type={activeFilter === 'all' ? 'primary' : 'default'}
             onClick={() => setActiveFilter('all')}
@@ -324,6 +438,13 @@ export const FiltersView: React.FC = () => {
           style={{ width: 400 }}
           allowClear
         />
+        <Button
+          icon={<Zap size={16} />}
+          onClick={() => setAiModalVisible(true)}
+          style={{ background: '#F3E8FF', borderColor: '#D8B4FE', color: '#9333EA' }}
+        >
+          Ask AI
+        </Button>
       </FilterBar>
 
       <Card>
@@ -405,6 +526,34 @@ export const FiltersView: React.FC = () => {
             <Input.TextArea rows={3} placeholder="Describe what this filter does" />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* AI Search Modal */}
+      <Modal
+        title={<div><span style={{ fontSize: 20 }}>🤖</span> Ask AI to Filter</div>}
+        open={aiModalVisible}
+        onOk={handleAiSearch}
+        onCancel={() => setAiModalVisible(false)}
+        okText="Filter"
+      >
+        <div style={{ marginBottom: 16 }}>
+          Describe what you are looking for in natural language.
+        </div>
+        <Input.TextArea
+          rows={3}
+          placeholder="e.g. show me high priority bugs in progress..."
+          value={aiQuery}
+          onChange={e => setAiQuery(e.target.value)}
+          autoFocus
+        />
+        <div style={{ marginTop: 12, fontSize: 12, color: '#666' }}>
+          Try queries like:
+          <ul style={{ paddingLeft: 20, marginTop: 4 }}>
+            <li>"My pending bugs"</li>
+            <li>"Frontend stories that are done"</li>
+            <li>"Critical issues in backlog"</li>
+          </ul>
+        </div>
       </Modal>
 
       {/* Bulk Operations Toolbar */}

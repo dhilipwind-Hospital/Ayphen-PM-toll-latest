@@ -67,6 +67,18 @@ import { socketService } from './services/socketService';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { EmailVerificationHandler } from './pages/EmailVerificationHandler';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
+
 function App() {
   const { currentUser, currentProject, setCurrentUser, setProjects, setCurrentProject, setIssues, setBoards, setSprints, setCurrentBoard } = useStore();
 
@@ -77,7 +89,7 @@ function App() {
     } else {
       socketService.disconnect();
     }
-    
+
     return () => {
       socketService.disconnect();
     };
@@ -119,7 +131,7 @@ function App() {
         if (projectsRes.status === 'fulfilled' && projectsRes.value.data) {
           const projects = projectsRes.value.data;
           setProjects(projects);
-          
+
           if (projects.length > 0) {
             const storedProjectId = localStorage.getItem('currentProjectId');
             const targetProject = projects.find(p => p.id === storedProjectId);
@@ -234,7 +246,8 @@ function App() {
     <ThemeProvider>
       <ConfigProvider theme={antdTheme}>
         <ToastProvider>
-          <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
               <AuthProvider>
                 <NotificationProvider>
                   <Routes>
@@ -322,7 +335,8 @@ function App() {
                   </Routes>
                 </NotificationProvider>
               </AuthProvider>
-          </BrowserRouter>
+            </BrowserRouter>
+          </QueryClientProvider>
         </ToastProvider>
       </ConfigProvider>
     </ThemeProvider>

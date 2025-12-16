@@ -268,7 +268,15 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       );
 
       const filledTemplate: FilledTemplate = response.data.filledTemplate;
-      onTemplateSelected(filledTemplate.fullDescription, selectedTemplate.id);
+
+      // Post-process Markdown to ensure alignment
+      let cleanDescription = filledTemplate.fullDescription;
+      // Ensure double newlines before headers
+      cleanDescription = cleanDescription.replace(/(?<!\n)\n(#+)/g, '\n\n$1');
+      // Ensure single newline after headers if missing
+      cleanDescription = cleanDescription.replace(/(#+ .*)(\n)(?!\n)/g, '$1\n\n');
+
+      onTemplateSelected(cleanDescription, selectedTemplate.id);
       message.success('Template filled successfully!');
       onClose();
     } catch (error: any) {
