@@ -441,6 +441,204 @@ Week 3:
 - AI creation metadata visible when present
 - Comment attachments stable UX
 
-Week 4+:
-- Favorites persist across sessions
-- AI search gradually improves without breaking standard search
+ Week 4+:
+ - Favorites persist across sessions
+ - AI search gradually improves without breaking standard search
+ 
+---
+
+## Additional Enhancements to Consider (No Implementation)
+
+### Non-Functional Requirements (NFRs)
+
+#### Performance
+- Avoid N+1 API calls where possible (Breadcrumb context is a candidate for a single context endpoint).
+- Add pagination or virtualization for large lists (Backlog, Filters, Search, Epics).
+- Add lightweight caching for common entities (projects/issues/sprints) to prevent repeated fetches.
+- Ensure charts/widgets use a consistent data-fetch strategy (batch calls where possible).
+
+#### Reliability
+- Centralize API error handling and standardize error toasts.
+- Add retry patterns for transient failures (network timeouts, 5xx).
+- Cancel in-flight requests on route change to prevent stale updates.
+
+#### Accessibility
+- Ensure contrast ratios are valid (especially after theme changes).
+- Standard focus states for keyboard navigation (focus ring tokens).
+- Keyboard support for critical flows (modals, menus, drag-and-drop fallback).
+
+#### Security
+- Validate file uploads on backend (type, size, virus scan if required).
+- Rate-limit AI endpoints and attachment upload endpoints.
+- Ensure userId/session scoping is enforced server-side (do not rely only on client params).
+
+---
+
+### Permissions & Roles
+
+Define role-based access up front to avoid future redesign:
+- Roles: Admin, Project Admin, Member, Viewer
+- Permission areas:
+  - Issue create/edit/delete
+  - Sprint start/complete
+  - Filter create (private vs shared)
+  - Link/unlink issues
+  - Upload/delete attachments
+  - Edit epic metadata (vision/goals/scope)
+
+Add UX rules:
+- Hide actions if unauthorized OR show disabled with tooltip.
+- Standardize “permission denied” messaging.
+
+---
+
+### API & Data Contract Guidance
+
+#### Issue Context endpoint (recommended)
+- `GET /api/issues/:id/context` (or `:key/context`)
+- Returns: `{ project?, epic?, parent?, issue }`.
+- Must be backward compatible and allow missing fields.
+
+#### Creation metadata
+- Add optional fields (default to manual if absent):
+  - `creationMethod` (ai/manual/template/cloned)
+  - `aiPrompt`, `aiConfidence`, `reviewedBy`, `reviewedAt`
+
+#### Favorites
+- Contract:
+  - `POST /api/favorites` (entityType/entityId)
+  - `DELETE /api/favorites/:id` or `DELETE /api/favorites` with params
+  - `GET /api/favorites?userId=&entityType=`
+
+#### Comment attachments
+- Prefer pre-upload -> IDs -> comment submit:
+  - `POST /api/uploads` -> returns attachment IDs
+  - `POST /api/comments` includes `attachmentIds: string[]`
+
+---
+
+### Testing Strategy
+
+#### Unit tests
+- Exact-match detection logic.
+- Bug template generator formatting.
+- AI search parser (rule-based iteration).
+
+#### Integration tests
+- Create filter -> appears immediately -> persists after reload.
+- Link issue -> Linked Issues count and list update without refresh.
+- Comment attachments -> upload progress -> remove -> submit -> appears.
+
+#### E2E (Playwright)
+- Navigation to Backlog/Board/Issue/Epic with stable loading.
+- Create issue flows (epic locked, sprint removed).
+- Filter CRUD scenarios.
+
+---
+
+### UX Consistency Guidelines
+
+- Standardize toast messages (success/error wording, duration).
+- Use skeletons for page-level loading; spinners for action-level loading.
+- Standard empty states (icon + message + primary action).
+- Confirmations for destructive actions (delete/unlink) with consistent copy.
+- Consistent card/table spacing, hover, and selected states.
+
+---
+
+### Observability & Debugging
+
+- Add consistent client-side logging in development only.
+- Include request IDs / correlation IDs in backend responses (optional).
+- Separate AI errors from generic errors to reduce user confusion.
+- Track key events:
+  - filter save/link/unlink
+  - attachment upload success/failure
+  - AI action success/failure
+
+---
+
+## Application Color Theme Enhancement Suggestions (No Implementation)
+
+### What exists today (quick audit)
+- A centralized palette exists in `ayphen-jira/src/theme/colors.ts` (primary pink scale, neutrals, status colors, issue type colors).
+- Ant Design token configuration exists in `ayphen-jira/src/theme/theme.ts` as `antdTheme`.
+- There is also a separate token setup inside `ayphen-jira/src/contexts/ThemeContext.tsx` that wraps another `ConfigProvider`.
+- Some components still use hardcoded hex values and inline colors, which leads to inconsistent UI and makes dark mode harder.
+
+### Primary recommendation: use one authoritative theme system
+
+#### 1) Single source of truth for tokens
+- Keep `colors.ts` + `theme.ts` as the authoritative token source.
+- Use `ThemeContext` only for toggling and choosing the algorithm (light/dark), not redefining tokens separately.
+
+Why:
+- Multiple competing token sources can cause inconsistent styles across pages and unpredictable light/dark behavior.
+
+#### 2) Proper dark mode tokens
+- Define a complete dark palette (same shape as the light palette) rather than only swapping a few AntD tokens.
+- Ensure these are consistent:
+  - backgrounds (layout/container/elevated)
+  - text (primary/secondary/tertiary)
+  - borders (default/hover)
+  - hover/selected states
+
+### Quick wins (safe, incremental)
+
+#### 1) Reduce hardcoded colors
+- Replace repeated hardcoded values (example `#E91E63`) with `colors.primary[...]` tokens.
+- Adopt a “touch-and-fix” approach: whenever a component is edited for a feature/bugfix, migrate its colors to tokens.
+
+#### 2) Standardize semantic colors across the app
+- Define one mapping for:
+  - status → background + text + dot color
+  - priority → icon + color
+  - issue type → consistent color
+- Reuse the mapping in Backlog, Board, Issue Detail, lists, and Reports.
+
+#### 3) Consistent focus and interaction states
+- Add a single focus-ring style that uses a brand-tinted color (primary with alpha).
+- Ensure hover/active/disabled states are consistent for:
+  - buttons
+  - inputs/selects
+  - clickable cards
+  - menu items
+
+#### 4) Unify surfaces (cards/panels)
+- Ensure `GlassPanel` / `GlassCard` and standard `Card` share consistent:
+  - background
+  - border
+  - hover elevation
+  - shadow tokens
+
+### Medium effort, high impact improvements
+
+#### 1) Add a secondary accent
+- Keep pink as primary, introduce a secondary accent (e.g., indigo/purple) to reduce overuse of pink.
+- Use it for analytics widgets, secondary highlights, and charts.
+
+#### 2) Chart palette standardization
+- Define a chart palette derived from brand + semantic colors.
+- Ensure colors are consistent for the same categories across charts (status, priority, type).
+- Consider color-blind safe contrasts.
+
+#### 3) Sidebar/topbar polish
+- Slightly tinted neutral backgrounds.
+- Consistent active/hover backgrounds.
+- Standard icon colors and divider/border usage.
+
+### Long-term: small design system layer
+
+#### Recommended structure
+- `colors.ts`: raw palette
+- `tokens.ts`: semantic tokens (surface, border, focus, shadows, spacing, radius)
+- `theme.ts`: AntD theme config from tokens
+
+#### Common UI primitives
+- Create thin wrappers for repeated patterns:
+  - `AppCard`
+  - `AppTag` (status/priority)
+  - `AppButton` variants
+  - `AppSectionHeader`
+
+This reduces theme drift and makes future UI enhancements easier.
