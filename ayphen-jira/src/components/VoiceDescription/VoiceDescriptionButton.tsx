@@ -12,12 +12,12 @@ const VoiceButton = styled(Button)<{ $isRecording?: boolean }>`
   align-items: center;
   justify-content: center;
   border: 2px solid ${props => props.$isRecording ? '#0EA5E9' : '#d9d9d9'};
-  background: ${props => props.$isRecording ? '#FDF2F8' : 'white'};
+  background: ${props => props.$isRecording ? '#F0F9FF' : 'white'};
   transition: all 0.3s ease;
 
   &:hover {
     border-color: #0EA5E9;
-    background: #FDF2F8;
+    background: #F0F9FF;
     transform: scale(1.05);
   }
 

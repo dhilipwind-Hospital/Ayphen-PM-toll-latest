@@ -73,11 +73,11 @@ export const IssueSettings: React.FC = () => {
       dataIndex: 'color',
       key: 'color',
       render: (color: string) => (
-        <div style={{ 
-          width: 20, 
-          height: 20, 
-          backgroundColor: color, 
-          borderRadius: 4 
+        <div style={{
+          width: 20,
+          height: 20,
+          backgroundColor: color,
+          borderRadius: 4
         }} />
       )
     },
@@ -86,17 +86,17 @@ export const IssueSettings: React.FC = () => {
       key: 'actions',
       render: (record: any) => (
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button 
-            size="small" 
+          <Button
+            size="small"
             icon={<Edit size={14} />}
             onClick={() => {
               setEditingType(record);
               setModalVisible(true);
             }}
           />
-          <Button 
-            size="small" 
-            danger 
+          <Button
+            size="small"
+            danger
             icon={<Trash2 size={14} />}
             onClick={async () => {
               try {
@@ -187,11 +187,11 @@ export const IssueSettings: React.FC = () => {
     <Container>
       <h1>Issue Settings</h1>
 
-      <StyledCard 
-        title="Issue Types" 
+      <StyledCard
+        title="Issue Types"
         extra={
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<Plus size={16} />}
             onClick={() => {
               setEditingType(null);
@@ -202,27 +202,27 @@ export const IssueSettings: React.FC = () => {
           </Button>
         }
       >
-        <Table 
-          columns={issueTypeColumns} 
-          dataSource={issueTypes} 
+        <Table
+          columns={issueTypeColumns}
+          dataSource={issueTypes}
           rowKey="id"
           pagination={false}
         />
       </StyledCard>
 
       <StyledCard title="Priorities">
-        <Table 
-          columns={priorityColumns} 
-          dataSource={priorities} 
+        <Table
+          columns={priorityColumns}
+          dataSource={priorities}
           rowKey="id"
           pagination={false}
         />
       </StyledCard>
 
       <StyledCard title="Statuses">
-        <Table 
-          columns={statusColumns} 
-          dataSource={statuses} 
+        <Table
+          columns={statusColumns}
+          dataSource={statuses}
           rowKey="id"
           pagination={false}
         />
@@ -245,18 +245,18 @@ export const IssueSettings: React.FC = () => {
           <Form.Item name="name" label="Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          
+
           <Form.Item name="icon" label="Icon" rules={[{ required: true }]}>
             <Input placeholder="e.g., 📖" />
           </Form.Item>
-          
+
           <Form.Item name="description" label="Description">
             <Input />
           </Form.Item>
-          
+
           <Form.Item name="color" label="Color" rules={[{ required: true }]}>
             <Select>
-              <Select.Option value="#0EA5E9">Pink</Select.Option>
+              <Select.Option value="#0EA5E9">Sky Blue</Select.Option>
               <Select.Option value="#EF4444">Red</Select.Option>
               <Select.Option value="#10B981">Green</Select.Option>
               <Select.Option value="#3B82F6">Blue</Select.Option>
@@ -264,7 +264,7 @@ export const IssueSettings: React.FC = () => {
               <Select.Option value="#F59E0B">Orange</Select.Option>
             </Select>
           </Form.Item>
-          
+
           <Button type="primary" htmlType="submit" block>
             {editingType ? 'Update' : 'Create'} Issue Type
           </Button>

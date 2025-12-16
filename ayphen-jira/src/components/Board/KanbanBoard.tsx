@@ -12,7 +12,7 @@ const BoardContainer = styled.div`
   padding: 24px;
   overflow-x: auto;
   min-height: calc(100vh - 120px);
-  background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%);
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
 `;
 
 const Column = styled.div`
@@ -29,7 +29,7 @@ const ColumnHeader = styled.div`
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #FCE7F3;
+  border-bottom: 2px solid #E0F2FE;
 `;
 
 const IssueCard = styled(Card)`

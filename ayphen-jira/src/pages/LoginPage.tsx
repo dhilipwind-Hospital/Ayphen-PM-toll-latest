@@ -77,7 +77,7 @@ const Tagline = styled.h1`
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 24px;
-  background: linear-gradient(to right, #ffffff, #fbcfe8);
+  background: linear-gradient(to right, #ffffff, #BAE6FD);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 `;
@@ -103,7 +103,7 @@ const FeatureItem = styled.div`
   font-weight: 500;
   
   svg {
-    color: #f472b6;
+    color: #38BDF8;
   }
 `;
 

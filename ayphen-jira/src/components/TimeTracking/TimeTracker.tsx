@@ -7,7 +7,7 @@ import axios from 'axios';
 
 const TrackerContainer = styled.div`
   padding: 24px;
-  background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%);
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
   min-height: calc(100vh - 64px);
 `;
 

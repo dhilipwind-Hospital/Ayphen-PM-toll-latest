@@ -27,8 +27,8 @@ const Title = styled.h4`
 `;
 
 const CommandText = styled.div<{ isEditing: boolean }>`
-  background: ${props => props.isEditing ? '#F9FAFB' : '#FDF2F8'};
-  border: 1px solid ${props => props.isEditing ? '#D1D5DB' : '#F9A8D4'};
+  background: ${props => props.isEditing ? '#F9FAFB' : '#F0F9FF'};
+  border: 1px solid ${props => props.isEditing ? '#D1D5DB' : '#7DD3FC'};
   border-radius: 8px;
   padding: 12px;
   font-size: 14px;

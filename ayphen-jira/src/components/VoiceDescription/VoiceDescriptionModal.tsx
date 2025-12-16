@@ -13,10 +13,10 @@ const ModalContent = styled.div`
 `;
 
 const ContextPanel = styled.div`
-  background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%);
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid #F9A8D4;
+  border: 1px solid #7DD3FC;
 `;
 
 const ContextTitle = styled.div`
@@ -106,7 +106,7 @@ const SuggestionsContainer = styled.div`
 const SuggestionCard = styled(Card) <{ $selected?: boolean }>`
   cursor: pointer;
   border: 2px solid ${props => props.$selected ? '#0EA5E9' : '#f0f0f0'};
-  background: ${props => props.$selected ? '#FDF2F8' : 'white'};
+  background: ${props => props.$selected ? '#F0F9FF' : 'white'};
   transition: all 0.2s ease;
 
   &:hover {
@@ -115,8 +115,8 @@ const SuggestionCard = styled(Card) <{ $selected?: boolean }>`
   }
 
   .ant-card-head {
-    background: ${props => props.$selected ? '#FCE7F3' : 'transparent'};
-    border-bottom: 1px solid ${props => props.$selected ? '#F9A8D4' : '#f0f0f0'};
+    background: ${props => props.$selected ? '#E0F2FE' : 'transparent'};
+    border-bottom: 1px solid ${props => props.$selected ? '#7DD3FC' : '#f0f0f0'};
   }
 
   .ant-card-body {

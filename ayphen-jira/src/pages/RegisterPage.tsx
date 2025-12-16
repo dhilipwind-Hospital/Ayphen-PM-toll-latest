@@ -113,7 +113,7 @@ const IconWrapper = styled.div`
 const Logo = styled.h1`
   font-size: 42px;
   font-weight: 800;
-  background: linear-gradient(135deg, #38BDF8 0%, #0EA5E9 50%, #F9A8D4 100%);
+  background: linear-gradient(135deg, #38BDF8 0%, #0EA5E9 50%, #7DD3FC 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
