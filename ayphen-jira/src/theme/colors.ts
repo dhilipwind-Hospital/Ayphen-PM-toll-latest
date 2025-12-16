@@ -1,15 +1,15 @@
 export const colors = {
   primary: {
-    50: '#FDF2F8',
-    100: '#FCE7F3',
-    200: '#FBCFE8',
-    300: '#F9A8D4',
-    400: '#F472B6',
-    500: '#EC4899',
-    600: '#DB2777',
-    700: '#BE185D',
-    800: '#9D174D',
-    900: '#831843',
+    50: '#F0F9FF',
+    100: '#E0F2FE',
+    200: '#BAE6FD',
+    300: '#7DD3FC',
+    400: '#38BDF8',
+    500: '#0EA5E9',
+    600: '#0284C7',
+    700: '#0369A1',
+    800: '#075985',
+    900: '#0C4A6E',
   },
 
   neutral: {
@@ -41,7 +41,7 @@ export const colors = {
     backgroundHover: '#F3F4F6',
     text: '#374151',
     textHover: '#111827',
-    active: '#EC4899',
+    active: '#0EA5E9',
   },
 
   text: {
@@ -94,7 +94,7 @@ export const colors = {
     backgroundHover: '#F3F4F6',
     text: '#374151',
     textHover: '#111827',
-    active: '#EC4899',
+    active: '#0EA5E9',
     border: '#E5E7EB',
   },
 

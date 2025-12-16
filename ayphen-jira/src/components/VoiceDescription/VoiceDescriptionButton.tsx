@@ -11,18 +11,18 @@ const VoiceButton = styled(Button)<{ $isRecording?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid ${props => props.$isRecording ? '#EC4899' : '#d9d9d9'};
+  border: 2px solid ${props => props.$isRecording ? '#0EA5E9' : '#d9d9d9'};
   background: ${props => props.$isRecording ? '#FDF2F8' : 'white'};
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #EC4899;
+    border-color: #0EA5E9;
     background: #FDF2F8;
     transform: scale(1.05);
   }
 
   svg {
-    color: ${props => props.$isRecording ? '#EC4899' : '#666'};
+    color: ${props => props.$isRecording ? '#0EA5E9' : '#666'};
   }
 
   ${props => props.$isRecording && `

@@ -40,7 +40,7 @@ const ChannelItem = styled.div<{ $active?: boolean }>`
   align-items: center;
   gap: 12px;
   background: ${props => props.$active ? '#f9f0ff' : 'transparent'};
-  border-left: 3px solid ${props => props.$active ? '#EC4899' : 'transparent'};
+  border-left: 3px solid ${props => props.$active ? '#0EA5E9' : 'transparent'};
   
   &:hover {
     background: #fafafa;
@@ -81,7 +81,7 @@ const MessageBubble = styled.div<{ isOwn?: boolean }>`
   max-width: 60%;
   padding: 12px 16px;
   border-radius: 12px;
-  background: ${props => props.isOwn ? 'linear-gradient(135deg, #F472B6, #EC4899)' : '#f5f5f5'};
+  background: ${props => props.isOwn ? 'linear-gradient(135deg, #38BDF8, #0EA5E9)' : '#f5f5f5'};
   color: ${props => props.isOwn ? '#fff' : '#000'};
   
   .mention {
@@ -143,7 +143,7 @@ const IconButton = styled(Button)`
   
   &:hover {
     background: #f5f5f5 !important;
-    color: #EC4899 !important;
+    color: #0EA5E9 !important;
   }
 `;
 
@@ -154,12 +154,12 @@ const SendButton = styled(Button)`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #F472B6, #EC4899);
+  background: linear-gradient(135deg, #38BDF8, #0EA5E9);
   border: none;
   color: white;
   
   &:hover {
-    background: linear-gradient(135deg, #EC4899, #DB2777) !important;
+    background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
     color: white !important;
   }
   
@@ -496,7 +496,7 @@ export const TeamChatEnhanced: React.FC = () => {
               $active={activeChannel?.id === channel.id}
               onClick={() => setActiveChannel(channel)}
             >
-              <Avatar style={{ background: '#EC4899' }}>
+              <Avatar style={{ background: '#0EA5E9' }}>
                 {channel.name[0].toUpperCase()}
               </Avatar>
               <div style={{ flex: 1 }}>
@@ -523,7 +523,7 @@ export const TeamChatEnhanced: React.FC = () => {
           <>
             <ChatHeader>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Avatar style={{ background: '#EC4899' }}>
+                <Avatar style={{ background: '#0EA5E9' }}>
                   {activeChannel.name[0].toUpperCase()}
                 </Avatar>
                 <div>
@@ -567,7 +567,7 @@ export const TeamChatEnhanced: React.FC = () => {
                 <>
                   {messages.map(msg => (
                     <Message key={msg.id} isOwn={msg.userId === user?.id}>
-                      <Avatar style={{ background: '#EC4899' }} src={msg.userAvatar}>
+                      <Avatar style={{ background: '#0EA5E9' }} src={msg.userAvatar}>
                         {msg.userName[0]?.toUpperCase()}
                       </Avatar>
                       <div>

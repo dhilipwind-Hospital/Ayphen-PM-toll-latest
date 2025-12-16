@@ -19,7 +19,7 @@ const WaveBar = styled.div<{ height: number; delay: number; isActive: boolean }>
   width: 4px;
   height: ${props => props.height}%;
   background: ${props => props.isActive 
-    ? 'linear-gradient(180deg, #EC4899 0%, #F472B6 100%)'
+    ? 'linear-gradient(180deg, #0EA5E9 0%, #38BDF8 100%)'
     : '#E5E7EB'
   };
   border-radius: 2px;
@@ -47,7 +47,7 @@ export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({
   audioLevel = 0,
   style = 'bars',
   barCount = 12,
-  color = '#EC4899'
+  color = '#0EA5E9'
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number>();
@@ -81,9 +81,9 @@ export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({
 
           // Create gradient
           const gradient = ctx.createLinearGradient(0, 0, width, 0);
-          gradient.addColorStop(0, '#EC4899');
-          gradient.addColorStop(0.5, '#F472B6');
-          gradient.addColorStop(1, '#EC4899');
+          gradient.addColorStop(0, '#0EA5E9');
+          gradient.addColorStop(0.5, '#38BDF8');
+          gradient.addColorStop(1, '#0EA5E9');
 
           ctx.strokeStyle = gradient;
           ctx.lineWidth = 3;

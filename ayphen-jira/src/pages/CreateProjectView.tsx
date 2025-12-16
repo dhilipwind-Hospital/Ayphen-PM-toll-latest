@@ -48,19 +48,19 @@ const TemplateGrid = styled.div`
 
 const TemplateCard = styled.div<{ selected: boolean }>`
   padding: 24px;
-  border: 2px solid ${props => props.selected ? '#EC4899' : 'rgba(244, 114, 182, 0.2)'};
+  border: 2px solid ${props => props.selected ? '#0EA5E9' : 'rgba(14, 165, 233, 0.2)'};
   border-radius: 12px;
   cursor: pointer;
   text-align: center;
   transition: all 0.3s ease;
-  background: ${props => props.selected ? 'rgba(244, 114, 182, 0.1)' : 'white'};
-  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.1);
+  background: ${props => props.selected ? 'rgba(14, 165, 233, 0.1)' : 'white'};
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
 
   &:hover {
-    border-color: #EC4899;
-    background: rgba(244, 114, 182, 0.05);
+    border-color: #0EA5E9;
+    background: rgba(14, 165, 233, 0.05);
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(244, 114, 182, 0.15);
+    box-shadow: 0 4px 16px rgba(14, 165, 233, 0.15);
   }
 `;
 
@@ -161,7 +161,7 @@ export const CreateProjectView: React.FC = () => {
             block 
             size="large"
             style={{ 
-              background: 'linear-gradient(135deg, #EC4899, #F472B6)', 
+              background: 'linear-gradient(135deg, #0EA5E9, #38BDF8)', 
               border: 'none',
               height: '48px',
               fontSize: '16px',
@@ -267,7 +267,7 @@ export const CreateProjectView: React.FC = () => {
                 size="large" 
                 block
                 style={{ 
-                  background: 'linear-gradient(135deg, #EC4899, #F472B6)', 
+                  background: 'linear-gradient(135deg, #0EA5E9, #38BDF8)', 
                   border: 'none',
                   height: '48px',
                   fontSize: '16px',

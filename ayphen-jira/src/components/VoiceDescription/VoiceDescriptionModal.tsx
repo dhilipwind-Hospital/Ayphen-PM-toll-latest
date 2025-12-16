@@ -21,7 +21,7 @@ const ContextPanel = styled.div`
 
 const ContextTitle = styled.div`
   font-weight: 600;
-  color: #EC4899;
+  color: #0EA5E9;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -55,7 +55,7 @@ const MicButton = styled.button<{ $isRecording?: boolean }>`
   border: none;
   background: ${props => props.$isRecording
     ? 'linear-gradient(135deg, #EF4444, #DC2626)'
-    : 'linear-gradient(135deg, #EC4899, #F472B6)'};
+    : 'linear-gradient(135deg, #0EA5E9, #38BDF8)'};
   color: white;
   cursor: pointer;
   display: flex;
@@ -92,7 +92,7 @@ const TranscriptArea = styled(TextArea)`
   border-radius: 8px;
   
   &:focus {
-    border-color: #EC4899;
+    border-color: #0EA5E9;
     box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.1);
   }
 `;
@@ -105,12 +105,12 @@ const SuggestionsContainer = styled.div`
 
 const SuggestionCard = styled(Card) <{ $selected?: boolean }>`
   cursor: pointer;
-  border: 2px solid ${props => props.$selected ? '#EC4899' : '#f0f0f0'};
+  border: 2px solid ${props => props.$selected ? '#0EA5E9' : '#f0f0f0'};
   background: ${props => props.$selected ? '#FDF2F8' : 'white'};
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #EC4899;
+    border-color: #0EA5E9;
     box-shadow: 0 4px 12px rgba(236, 72, 153, 0.1);
   }
 
@@ -328,7 +328,7 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
     <Modal
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Mic size={20} style={{ color: '#EC4899' }} />
+          <Mic size={20} style={{ color: '#0EA5E9' }} />
           <span>AI Voice Description Assistant</span>
         </div>
       }
@@ -400,7 +400,7 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
             loading={isGenerating}
             size="large"
             style={{
-              background: 'linear-gradient(135deg, #EC4899, #F472B6)',
+              background: 'linear-gradient(135deg, #0EA5E9, #38BDF8)',
               border: 'none',
             }}
           >
@@ -423,7 +423,7 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>{suggestion.title}</span>
                     {selectedSuggestion === suggestion.id && (
-                      <Check size={16} style={{ color: '#EC4899' }} />
+                      <Check size={16} style={{ color: '#0EA5E9' }} />
                     )}
                   </div>
                 }
@@ -455,8 +455,8 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
             onClick={handleUseDescription}
             disabled={selectedSuggestion === null}
             style={{
-              background: selectedSuggestion !== null ? '#EC4899' : undefined,
-              borderColor: selectedSuggestion !== null ? '#EC4899' : undefined,
+              background: selectedSuggestion !== null ? '#0EA5E9' : undefined,
+              borderColor: selectedSuggestion !== null ? '#0EA5E9' : undefined,
             }}
           >
             Use This Description

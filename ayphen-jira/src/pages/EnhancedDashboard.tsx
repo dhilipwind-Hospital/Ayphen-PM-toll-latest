@@ -68,7 +68,7 @@ const StatsCard = styled(GlassCard)`
     left: 0;
     right: 0;
     height: 4px;
-    background: ${props => props.color || '#EC4899'};
+    background: ${props => props.color || '#0EA5E9'};
     opacity: 0.8;
   }
   
@@ -150,8 +150,8 @@ export const EnhancedDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { issues, currentProject, sprints } = useStore();
   const [stats, setStats] = useState([
-    { title: 'Total Issues', value: 0, icon: <TrendingUp size={28} />, color: '#EC4899' },
-    { title: 'In Progress', value: 0, icon: <Clock size={28} />, color: '#F472B6' },
+    { title: 'Total Issues', value: 0, icon: <TrendingUp size={28} />, color: '#0EA5E9' },
+    { title: 'In Progress', value: 0, icon: <Clock size={28} />, color: '#38BDF8' },
     { title: 'Completed', value: 0, icon: <CheckCircle size={28} />, color: '#10B981' },
     { title: 'Overdue', value: 0, icon: <AlertTriangle size={28} />, color: '#EF4444' },
   ]);
@@ -182,8 +182,8 @@ export const EnhancedDashboard: React.FC = () => {
       }).length;
 
       setStats([
-        { title: 'Total Issues', value: totalIssues, icon: <TrendingUp size={28} />, color: '#EC4899' },
-        { title: 'In Progress', value: inProgress, icon: <Clock size={28} />, color: '#F472B6' },
+        { title: 'Total Issues', value: totalIssues, icon: <TrendingUp size={28} />, color: '#0EA5E9' },
+        { title: 'In Progress', value: inProgress, icon: <Clock size={28} />, color: '#38BDF8' },
         { title: 'Completed', value: completed, icon: <CheckCircle size={28} />, color: '#10B981' },
         { title: 'Overdue', value: overdue, icon: <AlertTriangle size={28} />, color: '#EF4444' },
       ]);
@@ -247,7 +247,7 @@ export const EnhancedDashboard: React.FC = () => {
     <DashboardContainer>
       <PageHeader>
         <H1 style={{
-          background: 'linear-gradient(135deg, #EC4899, #DB2777)',
+          background: 'linear-gradient(135deg, #0EA5E9, #0284C7)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         }}>
@@ -322,7 +322,7 @@ export const EnhancedDashboard: React.FC = () => {
               renderItem={(item) => (
                 <List.Item>
                   <List.Item.Meta
-                    avatar={<Avatar style={{ backgroundColor: '#EC4899' }}>{item.user[0]}</Avatar>}
+                    avatar={<Avatar style={{ backgroundColor: '#0EA5E9' }}>{item.user[0]}</Avatar>}
                     title={`${item.user} ${item.action} ${item.issue}`}
                     description={item.time}
                   />
@@ -356,7 +356,7 @@ export const EnhancedDashboard: React.FC = () => {
             {sprintProgress.total > 0 ? (
               <div>
                 <h4>Current Sprint</h4>
-                <Progress percent={sprintProgress.percent} strokeColor="#EC4899" />
+                <Progress percent={sprintProgress.percent} strokeColor="#0EA5E9" />
                 <p>{sprintProgress.completed} of {sprintProgress.total} issues completed</p>
               </div>
             ) : (
@@ -377,7 +377,7 @@ export const EnhancedDashboard: React.FC = () => {
               renderItem={(item) => (
                 <List.Item>
                   <List.Item.Meta title={item.name} />
-                  <Tag color="#EC4899">{item.count}</Tag>
+                  <Tag color="#0EA5E9">{item.count}</Tag>
                 </List.Item>
               )}
             />
@@ -388,7 +388,7 @@ export const EnhancedDashboard: React.FC = () => {
       {/* Advanced Features Section */}
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         <Col span={24}>
-          <h2 style={{ color: '#EC4899', marginBottom: 16 }}>🚀 Advanced Features</h2>
+          <h2 style={{ color: '#0EA5E9', marginBottom: 16 }}>🚀 Advanced Features</h2>
         </Col>
       </Row>
 

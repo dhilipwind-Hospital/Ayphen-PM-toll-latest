@@ -174,7 +174,7 @@ export const AdvancedSearchAI: React.FC = () => {
         size="large"
         placeholder="Search issues, users, projects... (AI-powered)"
         prefix={<Search size={16} />}
-        suffix={<Sparkles size={16} style={{ color: '#EC4899' }} />}
+        suffix={<Sparkles size={16} style={{ color: '#0EA5E9' }} />}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => query.length > 2 && setShowResults(true)}

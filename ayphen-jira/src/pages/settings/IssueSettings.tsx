@@ -13,7 +13,7 @@ const Container = styled.div`
 const StyledCard = styled(Card)`
   margin-bottom: 24px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.1);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
 `;
 
 export const IssueSettings: React.FC = () => {
@@ -256,7 +256,7 @@ export const IssueSettings: React.FC = () => {
           
           <Form.Item name="color" label="Color" rules={[{ required: true }]}>
             <Select>
-              <Select.Option value="#EC4899">Pink</Select.Option>
+              <Select.Option value="#0EA5E9">Pink</Select.Option>
               <Select.Option value="#EF4444">Red</Select.Option>
               <Select.Option value="#10B981">Green</Select.Option>
               <Select.Option value="#3B82F6">Blue</Select.Option>

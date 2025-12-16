@@ -20,7 +20,7 @@ const Column = styled.div`
   background: rgba(255, 255, 255, 0.8);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.1);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
 `;
 
 const ColumnHeader = styled.div`
@@ -36,10 +36,10 @@ const IssueCard = styled(Card)`
   margin-bottom: 12px;
   border-radius: 8px;
   cursor: pointer;
-  border: 1px solid rgba(244, 114, 182, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.1);
   
   &:hover {
-    box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
     transform: translateY(-2px);
     transition: all 0.2s ease;
   }
@@ -47,12 +47,12 @@ const IssueCard = styled(Card)`
 
 const AddButton = styled(Button)`
   width: 100%;
-  border: 2px dashed rgba(244, 114, 182, 0.3);
-  color: #EC4899;
+  border: 2px dashed rgba(14, 165, 233, 0.3);
+  color: #0EA5E9;
   
   &:hover {
-    border-color: #EC4899;
-    background: rgba(244, 114, 182, 0.05);
+    border-color: #0EA5E9;
+    background: rgba(14, 165, 233, 0.05);
   }
 `;
 
@@ -253,7 +253,7 @@ export const KanbanBoard: React.FC = () => {
             <Column key={column.id}>
               <ColumnHeader>
                 <div>
-                  <h3 style={{ margin: 0, color: '#EC4899' }}>{column.title}</h3>
+                  <h3 style={{ margin: 0, color: '#0EA5E9' }}>{column.title}</h3>
                   <span style={{ color: '#6B7280', fontSize: '12px' }}>
                     {column.issues.length} issues
                   </span>
@@ -261,7 +261,7 @@ export const KanbanBoard: React.FC = () => {
                 <Button
                   type="text"
                   icon={<MoreHorizontal size={16} />}
-                  style={{ color: '#EC4899' }}
+                  style={{ color: '#0EA5E9' }}
                 />
               </ColumnHeader>
 
@@ -271,7 +271,7 @@ export const KanbanBoard: React.FC = () => {
                     ref={provided.innerRef}
                     {...provided.droppableProps}
                     style={{
-                      backgroundColor: snapshot.isDraggingOver ? 'rgba(244, 114, 182, 0.05)' : 'transparent',
+                      backgroundColor: snapshot.isDraggingOver ? 'rgba(14, 165, 233, 0.05)' : 'transparent',
                       minHeight: 200,
                       borderRadius: 8,
                       padding: 8
@@ -315,7 +315,7 @@ export const KanbanBoard: React.FC = () => {
                                   <span style={{ fontSize: '12px', color: '#6B7280' }}>
                                     {issue.storyPoints}pt
                                   </span>
-                                  <Avatar size="small" style={{ backgroundColor: '#EC4899' }}>
+                                  <Avatar size="small" style={{ backgroundColor: '#0EA5E9' }}>
                                     {issue.assignee[0]}
                                   </Avatar>
                                 </div>
@@ -385,7 +385,7 @@ export const KanbanBoard: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Button type="primary" htmlType="submit" block style={{ background: 'linear-gradient(to right, #be185d, #db2777)', color: '#FFFFFF', border: 'none' }}>
+          <Button type="primary" htmlType="submit" block style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', color: '#FFFFFF', border: 'none' }}>
             Create Issue
           </Button>
         </Form>

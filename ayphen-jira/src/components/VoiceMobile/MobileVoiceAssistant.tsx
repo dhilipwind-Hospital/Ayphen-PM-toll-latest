@@ -69,7 +69,7 @@ const VoiceButton = styled.button<{ isListening: boolean }>`
   border-radius: 50%;
   border: none;
   background: ${props => props.isListening 
-    ? 'linear-gradient(135deg, #F472B6, #EC4899)'
+    ? 'linear-gradient(135deg, #38BDF8, #0EA5E9)'
     : 'linear-gradient(135deg, #667eea, #764ba2)'
   };
   display: flex;
@@ -120,7 +120,7 @@ const TextInput = styled.input`
   outline: none;
   
   &:focus {
-    border-color: #EC4899;
+    border-color: #0EA5E9;
   }
 `;
 
@@ -129,7 +129,7 @@ const SendButton = styled.button`
   height: 48px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #EC4899, #F472B6);
+  background: linear-gradient(135deg, #0EA5E9, #38BDF8);
   color: white;
   display: flex;
   align-items: center;
@@ -188,7 +188,7 @@ const FloatingButton = styled.button`
   height: 60px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #EC4899, #F472B6);
+  background: linear-gradient(135deg, #0EA5E9, #38BDF8);
   color: white;
   display: flex;
   align-items: center;

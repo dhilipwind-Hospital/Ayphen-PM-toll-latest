@@ -4,11 +4,11 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Brand Colors */
-  --color-primary: #EC4899;
-  --color-primary-hover: #DB2777;
-  --color-primary-light: #FCE7F3;
-  --color-secondary: #7C3AED;
+  /* Brand Colors - Deep Ocean Theme */
+  --color-primary: #0EA5E9;
+  --color-primary-hover: #0284C7;
+  --color-primary-light: #E0F2FE;
+  --color-secondary: #06B6D4;
 
   /* Neutrals */
   --color-background: #FFFFFF;
@@ -47,7 +47,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #FFF5F7 0%, #F0F7FF 100%);
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 50%, #F0FDFA 100%);
   background-attachment: fixed;
   color: var(--color-text-primary);
   overflow-x: hidden;
@@ -203,20 +203,20 @@ html {
   background-clip: content-box;
 }
 
-/* Global Button Override to match Login Style */
+/* Global Button Override - Deep Ocean Theme */
 /* Exclude dangerous buttons to keep them red */
 .ant-btn-primary:not(.ant-btn-dangerous):not([class*="danger"]) {
-  background: linear-gradient(to right, #be185d, #db2777) !important;
+  background: linear-gradient(to right, #0284C7, #0EA5E9) !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(190, 24, 93, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important;
   font-weight: 600 !important;
   text-shadow: none !important;
   color: #FFFFFF !important;
 }
 
 .ant-btn-primary:not(.ant-btn-dangerous):not([class*="danger"]):hover {
-  background: linear-gradient(to right, #9d174d, #be185d) !important;
-  box-shadow: 0 6px 16px rgba(190, 24, 93, 0.4) !important;
+  background: linear-gradient(to right, #0369A1, #0284C7) !important;
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4) !important;
   transform: translateY(-1px);
   color: #FFFFFF !important;
 }

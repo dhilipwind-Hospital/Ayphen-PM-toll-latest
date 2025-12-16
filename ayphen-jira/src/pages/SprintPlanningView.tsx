@@ -177,7 +177,7 @@ const Avatar = ({ issue }: { issue: any }) => {
       width: 24,
       height: 24,
       borderRadius: '50%',
-      background: '#EC4899',
+      background: '#0EA5E9',
       color: 'white',
       display: 'flex',
       alignItems: 'center',

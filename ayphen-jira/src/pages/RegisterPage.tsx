@@ -38,7 +38,7 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(-45deg, #FCE7F3, #F9A8D4, #F472B6, #EC4899);
+  background: linear-gradient(-45deg, #E0F2FE, #7DD3FC, #38BDF8, #0EA5E9);
   background-size: 400% 400%;
   animation: ${gradientShift} 15s ease infinite;
   position: relative;
@@ -49,7 +49,7 @@ const Container = styled.div`
     position: absolute;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(244, 114, 182, 0.3) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.3) 0%, transparent 70%);
     border-radius: 50%;
     top: -300px;
     right: -300px;
@@ -73,7 +73,7 @@ const Card = styled.div`
   background: rgba(255, 255, 255, 0.98);
   padding: 48px;
   border-radius: 20px;
-  box-shadow: 0 25px 80px rgba(244, 114, 182, 0.2), 0 15px 40px rgba(249, 168, 212, 0.15);
+  box-shadow: 0 25px 80px rgba(14, 165, 233, 0.2), 0 15px 40px rgba(249, 168, 212, 0.15);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(252, 231, 243, 0.3);
   width: 100%;
@@ -83,7 +83,7 @@ const Card = styled.div`
   animation: ${slideIn} 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   
   &:hover {
-    box-shadow: 0 30px 90px rgba(244, 114, 182, 0.25), 0 20px 50px rgba(249, 168, 212, 0.2);
+    box-shadow: 0 30px 90px rgba(14, 165, 233, 0.25), 0 20px 50px rgba(249, 168, 212, 0.2);
     transform: translateY(-8px) scale(1.02);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
@@ -100,7 +100,7 @@ const IconWrapper = styled.div`
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #F472B6, #EC4899);
+  background: linear-gradient(135deg, #38BDF8, #0EA5E9);
   border-radius: 12px;
   margin-bottom: 16px;
   animation: ${sparkle} 2s ease-in-out infinite;
@@ -113,7 +113,7 @@ const IconWrapper = styled.div`
 const Logo = styled.h1`
   font-size: 42px;
   font-weight: 800;
-  background: linear-gradient(135deg, #F472B6 0%, #EC4899 50%, #F9A8D4 100%);
+  background: linear-gradient(135deg, #38BDF8 0%, #0EA5E9 50%, #F9A8D4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
@@ -142,7 +142,7 @@ const StyledButton = styled(Button)`
   font-size: 16px;
   font-weight: 600;
   border-radius: 12px;
-  background: linear-gradient(135deg, #F472B6, #EC4899);
+  background: linear-gradient(135deg, #38BDF8, #0EA5E9);
   border: none;
   color: #FFFFFF;
   
@@ -151,9 +151,9 @@ const StyledButton = styled(Button)`
   }
   
   &:hover {
-    background: linear-gradient(135deg, #EC4899, #DB2777);
+    background: linear-gradient(135deg, #0EA5E9, #0284C7);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(244, 114, 182, 0.4);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);
     color: #FFFFFF !important;
   }
 `;
@@ -164,12 +164,12 @@ const FooterText = styled.p`
   color: #666;
   
   a {
-    color: #EC4899;
+    color: #0EA5E9;
     font-weight: 600;
     text-decoration: none;
     
     &:hover {
-      color: #F472B6;
+      color: #38BDF8;
     }
   }
 `;

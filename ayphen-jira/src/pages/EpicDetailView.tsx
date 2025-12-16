@@ -520,7 +520,7 @@ export const EpicDetailView: React.FC = () => {
             <>
               {issue.assignee ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Avatar size="small" style={{ backgroundColor: '#EC4899' }}>{issue.assignee.name[0]}</Avatar>
+                  <Avatar size="small" style={{ backgroundColor: '#0EA5E9' }}>{issue.assignee.name[0]}</Avatar>
                   <span>{issue.assignee.name}</span>
                 </div>
               ) : (
@@ -619,9 +619,9 @@ export const EpicDetailView: React.FC = () => {
       <Button type="primary" onClick={handleAddComment}>Add Comment</Button>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
         {comments.map((comment) => (
-          <div key={comment.id} style={{ padding: 12, background: 'white', borderRadius: 8, border: '1px solid rgba(244, 114, 182, 0.1)' }}>
+          <div key={comment.id} style={{ padding: 12, background: 'white', borderRadius: 8, border: '1px solid rgba(14, 165, 233, 0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <Avatar size="small" style={{ backgroundColor: '#EC4899' }}>{comment.user?.name?.[0] || 'U'}</Avatar>
+              <Avatar size="small" style={{ backgroundColor: '#0EA5E9' }}>{comment.user?.name?.[0] || 'U'}</Avatar>
               <span style={{ fontWeight: 600 }}>{comment.user?.name || 'Unknown'}</span>
               <span style={{ color: '#6B7280', fontSize: '12px' }}>{new Date(comment.createdAt).toLocaleString()}</span>
             </div>
@@ -852,7 +852,7 @@ export const EpicDetailView: React.FC = () => {
                           padding: 16,
                           background: '#F9FAFB',
                           borderRadius: 8,
-                          border: '1px solid rgba(244, 114, 182, 0.1)',
+                          border: '1px solid rgba(14, 165, 233, 0.1)',
                           cursor: 'pointer'
                         }} onClick={() => {
                           setEditingDescription(true);
@@ -1030,7 +1030,7 @@ export const EpicDetailView: React.FC = () => {
                       {history.map((h: any) => (
                         <div key={h.id} style={{ padding: 12, background: 'white', borderRadius: 8, border: '1px solid #e0e0e0' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                            <Avatar size="small" style={{ backgroundColor: '#EC4899' }}>{h.user?.name?.[0] || 'U'}</Avatar>
+                            <Avatar size="small" style={{ backgroundColor: '#0EA5E9' }}>{h.user?.name?.[0] || 'U'}</Avatar>
                             <span style={{ fontWeight: 600 }}>{h.user?.name || 'Unknown'}</span>
                             <span style={{ fontSize: 12, color: '#999' }}>{new Date(h.createdAt).toLocaleString()}</span>
                           </div>

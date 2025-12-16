@@ -36,7 +36,7 @@ const VoiceOrb = styled.div<{ isActive: boolean; isSpeaking: boolean }>`
   height: 150px;
   border-radius: 50%;
   background: ${props => props.isActive 
-    ? 'linear-gradient(135deg, #F472B6, #EC4899)'
+    ? 'linear-gradient(135deg, #38BDF8, #0EA5E9)'
     : props.isSpeaking
     ? 'linear-gradient(135deg, #60A5FA, #3B82F6)'
     : 'linear-gradient(135deg, #E5E7EB, #9CA3AF)'

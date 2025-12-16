@@ -11,8 +11,8 @@ const SearchContainer = styled.div`
 
 const SearchCard = styled(Card)`
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.1);
-  border: 1px solid rgba(244, 114, 182, 0.1);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.1);
   margin-bottom: 24px;
 `;
 
@@ -23,7 +23,7 @@ const JQLEditor = styled.div`
   margin: 16px 0;
   font-family: 'Monaco', 'Menlo', monospace;
   color: #F9FAFB;
-  border: 1px solid rgba(244, 114, 182, 0.2);
+  border: 1px solid rgba(14, 165, 233, 0.2);
 `;
 
 const FilterRow = styled.div`
@@ -32,18 +32,18 @@ const FilterRow = styled.div`
   align-items: center;
   margin-bottom: 12px;
   padding: 12px;
-  background: rgba(244, 114, 182, 0.02);
+  background: rgba(14, 165, 233, 0.02);
   border-radius: 8px;
-  border: 1px solid rgba(244, 114, 182, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.1);
 `;
 
 const ResultCard = styled(Card)`
   margin-bottom: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(244, 114, 182, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.1);
   
   &:hover {
-    box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
     transform: translateY(-2px);
     transition: all 0.2s ease;
   }
@@ -221,14 +221,14 @@ export const AdvancedSearch: React.FC = () => {
           <Button
             type={searchMode === 'basic' ? 'primary' : 'default'}
             onClick={() => setSearchMode('basic')}
-            style={{ background: searchMode === 'basic' ? 'linear-gradient(to right, #be185d, #db2777)' : undefined, color: searchMode === 'basic' ? '#FFFFFF' : undefined }}
+            style={{ background: searchMode === 'basic' ? 'linear-gradient(to right, #0284C7, #0EA5E9)' : undefined, color: searchMode === 'basic' ? '#FFFFFF' : undefined }}
           >
             <Filter size={16} /> Basic
           </Button>
           <Button
             type={searchMode === 'jql' ? 'primary' : 'default'}
             onClick={() => setSearchMode('jql')}
-            style={{ background: searchMode === 'jql' ? 'linear-gradient(to right, #be185d, #db2777)' : undefined, color: searchMode === 'jql' ? '#FFFFFF' : undefined }}
+            style={{ background: searchMode === 'jql' ? 'linear-gradient(to right, #0284C7, #0EA5E9)' : undefined, color: searchMode === 'jql' ? '#FFFFFF' : undefined }}
           >
             <Code size={16} /> JQL
           </Button>
@@ -306,7 +306,7 @@ export const AdvancedSearch: React.FC = () => {
             type="primary"
             icon={<Search size={16} />}
             onClick={executeSearch}
-            style={{ background: 'linear-gradient(to right, #be185d, #db2777)', color: '#FFFFFF' }}
+            style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', color: '#FFFFFF' }}
           >
             Search
           </Button>
@@ -343,7 +343,7 @@ export const AdvancedSearch: React.FC = () => {
                       <span>Updated: {result.updated}</span>
                     </div>
                   </div>
-                  <Avatar style={{ backgroundColor: '#EC4899' }}>
+                  <Avatar style={{ backgroundColor: '#0EA5E9' }}>
                     {result.assignee[0]}
                   </Avatar>
                 </div>
@@ -364,7 +364,7 @@ export const AdvancedSearch: React.FC = () => {
                   type="link"
                   size="small"
                   onClick={() => setJqlQuery(query)}
-                  style={{ color: '#EC4899' }}
+                  style={{ color: '#0EA5E9' }}
                 >
                   Use
                 </Button>

@@ -6,11 +6,11 @@ import styled from 'styled-components';
 const NotificationButton = styled(Button)`
   border: none;
   background: transparent;
-  color: #EC4899;
+  color: #0EA5E9;
   
   &:hover {
-    background: rgba(244, 114, 182, 0.1);
-    color: #DB2777;
+    background: rgba(14, 165, 233, 0.1);
+    color: #0284C7;
   }
 `;
 
@@ -19,13 +19,13 @@ const NotificationPanel = styled.div`
   max-height: 500px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(244, 114, 182, 0.15);
-  border: 1px solid rgba(244, 114, 182, 0.1);
+  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.15);
+  border: 1px solid rgba(14, 165, 233, 0.1);
 `;
 
 const NotificationHeader = styled.div`
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(244, 114, 182, 0.1);
+  border-bottom: 1px solid rgba(14, 165, 233, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -35,10 +35,10 @@ const NotificationItem = styled.div<{ isRead: boolean }>`
   padding: 12px 20px;
   border-bottom: 1px solid #F3F4F6;
   cursor: pointer;
-  background: ${props => props.isRead ? 'white' : 'rgba(244, 114, 182, 0.02)'};
+  background: ${props => props.isRead ? 'white' : 'rgba(14, 165, 233, 0.02)'};
   
   &:hover {
-    background: rgba(244, 114, 182, 0.05);
+    background: rgba(14, 165, 233, 0.05);
   }
   
   &:last-child {
@@ -183,7 +183,7 @@ export const NotificationSystem: React.FC = () => {
     <NotificationPanel>
       <NotificationHeader>
         <div>
-          <Typography.Title level={5} style={{ margin: 0, color: '#EC4899' }}>
+          <Typography.Title level={5} style={{ margin: 0, color: '#0EA5E9' }}>
             Notifications
           </Typography.Title>
           <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
@@ -192,7 +192,7 @@ export const NotificationSystem: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontSize: 12, color: useAiFilter ? '#EC4899' : '#9CA3AF' }}>AI Filter</span>
+            <span style={{ fontSize: 12, color: useAiFilter ? '#0EA5E9' : '#9CA3AF' }}>AI Filter</span>
             <Switch
               size="small"
               checked={useAiFilter}
@@ -205,7 +205,7 @@ export const NotificationSystem: React.FC = () => {
             size="small"
             icon={<Filter size={14} />}
             onClick={() => setFilter(filter === 'all' ? 'unread' : 'all')}
-            style={{ color: '#EC4899' }}
+            style={{ color: '#0EA5E9' }}
           >
             {filter === 'all' ? 'Unread' : 'All'}
           </Button>
@@ -214,7 +214,7 @@ export const NotificationSystem: React.FC = () => {
             size="small"
             icon={<Check size={14} />}
             onClick={markAllAsRead}
-            style={{ color: '#EC4899' }}
+            style={{ color: '#0EA5E9' }}
           >
             Mark All Read
           </Button>
@@ -281,12 +281,12 @@ export const NotificationSystem: React.FC = () => {
         )}
       </div>
 
-      <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(244, 114, 182, 0.1)' }}>
+      <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(14, 165, 233, 0.1)' }}>
         <Button
           type="link"
           size="small"
           icon={<Settings size={14} />}
-          style={{ color: '#EC4899', padding: 0 }}
+          style={{ color: '#0EA5E9', padding: 0 }}
         >
           Notification Settings
         </Button>

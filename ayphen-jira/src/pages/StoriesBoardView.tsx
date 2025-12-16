@@ -86,7 +86,7 @@ const StoryMeta = styled.div`
 `;
 
 const StoryPoints = styled.div`
-  background: #EC4899;
+  background: #0EA5E9;
   color: white;
   padding: 2px 8px;
   border-radius: 4px;

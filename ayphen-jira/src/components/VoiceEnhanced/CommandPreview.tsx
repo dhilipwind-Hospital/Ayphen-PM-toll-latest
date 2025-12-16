@@ -38,7 +38,7 @@ const CommandText = styled.div<{ isEditing: boolean }>`
   outline: none;
   
   &:focus {
-    border-color: #EC4899;
+    border-color: #0EA5E9;
     box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
   }
 `;
@@ -119,7 +119,7 @@ const Button = styled.button<{ variant: 'primary' | 'secondary' | 'danger' }>`
     switch (props.variant) {
       case 'primary':
         return `
-          background: linear-gradient(135deg, #EC4899, #F472B6);
+          background: linear-gradient(135deg, #0EA5E9, #38BDF8);
           color: white;
           &:hover {
             transform: translateY(-1px);

@@ -207,7 +207,7 @@ export const RetrospectiveModal: React.FC<RetrospectiveModalProps> = ({
             icon={<RobotOutlined />}
             onClick={generateAIRetro}
             loading={generatingAI}
-            style={{ background: 'linear-gradient(135deg, #EC4899, #F472B6)', border: 'none' }}
+            style={{ background: 'linear-gradient(135deg, #0EA5E9, #38BDF8)', border: 'none' }}
           >
             {generatingAI ? 'Generating...' : 'Generate AI Retrospective'}
           </Button>

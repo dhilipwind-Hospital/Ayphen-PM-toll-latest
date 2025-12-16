@@ -13,8 +13,8 @@ const TrackerContainer = styled.div`
 
 const TimerCard = styled(Card)`
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.1);
-  border: 1px solid rgba(244, 114, 182, 0.1);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.1);
   margin-bottom: 24px;
   text-align: center;
 `;
@@ -22,7 +22,7 @@ const TimerCard = styled(Card)`
 const TimerDisplay = styled.div`
   font-size: 48px;
   font-weight: bold;
-  color: #EC4899;
+  color: #0EA5E9;
   margin: 20px 0;
   font-family: 'Monaco', monospace;
 `;
@@ -40,7 +40,7 @@ const ControlButton = styled(Button)<{ variant?: 'start' | 'pause' | 'stop' }>`
       case 'start': return 'linear-gradient(135deg, #10B981, #059669)';
       case 'pause': return 'linear-gradient(135deg, #F59E0B, #D97706)';
       case 'stop': return 'linear-gradient(135deg, #EF4444, #DC2626)';
-      default: return 'linear-gradient(135deg, #EC4899, #F472B6)';
+      default: return 'linear-gradient(135deg, #0EA5E9, #38BDF8)';
     }
   }};
   border: none;
@@ -303,7 +303,7 @@ export const TimeTracker: React.FC = () => {
             <Statistic
               title="Total Time Today"
               value={formatDuration(todayStats.total)}
-              prefix={<Clock style={{ color: '#EC4899' }} />}
+              prefix={<Clock style={{ color: '#0EA5E9' }} />}
             />
           </Card>
         </Col>
@@ -324,7 +324,7 @@ export const TimeTracker: React.FC = () => {
               suffix="%"
               prefix={<Calendar style={{ color: '#F59E0B' }} />}
             />
-            <Progress percent={todayStats.efficiency} strokeColor="#EC4899" size="small" />
+            <Progress percent={todayStats.efficiency} strokeColor="#0EA5E9" size="small" />
           </Card>
         </Col>
       </Row>
@@ -334,7 +334,7 @@ export const TimeTracker: React.FC = () => {
         extra={
           <Button 
             icon={<Download size={16} />} 
-            style={{ color: '#EC4899' }}
+            style={{ color: '#0EA5E9' }}
             onClick={exportTimesheet}
           >
             Export

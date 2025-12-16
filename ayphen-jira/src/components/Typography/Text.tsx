@@ -195,7 +195,7 @@ export const Code = styled.code`
   background: rgba(0, 0, 0, 0.05);
   padding: 2px 6px;
   border-radius: 4px;
-  color: #EC4899;
+  color: #0EA5E9;
 `;
 
 export const CodeBlock = styled.pre`
@@ -222,7 +222,7 @@ export const CodeBlock = styled.pre`
 
 // Text with gradient effect (for hero sections)
 export const GradientText = styled.span`
-  background: linear-gradient(135deg, #EC4899, #DB2777);
+  background: linear-gradient(135deg, #0EA5E9, #0284C7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

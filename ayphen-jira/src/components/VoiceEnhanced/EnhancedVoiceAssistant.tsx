@@ -28,9 +28,9 @@ const VoiceButton = styled.button<{ isListening: boolean; mode: 'voice' | 'text'
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 2px solid ${props => props.isListening ? '#EC4899' : '#E0E0E0'};
+  border: 2px solid ${props => props.isListening ? '#0EA5E9' : '#E0E0E0'};
   background: ${props => props.isListening 
-    ? 'linear-gradient(135deg, #F472B6, #EC4899)' 
+    ? 'linear-gradient(135deg, #38BDF8, #0EA5E9)' 
     : props.mode === 'voice' ? 'white' : '#F3F4F6'
   };
   display: flex;
@@ -61,7 +61,7 @@ const ModeButton = styled.button<{ active: boolean }>`
   padding: 6px 12px;
   border: none;
   background: ${props => props.active ? 'white' : 'transparent'};
-  color: ${props => props.active ? '#EC4899' : '#6B7280'};
+  color: ${props => props.active ? '#0EA5E9' : '#6B7280'};
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
@@ -90,7 +90,7 @@ const TextInput = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #EC4899;
+    border-color: #0EA5E9;
     box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
   }
 
@@ -312,7 +312,7 @@ export const EnhancedVoiceAssistant: React.FC<EnhancedVoiceAssistantProps> = ({
           {isListening ? (
             <MicOff size={24} color="white" />
           ) : (
-            <Mic size={24} color={mode === 'voice' ? '#EC4899' : '#9CA3AF'} />
+            <Mic size={24} color={mode === 'voice' ? '#0EA5E9' : '#9CA3AF'} />
           )}
         </VoiceButton>
 

@@ -18,7 +18,7 @@ const FloatingButton = styled.div<{ isOpen: boolean }>`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F472B6, #EC4899);
+  background: linear-gradient(135deg, #38BDF8, #0EA5E9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,7 +55,7 @@ const ChatPanel = styled.div<{ isOpen: boolean }>`
 
 const ChatHeader = styled.div`
   padding: 20px;
-  background: linear-gradient(135deg, #F472B6, #EC4899);
+  background: linear-gradient(135deg, #38BDF8, #0EA5E9);
   color: white;
   display: flex;
   align-items: center;
@@ -76,7 +76,7 @@ const Message = styled.div<{ isUser?: boolean }>`
   border-radius: 12px;
   max-width: 80%;
   align-self: ${props => props.isUser ? 'flex-end' : 'flex-start'};
-  background: ${props => props.isUser ? 'linear-gradient(135deg, #F472B6, #EC4899)' : '#f5f5f5'};
+  background: ${props => props.isUser ? 'linear-gradient(135deg, #38BDF8, #0EA5E9)' : '#f5f5f5'};
   color: ${props => props.isUser ? 'white' : '#000'};
 `;
 
@@ -100,7 +100,7 @@ const IconButton = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background: #EC4899;
+    background: #0EA5E9;
     color: white;
   }
 `;
@@ -215,7 +215,7 @@ export const AICopilot: React.FC = () => {
 
         <ChatInput>
           <IconButton onClick={handleVoiceInput} disabled={isListening}>
-            <Mic size={20} color={isListening ? '#EC4899' : undefined} />
+            <Mic size={20} color={isListening ? '#0EA5E9' : undefined} />
           </IconButton>
           <Input
             placeholder="Type or use voice..."

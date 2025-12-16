@@ -13,8 +13,8 @@ const VoiceButton = styled.button<{ isListening: boolean }>`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid ${props => props.isListening ? '#EC4899' : '#e0e0e0'};
-  background: ${props => props.isListening ? 'linear-gradient(135deg, #F472B6, #EC4899)' : 'white'};
+  border: 2px solid ${props => props.isListening ? '#0EA5E9' : '#e0e0e0'};
+  background: ${props => props.isListening ? 'linear-gradient(135deg, #38BDF8, #0EA5E9)' : 'white'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,7 +33,7 @@ const TranscriptBox = styled.div`
   top: 50px;
   right: 0;
   background: white;
-  border: 2px solid #EC4899;
+  border: 2px solid #0EA5E9;
   border-radius: 8px;
   padding: 12px;
   min-width: 200px;
@@ -116,7 +116,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ issueId, onUpdat
     <div style={{ position: 'relative' }}>
       <Tooltip title="Voice commands: 'set priority to high', 'change status to in progress', 'assign to John'">
         <VoiceButton isListening={isListening || isProcessing} onClick={handleVoiceCommand} disabled={isProcessing}>
-          <Mic size={20} color={(isListening || isProcessing) ? 'white' : '#EC4899'} />
+          <Mic size={20} color={(isListening || isProcessing) ? 'white' : '#0EA5E9'} />
         </VoiceButton>
       </Tooltip>
       {transcript && (

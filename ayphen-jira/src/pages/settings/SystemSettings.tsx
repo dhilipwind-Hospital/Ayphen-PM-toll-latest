@@ -12,11 +12,11 @@ const Container = styled.div`
 const StyledCard = styled(Card)`
   margin-bottom: 24px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.1);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
 `;
 
 const SectionTitle = styled.h3`
-  color: #EC4899;
+  color: #0EA5E9;
   margin-bottom: 16px;
   display: flex;
   align-items: center;

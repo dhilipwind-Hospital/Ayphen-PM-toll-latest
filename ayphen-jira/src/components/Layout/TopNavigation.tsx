@@ -108,7 +108,7 @@ const NavItem = styled.div`
 
   &:hover {
     background: rgba(236, 72, 153, 0.1);
-    color: #EC4899;
+    color: #0EA5E9;
     box-shadow: 0 0 12px rgba(236, 72, 153, 0.2);
     transform: translateY(-1px);
   }

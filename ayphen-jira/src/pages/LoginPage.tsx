@@ -25,7 +25,7 @@ const PageContainer = styled.div`
 
 const LeftPanel = styled.div`
   flex: 1;
-  background: linear-gradient(135deg, #2e1065 0%, #be185d 50%, #f472b6 100%);
+  background: linear-gradient(135deg, #0C4A6E 0%, #0284C7 50%, #06B6D4 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -166,13 +166,13 @@ const StyledTabs = styled(Tabs)`
     padding: 12px 0;
     
     &.ant-tabs-tab-active .ant-tabs-tab-btn {
-      color: #be185d;
+      color: #0284C7;
       font-weight: 600;
     }
   }
 
   .ant-tabs-ink-bar {
-    background: #be185d;
+    background: #0284C7;
     height: 3px;
     border-radius: 3px;
   }
@@ -188,8 +188,8 @@ const StyledInput = styled(Input)`
 
   &:hover, &:focus {
     background: #ffffff;
-    border-color: #be185d;
-    box-shadow: 0 0 0 4px rgba(190, 24, 93, 0.1);
+    border-color: #0284C7;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
   }
 
   .ant-input {
@@ -207,8 +207,8 @@ const StyledPassword = styled(Input.Password)`
 
   &:hover, &:focus-within {
     background: #ffffff;
-    border-color: #be185d;
-    box-shadow: 0 0 0 4px rgba(190, 24, 93, 0.1);
+    border-color: #0284C7;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
   }
 
   .ant-input {
@@ -219,21 +219,21 @@ const StyledPassword = styled(Input.Password)`
 const PrimaryButton = styled(Button)`
   height: 50px;
   border-radius: 12px;
-  background: linear-gradient(to right, #be185d, #db2777);
+  background: linear-gradient(to right, #0284C7, #0EA5E9);
   border: none;
   font-size: 16px;
   font-weight: 600;
   color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(190, 24, 93, 0.3);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
   
   span {
     color: #FFFFFF !important;
   }
   
   &:hover {
-    background: linear-gradient(to right, #9d174d, #be185d) !important;
+    background: linear-gradient(to right, #0369A1, #0284C7) !important;
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(190, 24, 93, 0.4);
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
     color: #FFFFFF !important;
   }
 `;
@@ -249,8 +249,8 @@ const SocialButton = styled(Button)`
   gap: 10px;
   
   &:hover {
-    border-color: #be185d;
-    color: #be185d;
+    border-color: #0284C7;
+    color: #0284C7;
     background: #fff1f2;
   }
 `;

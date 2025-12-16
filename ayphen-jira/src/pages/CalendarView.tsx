@@ -64,11 +64,11 @@ const CalendarCard = styled(Card)`
   }
   
   .ant-picker-cell-selected .ant-picker-cell-inner {
-    background: #EC4899 !important;
+    background: #0EA5E9 !important;
   }
   
   .ant-picker-cell-today .ant-picker-cell-inner::before {
-    border-color: #EC4899 !important;
+    border-color: #0EA5E9 !important;
   }
 `;
 
@@ -232,7 +232,7 @@ export const CalendarView: React.FC = () => {
     <Container>
       <Header>
         <Title>
-          <Calendar size={28} color="#EC4899" />
+          <Calendar size={28} color="#0EA5E9" />
           Calendar
         </Title>
         <Controls>
@@ -251,7 +251,7 @@ export const CalendarView: React.FC = () => {
             type="primary"
             icon={<Plus size={16} />}
             onClick={() => setCreateModalOpen(true)}
-            style={{ background: 'linear-gradient(to right, #be185d, #db2777)', borderColor: '#EC4899', color: '#FFFFFF' }}
+            style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', borderColor: '#0EA5E9', color: '#FFFFFF' }}
           >
             Create Issue
           </Button>

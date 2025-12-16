@@ -195,7 +195,7 @@ const StyledTabs = styled(Tabs)`
 
 const CommentButton = styled(Button)`
   && {
-    background: linear-gradient(to right, #be185d, #db2777) !important;
+    background: linear-gradient(to right, #0284C7, #0EA5E9) !important;
     color: #FFFFFF !important;
     border: none !important;
     border-radius: 6px;
@@ -204,18 +204,18 @@ const CommentButton = styled(Button)`
     font-weight: 600;
     margin-top: 12px;
     font-size: 14px;
-    box-shadow: 0 4px 12px rgba(190, 24, 93, 0.3);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
     
     span {
       color: #FFFFFF !important;
     }
     
     &:hover {
-      background: linear-gradient(to right, #9d174d, #be185d) !important;
+      background: linear-gradient(to right, #0369A1, #0284C7) !important;
       color: #FFFFFF !important;
     }
     &:active {
-      background: linear-gradient(to right, #831843, #9d174d) !important;
+      background: linear-gradient(to right, #075985, #0369A1) !important;
     }
   }
 `;

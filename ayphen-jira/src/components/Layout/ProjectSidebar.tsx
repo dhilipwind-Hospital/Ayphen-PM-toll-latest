@@ -119,16 +119,16 @@ const StyledMenu = styled(Menu)`
     transition: all 0.3s ease;
 
     &:hover {
-      background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(249, 168, 212, 0.1));
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(249, 168, 212, 0.1));
       transform: translateX(4px);
-      box-shadow: 0 2px 8px rgba(244, 114, 182, 0.15);
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
     }
 
     &.ant-menu-item-selected {
-      background: linear-gradient(135deg, rgba(244, 114, 182, 0.15), rgba(249, 168, 212, 0.15));
-      color: #EC4899;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(249, 168, 212, 0.15));
+      color: #0EA5E9;
       font-weight: 600;
-      border-left: 3px solid #EC4899;
+      border-left: 3px solid #0EA5E9;
     }
   }
 
@@ -142,7 +142,7 @@ const StyledMenu = styled(Menu)`
       transition: all 0.3s ease;
 
       &:hover {
-        background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(249, 168, 212, 0.1));
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(249, 168, 212, 0.1));
         transform: translateX(4px);
       }
     }
@@ -159,7 +159,7 @@ const StyledMenu = styled(Menu)`
 
   .ant-menu-item-icon {
     font-size: 16px;
-    color: #EC4899;
+    color: #0EA5E9;
   }
 `;
 
@@ -172,17 +172,17 @@ const AddButton = styled(Button)`
   justify-content: center;
   gap: 8px;
   border-radius: 8px;
-  border: 2px dashed rgba(244, 114, 182, 0.3);
-  background: rgba(244, 114, 182, 0.05);
-  color: #EC4899;
+  border: 2px dashed rgba(14, 165, 233, 0.3);
+  background: rgba(14, 165, 233, 0.05);
+  color: #0EA5E9;
   font-weight: 600;
   transition: all 0.3s ease;
   
   &:hover {
-    border-color: #EC4899;
-    background: rgba(244, 114, 182, 0.1);
+    border-color: #0EA5E9;
+    background: rgba(14, 165, 233, 0.1);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(244, 114, 182, 0.2);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
   }
 `;
 
