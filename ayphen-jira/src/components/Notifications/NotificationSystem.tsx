@@ -265,7 +265,7 @@ export const NotificationSystem: React.FC = () => {
                     </Typography.Text>
                     <div style={{ display: 'flex', gap: 4 }}>
                       {notification.issueKey && (
-                        <Tag color="pink">{notification.issueKey}</Tag>
+                        <Tag color="cyan">{notification.issueKey}</Tag>
                       )}
                       {notification.priority && (
                         <Tag color={getPriorityColor(notification.priority)}>

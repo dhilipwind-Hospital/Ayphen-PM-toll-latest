@@ -308,7 +308,7 @@ export const KanbanBoard: React.FC = () => {
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
                                   {issue.labels.map(label => (
-                                    <Tag key={label} color="pink">{label}</Tag>
+                                    <Tag key={label} color="cyan">{label}</Tag>
                                   ))}
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

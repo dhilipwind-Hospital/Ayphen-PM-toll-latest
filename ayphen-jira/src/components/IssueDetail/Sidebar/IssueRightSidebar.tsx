@@ -37,8 +37,8 @@ const AIActionCard = styled.div`
   transition: all 0.2s;
   
   &:hover {
-    border-color: #E91E63;
-    background: rgba(233, 30, 99, 0.05);
+    border-color: #0EA5E9;
+    background: rgba(14, 165, 233, 0.05);
   }
 `;
 
@@ -189,7 +189,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                         <strong>Current:</strong> <Tag>{aiResult.data.currentPriority || issue.priority}</Tag>
                     </div>
                     <div style={{ marginBottom: 12 }}>
-                        <strong>Suggested:</strong> <Tag color="#E91E63">{aiResult.data.suggestedPriority}</Tag>
+                        <strong>Suggested:</strong> <Tag color="#0EA5E9">{aiResult.data.suggestedPriority}</Tag>
                     </div>
                     <div style={{ marginBottom: 12 }}>
                         <strong>Confidence:</strong> {Math.round(aiResult.data.confidence)}%
@@ -203,7 +203,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                         type="primary" 
                         onClick={applyPriority} 
                         loading={loading}
-                        style={{ background: '#E91E63', borderColor: '#E91E63' }}
+                        style={{ background: '#0EA5E9', borderColor: '#0EA5E9' }}
                     >
                         Apply Suggested Priority
                     </Button>
@@ -229,7 +229,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                     <Button 
                         type="primary" 
                         onClick={applyDescription}
-                        style={{ background: '#E91E63', borderColor: '#E91E63' }}
+                        style={{ background: '#0EA5E9', borderColor: '#0EA5E9' }}
                     >
                         Apply Description
                     </Button>
@@ -288,7 +288,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                     type="primary"
                     block
                     style={{
-                        background: '#E91E63',
+                        background: '#0EA5E9',
                         border: 'none',
                         fontWeight: 600
                     }}
@@ -314,7 +314,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
             <TimeTrackingSection issue={issue} onUpdate={onUpdate} />
 
             <Modal
-                title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Sparkles size={20} color="#E91E63" /> AI Actions</span>}
+                title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Sparkles size={20} color="#0EA5E9" /> AI Actions</span>}
                 open={aiModalVisible}
                 onCancel={() => setAiModalVisible(false)}
                 footer={null}
@@ -323,7 +323,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                 <div style={{ marginTop: 16 }}>
                     <AIActionCard onClick={() => handleAIAction('smart-priority')}>
                         <AIActionTitle>
-                            <Target size={18} color="#E91E63" />
+                            <Target size={18} color="#0EA5E9" />
                             Smart Priority
                         </AIActionTitle>
                         <AIActionDesc>Analyze issue and suggest optimal priority based on context</AIActionDesc>
@@ -331,7 +331,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
 
                     <AIActionCard onClick={() => handleAIAction('generate-description')}>
                         <AIActionTitle>
-                            <Wand2 size={18} color="#E91E63" />
+                            <Wand2 size={18} color="#0EA5E9" />
                             Generate Description
                         </AIActionTitle>
                         <AIActionDesc>Auto-generate a detailed description using AI</AIActionDesc>
@@ -339,7 +339,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
 
                     <AIActionCard onClick={() => handleAIAction('acceptance-criteria')}>
                         <AIActionTitle>
-                            <CheckCircle size={18} color="#E91E63" />
+                            <CheckCircle size={18} color="#0EA5E9" />
                             Generate Acceptance Criteria
                         </AIActionTitle>
                         <AIActionDesc>Create acceptance criteria based on summary and description</AIActionDesc>
@@ -347,7 +347,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
 
                     <AIActionCard onClick={() => handleAIAction('predict-completion')}>
                         <AIActionTitle>
-                            <Clock size={18} color="#E91E63" />
+                            <Clock size={18} color="#0EA5E9" />
                             Predict Completion Time
                         </AIActionTitle>
                         <AIActionDesc>Estimate when this issue will be completed</AIActionDesc>

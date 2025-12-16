@@ -67,7 +67,7 @@ const IssueKeyBadge = styled.div`
   font-size: 13px;
   font-weight: 600;
   color: white;
-  background: #E91E63;
+  background: #0EA5E9;
   padding: 6px 12px;
   border-radius: 8px; /* Rounded corners */
   display: flex;
@@ -178,11 +178,11 @@ const StyledTabs = styled(Tabs)`
     }
   }
   .ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: #E91E63 !important;
+    color: #0EA5E9 !important;
     font-weight: 600;
   }
   .ant-tabs-ink-bar {
-    background: #E91E63 !important;
+    background: #0EA5E9 !important;
     height: 3px !important;
   }
     
@@ -469,7 +469,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 <Tooltip title="Edit Title">
                   <Button
                     type="text"
-                    icon={<Pencil size={16} color="#E91E63" />}
+                    icon={<Pencil size={16} color="#0EA5E9" />}
                     onClick={() => setIsEditingTitle(true)}
                     style={{ padding: 4 }}
                   />
@@ -542,7 +542,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   <Button onClick={() => setIsEditingDescription(false)}>Cancel</Button>
                   <Button
                     type="primary"
-                    style={{ background: '#E91E63', borderColor: '#E91E63' }}
+                    style={{ background: '#0EA5E9', borderColor: '#0EA5E9' }}
                     onClick={() => {
                       handleUpdate('description', descriptionInput);
                       setIsEditingDescription(false);
@@ -569,7 +569,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           <Section>
             <SectionHeader>
               <SectionTitle>
-                <ListTodo size={16} style={{ marginRight: 8, color: '#E91E63' }} />
+                <ListTodo size={16} style={{ marginRight: 8, color: '#0EA5E9' }} />
                 {issue.type === 'epic' ? 'Child Issues' : 'Subtasks'} ({subtasks.length})
               </SectionTitle>
               <Button
@@ -577,7 +577,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 type="text"
                 icon={<Plus size={14} />}
                 onClick={() => setCreateSubtaskModalVisible(true)}
-                style={{ color: '#E91E63', fontSize: 13, fontWeight: 500 }}
+                style={{ color: '#0EA5E9', fontSize: 13, fontWeight: 500 }}
               >
                 Add {issue.type === 'epic' ? 'Issue' : 'Subtask'}
               </Button>
@@ -603,7 +603,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                         sub.type === 'story' ? <BookOpen size={14} color="#10B981" /> :
                           sub.type === 'task' ? <CheckSquare size={14} color="#3B82F6" /> :
                             <ListTodo size={14} color="#8B5CF6" />}
-                      <span style={{ fontWeight: 500, color: '#E91E63' }}>{sub.key}</span>
+                      <span style={{ fontWeight: 500, color: '#0EA5E9' }}>{sub.key}</span>
                       <span style={{ color: colors.text.primary }}>{sub.summary}</span>
                     </div>
                     <span style={{
@@ -629,10 +629,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           <Section>
             <SectionHeader>
               <SectionTitle>
-                <Link size={16} style={{ marginRight: 8, color: '#E91E63' }} />
+                <Link size={16} style={{ marginRight: 8, color: '#0EA5E9' }} />
                 Linked Issues ({linkedIssues.length})
               </SectionTitle>
-              <Button size="small" type="text" icon={<Plus size={14} />} onClick={() => setLinkModalVisible(true)} style={{ color: '#E91E63', fontSize: 13, fontWeight: 500 }}>Link Issue</Button>
+              <Button size="small" type="text" icon={<Plus size={14} />} onClick={() => setLinkModalVisible(true)} style={{ color: '#0EA5E9', fontSize: 13, fontWeight: 500 }}>Link Issue</Button>
             </SectionHeader>
 
             {linkedIssues.length > 0 ? (
@@ -644,7 +644,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                         {getLinkIcon(l.linkType)}
                         <span style={{ fontSize: 12 }}>{l.linkType.replace('_', ' ')}</span>
                       </div>
-                      <span style={{ fontWeight: 500, color: '#E91E63' }}>{l.targetIssue?.key}</span>
+                      <span style={{ fontWeight: 500, color: '#0EA5E9' }}>{l.targetIssue?.key}</span>
                       <span style={{ color: colors.text.primary }}>{l.targetIssue?.summary}</span>
                     </div>
                     <Tooltip title="Remove Link">
@@ -752,7 +752,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                         e.stopPropagation();
                                         window.open(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`, '_blank');
                                       }}
-                                      style={{ color: '#E91E63' }}
+                                      style={{ color: '#0EA5E9' }}
                                     />
                                   </Tooltip>
                                   <Tooltip title="Delete">
