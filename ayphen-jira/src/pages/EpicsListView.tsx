@@ -94,33 +94,33 @@ export const EpicsListView: React.FC = () => {
   const [epics, setEpics] = useState<any[]>([]);
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [storyCounts, setStoryCounts] = useState<Record<string, {stories: number, bugs: number}>>({});
+  const [storyCounts, setStoryCounts] = useState<Record<string, { stories: number, bugs: number }>>({});
   const [activeTab, setActiveTab] = useState('list');
-  
+
   const projectId = currentProject?.id || 'default-project';
-  
+
   useEffect(() => {
     loadEpics();
   }, [projectId]);
-  
+
   useEffect(() => {
     calculateStoryCounts();
   }, [epics, issues]);
-  
+
   const calculateStoryCounts = () => {
-    const counts: Record<string, {stories: number, bugs: number}> = {};
+    const counts: Record<string, { stories: number, bugs: number }> = {};
     epics.forEach(epic => {
-      const stories = issues.filter(i => 
+      const stories = issues.filter(i =>
         i.type === 'story' && (i as any).epicId === epic.id
       ).length;
-      const bugs = issues.filter(i => 
+      const bugs = issues.filter(i =>
         i.type === 'bug' && (i as any).epicId === epic.id
       ).length;
       counts[epic.id] = { stories, bugs };
     });
     setStoryCounts(counts);
   };
-  
+
   const loadEpics = async () => {
     setLoading(true);
     try {
@@ -134,13 +134,13 @@ export const EpicsListView: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
   const filteredEpics = epics.filter(epic => {
     if (filter === 'active') return epic.progress < 100;
     if (filter === 'completed') return epic.progress === 100;
     return true;
   });
-  
+
   const columns = [
     {
       title: 'Epic',
@@ -163,13 +163,13 @@ export const EpicsListView: React.FC = () => {
       width: 120,
       render: (status: string) => {
         const statusColors: Record<string, string> = {
-          'backlog': 'purple',
-          'todo': 'default',
+          'backlog': 'cyan',
+          'todo': 'cyan',
           'in-progress': 'processing',
           'done': 'success',
         };
         return (
-          <Tag color={statusColors[status] || 'default'}>
+          <Tag color={statusColors[status] || 'cyan'}>
             {status?.toUpperCase()}
           </Tag>
         );
@@ -185,10 +185,11 @@ export const EpicsListView: React.FC = () => {
           <StatsRow>
             <span>{record.completedCount || 0} / {record.childCount || 0} issues</span>
           </StatsRow>
-          <Progress 
-            percent={progress || 0} 
-            size="small" 
-            strokeColor="#0052CC"
+          <Progress
+            percent={progress || 0}
+            size="small"
+            strokeColor="#0EA5E9"
+            trailColor="#E0F2FE"
             style={{ marginTop: 4 }}
           />
         </div>
@@ -202,7 +203,7 @@ export const EpicsListView: React.FC = () => {
       render: (_: any, record: any) => {
         const count = storyCounts[record.id]?.stories || 0;
         return count > 0 ? (
-          <Badge 
+          <Badge
             count={count}
             style={{ backgroundColor: '#52c41a' }}
           >
@@ -221,7 +222,7 @@ export const EpicsListView: React.FC = () => {
       render: (_: any, record: any) => {
         const count = storyCounts[record.id]?.bugs || 0;
         return count > 0 ? (
-          <Badge 
+          <Badge
             count={count}
             style={{ backgroundColor: '#ff4d4f' }}
           >
@@ -256,7 +257,7 @@ export const EpicsListView: React.FC = () => {
               <div>→ {new Date(record.endDate).toLocaleDateString()}</div>
             </>
           ) : (
-            <span>No dates set</span>
+            <Tag color="default" style={{ fontStyle: 'italic' }}>No dates set</Tag>
           )}
         </div>
       ),
@@ -264,30 +265,33 @@ export const EpicsListView: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      width: 100,
+      width: 120,
       align: 'center' as const,
       render: (record: any) => (
-        <Button
-          type="link"
-          icon={<Eye size={16} />}
-          onClick={() => navigate(`/epic/${record.id}`)}
-        >
-          View
-        </Button>
+        <Space>
+          <Button
+            type="link"
+            icon={<Eye size={16} />}
+            onClick={() => navigate(`/epic/${record.id}`)}
+            style={{ color: '#0EA5E9', padding: '4px 8px' }}
+          >
+            View
+          </Button>
+        </Space>
       ),
     },
   ];
-  
+
   return (
     <Container>
       <Header>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           <Title>
-            <TrendingUp size={28} color="#1890ff" />
+            <TrendingUp size={28} color="#0EA5E9" />
             Epics
           </Title>
-          <Tabs 
-            activeKey={activeTab} 
+          <Tabs
+            activeKey={activeTab}
             onChange={setActiveTab}
             style={{ marginBottom: 0 }}
             items={[
@@ -308,8 +312,8 @@ export const EpicsListView: React.FC = () => {
               { label: 'Completed', value: 'completed' },
             ]}
           />
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<Plus size={16} />}
             onClick={() => setCreateModalOpen(true)}
           >
@@ -317,7 +321,7 @@ export const EpicsListView: React.FC = () => {
           </Button>
         </div>
       </Header>
-      
+
       <TableContainer>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 60 }}>
@@ -328,7 +332,7 @@ export const EpicsListView: React.FC = () => {
             columns={columns}
             dataSource={filteredEpics}
             rowKey="id"
-            pagination={{ 
+            pagination={{
               pageSize: 20,
               showTotal: (total) => `Total ${total} epics`,
               showSizeChanger: true,
@@ -343,14 +347,14 @@ export const EpicsListView: React.FC = () => {
                   <Table.Summary.Cell index={2}>
                     <strong>
                       {filteredEpics.length > 0 ? Math.round(
-                        filteredEpics.reduce((sum, e) => sum + (e.progress || 0), 0) / 
+                        filteredEpics.reduce((sum, e) => sum + (e.progress || 0), 0) /
                         filteredEpics.length
                       ) : 0}% avg
                     </strong>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={3}>
                     <strong>
-                      {filteredEpics.reduce((sum, e) => sum + (e.completedPoints || 0), 0)} / 
+                      {filteredEpics.reduce((sum, e) => sum + (e.completedPoints || 0), 0)} /
                       {filteredEpics.reduce((sum, e) => sum + (e.totalPoints || 0), 0)} pts
                     </strong>
                   </Table.Summary.Cell>
