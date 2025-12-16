@@ -30,6 +30,20 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   const { currentProject, currentUser } = useStore();
   const navigate = useNavigate();
 
+  // Check for Epic Context from defaultValues
+  // We check for epicId or epicLink which might be passed when creating from Epic View
+  const [epicContext, setEpicContext] = useState<{ id: string; key: string; name: string } | null>(null);
+
+  useEffect(() => {
+    // If we are creating an issue and defaultValues contains an epic link/context
+    if (defaultValues.epicId || defaultValues.epicLink) {
+      // We might only have the ID. We need to find the full object or just use ID.
+      // If we have access to loaded 'epics', we can find it.
+      // Or rely on passing 'epicKey' / 'epicName' in defaultValues if possible.
+      // For now let's assume defaultValues might prepopulate form.
+    }
+  }, [defaultValues]);
+
   // Duplicate detection state
   const [duplicates, setDuplicates] = useState<any[]>([]);
   const [duplicateConfidence, setDuplicateConfidence] = useState(0);
@@ -42,7 +56,12 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   const [epics, setEpics] = useState<any[]>([]);
   const [stories, setStories] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
+
   const [sprints, setSprints] = useState<any[]>([]);
+
+  // Track creation method for badge
+  const [creationMethod, setCreationMethod] = useState<'manual' | 'ai' | 'template'>('manual');
+  const [usedTemplateId, setUsedTemplateId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (open && currentProject) {
@@ -51,7 +70,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       loadMembers();
       loadSprints();
     }
-    
+
     if (open) {
       form.setFieldsValue({
         type: defaultType,
@@ -62,8 +81,20 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       } else if (defaultType) {
         setSelectedType(defaultType);
       }
+
+      // Detect Epic Context
+      if (defaultValues?.epicLink) {
+        // If passed as ID
+        const foundEpic = epics.find(e => e.id === defaultValues.epicLink || e.key === defaultValues.epicLink);
+        if (foundEpic) {
+          setEpicContext({ id: foundEpic.id, key: foundEpic.key, name: foundEpic.summary });
+          form.setFieldsValue({ epicLink: foundEpic.id });
+        }
+      } else {
+        setEpicContext(null);
+      }
     }
-  }, [open, currentProject, defaultType]);
+  }, [open, currentProject, defaultType, epics]);
 
   const loadEpics = async () => {
     if (!currentProject?.id || !currentUser?.id) {
@@ -85,7 +116,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       // Fetch both stories and tasks as they can be parents
       const storyRes = await issuesApi.getAll({ projectId: currentProject?.id, type: 'story', userId: currentUser?.id });
       const taskRes = await issuesApi.getAll({ projectId: currentProject?.id, type: 'task', userId: currentUser?.id });
-      
+
       const allParents = [...(storyRes.data || []), ...(taskRes.data || [])];
       setStories(allParents);
     } catch (error) {
@@ -180,7 +211,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           issueStatus = 'todo';
         }
       }
-      
+
       const baseData = {
         summary: values.summary,
         description: values.description || '',
@@ -199,7 +230,11 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
       const issueData: any = {
         ...baseData,
-        overrideDuplicate // Include override flag
+        overrideDuplicate, // Include override flag
+        creationMetadata: {
+          method: creationMethod,
+          templateId: usedTemplateId
+        }
       };
 
       if (values.type === 'story' || values.type === 'task') {
@@ -263,14 +298,17 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
       // Reset form and state
       form.resetFields();
+      form.resetFields();
       setSelectedType('story');
+      setCreationMethod('manual');
+      setUsedTemplateId(undefined);
       setDuplicates([]);
       setSummaryValue('');
       setDescriptionValue('');
 
       onSuccess();
       onClose();
-      
+
       // Redirect based on issue type
       if (createdKey) {
         if (selectedType === 'epic') {
@@ -347,9 +385,15 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               <Form.Item
                 name="epicLink"
                 label="Epic Link"
-                extra="Don't leave issues orphaned! Link them to an Epic."
+                extra={epicContext ? "Locked to current epic" : "Don't leave issues orphaned! Link them to an Epic."}
               >
-                <Select placeholder="Select Epic" allowClear showSearch optionFilterProp="children">
+                <Select
+                  placeholder="Select Epic"
+                  allowClear={!epicContext}
+                  showSearch
+                  optionFilterProp="children"
+                  disabled={!!epicContext}
+                >
                   {epics.map(epic => (
                     <Select.Option key={epic.id} value={epic.id}>
                       {epic.key} - {epic.summary}
@@ -440,6 +484,23 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           }
         }}
       >
+        {epicContext && (
+          <div style={{
+            marginBottom: 20,
+            padding: '10px 16px',
+            background: '#F0F9FF',
+            border: '1px solid #BAE6FD',
+            borderRadius: 6,
+            color: '#0369A1',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            <span>📌 Creating issue in <b>{epicContext.key}</b></span>
+          </div>
+        )}
+
         <Form.Item
           name="type"
           label="Issue Type"
@@ -476,9 +537,12 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
                   issueType={selectedType}
                   issueSummary={summaryValue}
                   projectId={currentProject?.id}
-                  onTemplateSelected={(text) => {
+                  onTemplateSelected={(text, templateId) => {
                     form.setFieldsValue({ description: text });
                     setDescriptionValue(text);
+                    setCreationMethod('template');
+                    // if template provides ID, we can set it. Currently TemplateButton might just return text.
+                    // Ideally we update TemplateButton to return ID too if available.
                   }}
                   size="small"
                   disabled={!summaryValue}
@@ -491,6 +555,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
                   onTextGenerated={(text) => {
                     form.setFieldsValue({ description: text });
                     setDescriptionValue(text);
+                    setCreationMethod('ai');
                   }}
                 />
               </div>
@@ -523,9 +588,9 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           name="assigneeId"
           label="Assignee"
         >
-          <Select 
-            placeholder="Unassigned" 
-            allowClear 
+          <Select
+            placeholder="Unassigned"
+            allowClear
             showSearch
             optionFilterProp="children"
           >
@@ -543,20 +608,6 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
         </Form.Item>
 
         <div style={{ display: 'flex', gap: 16 }}>
-          <Form.Item
-            name="sprintId"
-            label="Sprint"
-            style={{ flex: 1 }}
-          >
-            <Select placeholder="Select Sprint" allowClear>
-              {sprints.map((sprint: any) => (
-                <Select.Option key={sprint.id} value={sprint.id}>
-                  {sprint.name} ({sprint.status})
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
           <Form.Item
             name="dueDate"
             label="Due Date"

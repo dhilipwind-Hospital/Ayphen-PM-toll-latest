@@ -5,7 +5,7 @@ import { Card, Input, Tabs, Tag, Button, Space, Empty, Badge, Modal, Form, messa
 import { Search, Download, FileText, Bug, CheckSquare, Zap, Save } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
-import axios from 'axios';
+import { filtersApi } from '../services/api';
 import { BulkOperationsToolbar } from '../components/BulkOperations/BulkOperationsToolbar';
 
 const Container = styled.div`
@@ -80,7 +80,7 @@ const IssueDescription = styled.div`
 export const FiltersView: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { issues, currentProject, currentUser } = useStore();
+  const { issues, currentProject, currentUser, addFilter } = useStore();
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [saveFilterModalVisible, setSaveFilterModalVisible] = useState(false);
@@ -103,11 +103,13 @@ export const FiltersView: React.FC = () => {
         searchText: searchText || undefined,
       };
 
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/saved-filters', {
+      const { data: newFilter } = await filtersApi.create({
         ...values,
         ownerId: currentUser?.id,
         filterConfig,
       });
+
+      addFilter(newFilter);
 
       message.success('Filter saved successfully');
       setSaveFilterModalVisible(false);
@@ -119,7 +121,7 @@ export const FiltersView: React.FC = () => {
   };
 
   const getTypeIcon = (type: string) => {
-    switch(type) {
+    switch (type) {
       case 'epic': return <Zap size={16} color="#722ed1" />;
       case 'story': return <FileText size={16} color="#52c41a" />;
       case 'bug': return <Bug size={16} color="#ff4d4f" />;
@@ -131,8 +133,8 @@ export const FiltersView: React.FC = () => {
   const highlightText = (text: string, query: string) => {
     if (!query.trim()) return text;
     const parts = text.split(new RegExp(`(${query})`, 'gi'));
-    return parts.map((part, i) => 
-      part.toLowerCase() === query.toLowerCase() ? 
+    return parts.map((part, i) =>
+      part.toLowerCase() === query.toLowerCase() ?
         <mark key={i} style={{ background: '#fff566', padding: '0 2px' }}>{part}</mark> : part
     );
   };
@@ -245,8 +247,8 @@ export const FiltersView: React.FC = () => {
 
     // Apply filter type
     if (activeFilter === 'my-open') {
-      filtered = filtered.filter(issue => 
-        issue.assignee?.id === currentUser?.id && 
+      filtered = filtered.filter(issue =>
+        issue.assignee?.id === currentUser?.id &&
         issue.status !== 'done'
       );
     } else if (activeFilter === 'done') {
@@ -283,24 +285,24 @@ export const FiltersView: React.FC = () => {
     <Container>
       <Header>
         <Title>
-          {activeFilter === 'my-open' ? 'My Open Issues' : 
-           activeFilter === 'done' ? 'Done Issues' : 
-           'All Issues'}
+          {activeFilter === 'my-open' ? 'My Open Issues' :
+            activeFilter === 'done' ? 'Done Issues' :
+              'All Issues'}
         </Title>
         <Space>
-          <Button 
+          <Button
             type={activeFilter === 'all' ? 'primary' : 'default'}
             onClick={() => setActiveFilter('all')}
           >
             All Issues
           </Button>
-          <Button 
+          <Button
             type={activeFilter === 'my-open' ? 'primary' : 'default'}
             onClick={() => setActiveFilter('my-open')}
           >
             My Open Issues
           </Button>
-          <Button 
+          <Button
             type={activeFilter === 'done' ? 'primary' : 'default'}
             onClick={() => setActiveFilter('done')}
           >
@@ -325,61 +327,61 @@ export const FiltersView: React.FC = () => {
       </FilterBar>
 
       <Card>
-          <Tabs
-            defaultActiveKey="all"
-            items={[
-              {
-                key: 'all',
-                label: (
-                  <span>
-                    All Issues <Badge count={groupedResults.all.length} style={{ marginLeft: 8, backgroundColor: '#1890ff' }} />
-                  </span>
-                ),
-                children: renderIssueList(groupedResults.all)
-              },
-              {
-                key: 'epics',
-                label: (
-                  <span>
-                    <Zap size={14} style={{ marginRight: 4 }} />
-                    Epics <Badge count={groupedResults.epics.length} style={{ marginLeft: 8, backgroundColor: '#722ed1' }} />
-                  </span>
-                ),
-                children: renderIssueList(groupedResults.epics)
-              },
-              {
-                key: 'stories',
-                label: (
-                  <span>
-                    <FileText size={14} style={{ marginRight: 4 }} />
-                    Stories <Badge count={groupedResults.stories.length} style={{ marginLeft: 8, backgroundColor: '#52c41a' }} />
-                  </span>
-                ),
-                children: renderIssueList(groupedResults.stories)
-              },
-              {
-                key: 'bugs',
-                label: (
-                  <span>
-                    <Bug size={14} style={{ marginRight: 4 }} />
-                    Bugs <Badge count={groupedResults.bugs.length} style={{ marginLeft: 8, backgroundColor: '#ff4d4f' }} />
-                  </span>
-                ),
-                children: renderIssueList(groupedResults.bugs)
-              },
-              {
-                key: 'tasks',
-                label: (
-                  <span>
-                    <CheckSquare size={14} style={{ marginRight: 4 }} />
-                    Tasks <Badge count={groupedResults.tasks.length} style={{ marginLeft: 8, backgroundColor: '#1890ff' }} />
-                  </span>
-                ),
-                children: renderIssueList(groupedResults.tasks)
-              }
-            ]}
-          />
-        </Card>
+        <Tabs
+          defaultActiveKey="all"
+          items={[
+            {
+              key: 'all',
+              label: (
+                <span>
+                  All Issues <Badge count={groupedResults.all.length} style={{ marginLeft: 8, backgroundColor: '#1890ff' }} />
+                </span>
+              ),
+              children: renderIssueList(groupedResults.all)
+            },
+            {
+              key: 'epics',
+              label: (
+                <span>
+                  <Zap size={14} style={{ marginRight: 4 }} />
+                  Epics <Badge count={groupedResults.epics.length} style={{ marginLeft: 8, backgroundColor: '#722ed1' }} />
+                </span>
+              ),
+              children: renderIssueList(groupedResults.epics)
+            },
+            {
+              key: 'stories',
+              label: (
+                <span>
+                  <FileText size={14} style={{ marginRight: 4 }} />
+                  Stories <Badge count={groupedResults.stories.length} style={{ marginLeft: 8, backgroundColor: '#52c41a' }} />
+                </span>
+              ),
+              children: renderIssueList(groupedResults.stories)
+            },
+            {
+              key: 'bugs',
+              label: (
+                <span>
+                  <Bug size={14} style={{ marginRight: 4 }} />
+                  Bugs <Badge count={groupedResults.bugs.length} style={{ marginLeft: 8, backgroundColor: '#ff4d4f' }} />
+                </span>
+              ),
+              children: renderIssueList(groupedResults.bugs)
+            },
+            {
+              key: 'tasks',
+              label: (
+                <span>
+                  <CheckSquare size={14} style={{ marginRight: 4 }} />
+                  Tasks <Badge count={groupedResults.tasks.length} style={{ marginLeft: 8, backgroundColor: '#1890ff' }} />
+                </span>
+              ),
+              children: renderIssueList(groupedResults.tasks)
+            }
+          ]}
+        />
+      </Card>
 
       {/* Save Filter Modal */}
       <Modal

@@ -6,7 +6,7 @@ import { TemplateSelector } from './TemplateSelector';
 interface TemplateButtonProps {
   issueType: string;
   issueSummary: string;
-  onTemplateSelected: (description: string) => void;
+  onTemplateSelected: (description: string, templateId?: string) => void;
   projectId?: string;
   epicId?: string;
   disabled?: boolean;
@@ -56,8 +56,8 @@ export const TemplateButton: React.FC<TemplateButtonProps> = ({
         onClose={() => setShowTemplateSelector(false)}
         issueType={issueType}
         issueSummary={issueSummary}
-        onTemplateSelected={(description) => {
-          onTemplateSelected(description);
+        onTemplateSelected={(description, templateId) => {
+          onTemplateSelected(description, templateId);
           setTemplateUsed(true);
           setShowTemplateSelector(false);
         }}

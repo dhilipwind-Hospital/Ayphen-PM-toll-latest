@@ -7,7 +7,7 @@ import { ContextMenu } from '../components/ContextMenu';
 import { QuickFilters } from '../components/QuickFilters';
 import { BulkActionsToolbar } from '../components/BulkActionsToolbar';
 import { SavedViewsDropdown } from '../components/SavedViewsDropdown';
-import { bulkOperationsApi, boardViewsApi } from '../services/api';
+import { bulkOperationsApi, boardViewsApi, sprintsApi } from '../services/api';
 import { DndContext, useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent, pointerWithin } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -133,15 +133,14 @@ const IssueList = styled.div`
   padding: 4px;
 `;
 
-const StyledIssueCard = styled(GlassCard)<{ isDragging?: boolean; type: string; isStarred?: boolean; isSelected?: boolean }>`
+const StyledIssueCard = styled(GlassCard) <{ isDragging?: boolean; type: string; isStarred?: boolean; isSelected?: boolean }>`
   margin-bottom: 0; /* Gap handled by flex container */
   cursor: ${props => props.isDragging ? 'grabbing' : 'grab'};
   opacity: ${props => props.isDragging ? 0.8 : 1};
   border: ${props => props.isSelected ? `2px solid ${colors.primary[500]}` : `1px solid ${colors.glass.border}`};
-  border-left: 4px solid ${
-    props => props.type === 'epic' ? '#6554C0' :
-             props.type === 'story' ? '#0052CC' :
-             props.type === 'bug' ? '#DE350B' : '#0052CC'
+  border-left: 4px solid ${props => props.type === 'epic' ? '#6554C0' :
+    props.type === 'story' ? '#0052CC' :
+      props.type === 'bug' ? '#DE350B' : '#0052CC'
   };
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
@@ -161,7 +160,7 @@ const CardHeader = styled.div`
   margin-bottom: 4px;
 `;
 
-const StarIcon = styled(Star)<{ isStarred: boolean }>`
+const StarIcon = styled(Star) <{ isStarred: boolean }>`
   width: 14px;
   height: 14px;
   cursor: pointer;
@@ -276,7 +275,9 @@ interface SortableIssueProps {
   isSelected?: boolean;
 }
 
-const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onClick, onContextMenu, isSelected = false }) => {
+// --- Memoized Components ---
+
+const SortableIssue = React.memo<SortableIssueProps>(({ issue, onClick, onContextMenu, isSelected = false }) => {
   const [isStarred, setIsStarred] = useState(false);
   const {
     attributes,
@@ -380,7 +381,12 @@ const SortableIssue: React.FC<SortableIssueProps> = ({ issue, onClick, onContext
       </div>
     </StyledIssueCard>
   );
-};
+}, (prev, next) => {
+  return prev.issue.id === next.issue.id &&
+    prev.issue.status === next.issue.status &&
+    prev.isSelected === next.isSelected &&
+    JSON.stringify(prev.issue) === JSON.stringify(next.issue); // Deep check if needed, or stick to shallow
+});
 
 interface DroppableColumnProps {
   status: string;
@@ -393,7 +399,7 @@ interface DroppableColumnProps {
   wipLimit?: number;
 }
 
-const DroppableColumn: React.FC<DroppableColumnProps> = ({ status, title, issues, onIssueClick, onCardSelect, selectedIssues, onContextMenu, wipLimit }) => {
+const DroppableColumn = React.memo<DroppableColumnProps>(({ status, title, issues, onIssueClick, onCardSelect, selectedIssues, onContextMenu, wipLimit }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
@@ -408,8 +414,8 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ status, title, issues
         <ColumnHeaderLeft>
           <StatusDot status={status} />
           <ColumnTitle>{title}</ColumnTitle>
-          <IssueCount 
-            isNearLimit={isNearLimit} 
+          <IssueCount
+            isNearLimit={isNearLimit}
             isOverLimit={isOverLimit}
             title={wipLimit ? `${issueCount}/${wipLimit} (WIP limit ${wipLimit})` : `${issueCount} issues`}
           >
@@ -442,7 +448,7 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ status, title, issues
       </IssueList>
     </Column>
   );
-};
+});
 
 export const BoardView: React.FC = () => {
   const navigate = useNavigate();
@@ -452,7 +458,7 @@ export const BoardView: React.FC = () => {
   const [filterPriority, setFilterPriority] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [settingsVisible, setSettingsVisible] = useState(false);
-  
+
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
@@ -460,19 +466,20 @@ export const BoardView: React.FC = () => {
     y: number;
     issue: any;
   }>({ visible: false, x: 0, y: 0, issue: null });
-  
+
   // Quick filters state
   const [quickFilters, setQuickFilters] = useState<string[]>([]);
-  
+
   // Bulk operations state
   const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
-  
+
   // Swimlanes state
   const [groupBy, setGroupBy] = useState<'none' | 'epic' | 'assignee' | 'priority'>('none');
-  
+
   // Saved views state
   const [savedViews, setSavedViews] = useState<any[]>([]);
   const [currentView, setCurrentView] = useState<any>(null);
+  const [activeSprint, setActiveSprint] = useState<any>(null);
 
   const [columns, setColumns] = useState([
     { id: 'backlog', title: 'Backlog', statuses: ['backlog'], wipLimit: undefined, color: '#8c8c8c' },
@@ -494,18 +501,27 @@ export const BoardView: React.FC = () => {
   useEffect(() => {
     if (currentProject) {
       loadIssues();
+      loadActiveSprint();
     }
   }, [currentProject]);
+
+  const loadActiveSprint = async () => {
+    try {
+      const res = await sprintsApi.getAll(currentProject?.id);
+      const active = res.data.find((s: any) => s.status === 'active');
+      setActiveSprint(active);
+    } catch (e) { console.error('Failed to load sprints', e); }
+  };
 
   const loadIssues = async () => {
     if (!currentProject) {
       setIssues([]);
       return;
     }
-    
+
     try {
       const response = await axios.get(`${API_URL}/issues`, {
-        params: { 
+        params: {
           projectId: currentProject.id,
           userId: currentUser?.id || localStorage.getItem('userId')
         }
@@ -675,39 +691,55 @@ export const BoardView: React.FC = () => {
   // Quick filter logic - MUST be defined before getFilteredIssues
   const applyQuickFilters = (issuesList: any[]) => {
     let filtered = issuesList;
-    
+
     if (quickFilters.includes('my-issues') && currentUser) {
       filtered = filtered.filter(i => i.assigneeId === currentUser.id);
     }
-    
+
     if (quickFilters.includes('blocked')) {
-      filtered = filtered.filter(i => 
+      filtered = filtered.filter(i =>
         i.status === 'blocked' || i.labels?.includes('blocked')
       );
     }
-    
+
     if (quickFilters.includes('overdue')) {
       const today = new Date();
-      filtered = filtered.filter(i => 
+      filtered = filtered.filter(i =>
         i.dueDate && new Date(i.dueDate) < today
       );
     }
-    
+
     if (quickFilters.includes('unassigned')) {
       filtered = filtered.filter(i => !i.assigneeId);
     }
-    
+
     if (quickFilters.includes('high-priority')) {
-      filtered = filtered.filter(i => 
+      filtered = filtered.filter(i =>
         i.priority === 'high' || i.priority === 'highest'
       );
     }
-    
+
     return filtered;
   };
 
   const getFilteredIssues = () => {
     let filtered = issues;
+
+    // Scrum Board Logic:
+    // If we are in a Scrum project, only show issues from the Active Sprint.
+    if (currentProject?.type === 'scrum') {
+      if (activeSprint) {
+        filtered = filtered.filter(i => i.sprintId === activeSprint.id);
+      } else {
+        // No active sprint? Show empty or maybe Backlog?
+        // Standard Jira: Shows "Start a sprint" placeholder.
+        // For now, return empty to simulate "Board is empty".
+        // We could conditionally render a "Start Sprint" message in the UI instead of filtering here,
+        // but filtering is safer to ensure no arbitrary issues appear.
+        // But let's allow "done" issues from recent sprints? No, strict active sprint.
+        filtered = [];
+      }
+    }
 
     if (filterType.length > 0) {
       filtered = filtered.filter(i => filterType.includes(i.type.toLowerCase()));
@@ -730,7 +762,7 @@ export const BoardView: React.FC = () => {
   const filteredIssues = getFilteredIssues();
 
   const getIssuesByStatus = (columnStatuses: string[]) => {
-    return filteredIssues.filter(issue => 
+    return filteredIssues.filter(issue =>
       columnStatuses.includes(issue.status)
     );
   };
@@ -799,7 +831,7 @@ export const BoardView: React.FC = () => {
   // Saved views handlers
   const handleSaveView = async (name: string) => {
     if (!currentUser) return;
-    
+
     try {
       const viewData = {
         userId: currentUser.id,
@@ -813,7 +845,7 @@ export const BoardView: React.FC = () => {
         groupBy,
         isDefault: false,
       };
-      
+
       const res = await boardViewsApi.create(viewData);
       setSavedViews([...savedViews, res.data]);
       setCurrentView(res.data);
@@ -865,11 +897,11 @@ export const BoardView: React.FC = () => {
   if (!currentProject) {
     return (
       <Container>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           height: '60vh',
           gap: '16px'
         }}>
@@ -937,19 +969,30 @@ export const BoardView: React.FC = () => {
         onDragEnd={handleDragEnd}
       >
         <BoardContainer>
-          {columns.map((column) => (
-            <DroppableColumn
-              key={column.id}
-              status={column.id}
-              title={column.title}
-              issues={getIssuesByStatus(column.statuses)}
-              onIssueClick={handleIssueClick}
-              onCardSelect={handleCardSelect}
-              selectedIssues={selectedIssues}
-              onContextMenu={handleContextMenu}
-              wipLimit={column.wipLimit}
-            />
-          ))}
+          {(currentProject?.type === 'scrum' && !activeSprint) ? (
+            <div style={{ width: '100%', padding: '60px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.5)', borderRadius: 12 }}>
+              <Layers size={48} color={colors.text.tertiary} style={{ marginBottom: 16 }} />
+              <h3 style={{ color: colors.text.primary, marginBottom: 8 }}>No Active Sprint</h3>
+              <p style={{ color: colors.text.secondary, marginBottom: 24 }}>Start a sprint in the backlog to view issues here.</p>
+              <Button type="primary" onClick={() => navigate(`/project/${currentProject.id}/backlog`)}>
+                Go to Backlog
+              </Button>
+            </div>
+          ) : (
+            columns.map((column) => (
+              <DroppableColumn
+                key={column.id}
+                status={column.id}
+                title={column.title}
+                issues={getIssuesByStatus(column.statuses)}
+                onIssueClick={handleIssueClick}
+                onCardSelect={handleCardSelect}
+                selectedIssues={selectedIssues}
+                onContextMenu={handleContextMenu}
+                wipLimit={column.wipLimit}
+              />
+            ))
+          )}
         </BoardContainer>
       </DndContext>
 

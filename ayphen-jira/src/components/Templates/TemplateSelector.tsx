@@ -48,7 +48,7 @@ interface TemplateSelectorProps {
   onClose: () => void;
   issueType: string;
   issueSummary: string;
-  onTemplateSelected: (description: string) => void;
+  onTemplateSelected: (description: string, templateId?: string) => void;
   projectId?: string;
   epicId?: string;
 }
@@ -68,7 +68,7 @@ const TemplateGrid = styled.div`
   padding: 8px;
 `;
 
-const TemplateCard = styled(Card)<{ selected: boolean }>`
+const TemplateCard = styled(Card) <{ selected: boolean }>`
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid ${props => props.selected ? '#1890ff' : '#f0f0f0'};
@@ -268,7 +268,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       );
 
       const filledTemplate: FilledTemplate = response.data.filledTemplate;
-      onTemplateSelected(filledTemplate.fullDescription);
+      onTemplateSelected(filledTemplate.fullDescription, selectedTemplate.id);
       message.success('Template filled successfully!');
       onClose();
     } catch (error: any) {
@@ -310,7 +310,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               const structure = selectedTemplate.sections
                 .map(s => `## ${s.title}\n\n${s.defaultValue || s.placeholder}\n`)
                 .join('\n');
-              onTemplateSelected(structure);
+              onTemplateSelected(structure, selectedTemplate.id);
               onClose();
             }
           }}

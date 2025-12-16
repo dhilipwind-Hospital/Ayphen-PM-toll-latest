@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress } from 'antd';
 import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
-import { commentsApi, issuesApi, projectMembersApi, historyApi } from '../../services/api';
+import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi } from '../../services/api';
 import { colors } from '../../theme/colors';
 import { CreateIssueModal } from '../CreateIssueModal';
 import { IssueLinkModal } from './IssueLinkModal';
 import { IssueRightSidebar } from './Sidebar/IssueRightSidebar';
 import { VoiceDescriptionButton } from '../VoiceDescription/VoiceDescriptionButton';
+import { IssueBreadcrumbs } from '../common/IssueBreadcrumbs';
 
 const { TextArea } = Input;
 
@@ -239,9 +241,21 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [comments, setComments] = useState<any[]>([]);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [subtasks, setSubtasks] = useState<any[]>([]);
-  const [linkedIssues, setLinkedIssues] = useState<any[]>([]);
+  // const [linkedIssues, setLinkedIssues] = useState<any[]>([]); // Replaced by React Query
   const [history, setHistory] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+
+  const queryClient = useQueryClient();
+
+  const { data: linkedIssues = [] } = useQuery({
+    queryKey: ['issue-links', issue?.id],
+    queryFn: async () => {
+      const res = await issueLinksApi.getByIssue(issue.id);
+      return res.data;
+    },
+    enabled: !!issue?.id,
+    staleTime: 1000 * 60 * 2
+  });
 
   // Edit States
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -284,7 +298,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
       loadAttachments(res.data.id);
       loadSubtasks(res.data.id);
-      loadLinkedIssues(res.data.id);
+      // loadLinkedIssues(res.data.id); // Handled by React Query
 
     } catch (error) {
       message.error('Failed to load issue');
@@ -319,36 +333,27 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     }
   };
 
-  const loadLinkedIssues = async (issueId: string) => {
-    try {
-      const linkRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/issue/${issueId}`);
-      if (linkRes.ok) {
-        setLinkedIssues(await linkRes.json());
-      } else {
-        setLinkedIssues([]);
-      }
-    } catch (e) {
-      setLinkedIssues([]);
-    }
-  };
+
+
+  // loadLinkedIssues removed - using React Query
 
   const handleUpdate = async (field: string, value: any) => {
     try {
       const oldValue = issue[field];
       setIssue((prev: any) => ({ ...prev, [field]: value }));
-      
+
       // Include userId to properly record history
       const userId = localStorage.getItem('userId') || issue.reporterId;
-      await issuesApi.update(issue.id, { 
+      await issuesApi.update(issue.id, {
         [field]: value,
         userId,
         // Send old value for history tracking
         _oldValue: oldValue,
         _fieldChanged: field
       });
-      
+
       message.success('Updated');
-      
+
       // Reload history to show the change
       const historyRes = await historyApi.getByIssue(issue.id);
       setHistory(historyRes.data || []);
@@ -379,7 +384,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   const handleFileUpload = async () => {
     if (fileList.length === 0 || isUploading) return;
-    
+
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -397,7 +402,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         setFileList([]);
         setUploadModalVisible(false);
         loadAttachments(issue.id);
-        
+
         // Reload history to show attachment upload
         const historyRes = await historyApi.getByIssue(issue.id);
         setHistory(historyRes.data || []);
@@ -427,6 +432,20 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Button icon={<ArrowLeft size={20} color="#424242" />} type="text" onClick={() => onClose ? onClose() : navigate(-1)} style={{ marginRight: 24, padding: 0 }} />
             <IssueKeyBadge>{issue.key}</IssueKeyBadge>
+            {issue.creationMetadata?.method === 'ai' && (
+              <Tooltip title="Created with AI Assistance">
+                <div style={{ marginLeft: 8, background: '#F3E8FF', color: '#9333EA', padding: '4px 8px', borderRadius: 4, display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600 }}>
+                  🤖 AI
+                </div>
+              </Tooltip>
+            )}
+            {issue.creationMetadata?.method === 'template' && (
+              <Tooltip title="Created from Template">
+                <div style={{ marginLeft: 8, background: '#E0F2FE', color: '#0284C7', padding: '4px 8px', borderRadius: 4, display: 'flex', alignItems: 'center', fontSize: 12, fontWeight: 600 }}>
+                  📋 Template
+                </div>
+              </Tooltip>
+            )}
 
             {isEditingTitle ? (
               <Input
@@ -441,9 +460,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <HeaderTitle onClick={() => setIsEditingTitle(true)}>{issue.summary}</HeaderTitle>
                 <Tooltip title="Edit Title">
-                  <Button 
-                    type="text" 
-                    icon={<Pencil size={16} color="#E91E63" />} 
+                  <Button
+                    type="text"
+                    icon={<Pencil size={16} color="#E91E63" />}
                     onClick={() => setIsEditingTitle(true)}
                     style={{ padding: 4 }}
                   />
@@ -462,6 +481,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         </StickyHeader>
 
         <ContentWrapper>
+          <IssueBreadcrumbs issueIdOrKey={issueKey} />
 
           {/* Description Section */}
           <Section>
@@ -487,9 +507,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   rows={12}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
-                  style={{ 
-                    marginBottom: 12, 
-                    width: '100%', 
+                  style={{
+                    marginBottom: 12,
+                    width: '100%',
                     minHeight: 200,
                     fontSize: 14,
                     lineHeight: 1.6,
@@ -502,8 +522,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 />
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <Button onClick={() => setIsEditingDescription(false)}>Cancel</Button>
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     style={{ background: '#E91E63', borderColor: '#E91E63' }}
                     onClick={() => {
                       handleUpdate('description', descriptionInput);
@@ -534,11 +554,11 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 <ListTodo size={16} style={{ marginRight: 8, color: '#E91E63' }} />
                 {issue.type === 'epic' ? 'Child Issues' : 'Subtasks'} ({subtasks.length})
               </SectionTitle>
-              <Button 
-                size="small" 
-                type="text" 
-                icon={<Plus size={14} />} 
-                onClick={() => setCreateSubtaskModalVisible(true)} 
+              <Button
+                size="small"
+                type="text"
+                icon={<Plus size={14} />}
+                onClick={() => setCreateSubtaskModalVisible(true)}
                 style={{ color: '#E91E63', fontSize: 13, fontWeight: 500 }}
               >
                 Add {issue.type === 'epic' ? 'Issue' : 'Subtask'}
@@ -548,30 +568,30 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             {subtasks.length > 0 ? (
               <ContentBox>
                 {subtasks.map(sub => (
-                  <div 
-                    key={sub.id} 
-                    onClick={() => navigate(`/issue/${sub.key}`)} 
-                    style={{ 
-                      padding: '12px 0', 
-                      borderBottom: `1px solid ${colors.border.light}`, 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      cursor: 'pointer', 
-                      alignItems: 'center' 
+                  <div
+                    key={sub.id}
+                    onClick={() => navigate(`/issue/${sub.key}`)}
+                    style={{
+                      padding: '12px 0',
+                      borderBottom: `1px solid ${colors.border.light}`,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      alignItems: 'center'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      {sub.type === 'bug' ? <Bug size={14} color="#EF4444" /> : 
-                       sub.type === 'story' ? <BookOpen size={14} color="#10B981" /> : 
-                       sub.type === 'task' ? <CheckSquare size={14} color="#3B82F6" /> : 
-                       <ListTodo size={14} color="#8B5CF6" />}
+                      {sub.type === 'bug' ? <Bug size={14} color="#EF4444" /> :
+                        sub.type === 'story' ? <BookOpen size={14} color="#10B981" /> :
+                          sub.type === 'task' ? <CheckSquare size={14} color="#3B82F6" /> :
+                            <ListTodo size={14} color="#8B5CF6" />}
                       <span style={{ fontWeight: 500, color: '#E91E63' }}>{sub.key}</span>
                       <span style={{ color: colors.text.primary }}>{sub.summary}</span>
                     </div>
-                    <span style={{ 
-                      fontSize: 11, 
-                      padding: '2px 8px', 
-                      borderRadius: 4, 
+                    <span style={{
+                      fontSize: 11,
+                      padding: '2px 8px',
+                      borderRadius: 4,
                       background: sub.status === 'done' ? '#D1FAE5' : sub.status === 'in-progress' ? '#DBEAFE' : '#F3F4F6',
                       color: sub.status === 'done' ? '#059669' : sub.status === 'in-progress' ? '#2563EB' : '#6B7280'
                     }}>
@@ -610,7 +630,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                       <span style={{ color: colors.text.primary }}>{l.targetIssue?.summary}</span>
                     </div>
                     <Tooltip title="Remove Link">
-                      <Button type="text" danger icon={<Trash2 size={14} />} onClick={async (e) => { e.stopPropagation(); try { await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issue-links/${l.id}`, { method: 'DELETE' }); message.success('Link removed'); loadLinkedIssues(issue.id); } catch (e) { message.error('Failed to remove'); } }} />
+                      <Button type="text" danger icon={<Trash2 size={14} />} onClick={async (e) => { e.stopPropagation(); try { await issueLinksApi.delete(l.id); message.success('Link removed'); queryClient.invalidateQueries({ queryKey: ['issue-links', issue.id] }); } catch (e) { message.error('Failed to remove'); } }} />
                     </Tooltip>
                   </div>
                 ))}
@@ -688,9 +708,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                 <div style={{ fontSize: 12, marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.originalName}</div>
                                 <div style={{ display: 'flex', gap: 8 }}>
                                   <Tooltip title="Download">
-                                    <Button 
-                                      size="small" 
-                                      type="text" 
+                                    <Button
+                                      size="small"
+                                      type="text"
                                       icon={<Download size={14} />}
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -700,9 +720,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                     />
                                   </Tooltip>
                                   <Tooltip title="Delete">
-                                    <Button 
-                                      size="small" 
-                                      type="text" 
+                                    <Button
+                                      size="small"
+                                      type="text"
                                       danger
                                       icon={<Trash2 size={14} />}
                                       onClick={async (e) => {
@@ -757,10 +777,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       />
 
       {/* Modals & Hidden Logic */}
-      <Modal 
-        open={uploadModalVisible} 
-        title="Upload Attachments" 
-        onOk={handleFileUpload} 
+      <Modal
+        open={uploadModalVisible}
+        title="Upload Attachments"
+        onOk={handleFileUpload}
         onCancel={() => !isUploading && setUploadModalVisible(false)}
         okText={isUploading ? 'Uploading...' : 'Upload'}
         okButtonProps={{ loading: isUploading, disabled: fileList.length === 0 || isUploading }}
@@ -801,10 +821,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         sourceIssueId={issue.id}
         projectId={issue.projectId}
         onSuccess={async () => {
-          message.success('Issue linked');
-          await new Promise(resolve => setTimeout(resolve, 500));
-          await loadLinkedIssues(issue.id);
-          loadIssueData();
+          queryClient.invalidateQueries({ queryKey: ['issue-links', issue.id] });
         }}
       />
 

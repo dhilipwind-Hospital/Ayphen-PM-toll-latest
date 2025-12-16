@@ -114,6 +114,12 @@ export interface Issue {
   voters: string[]; // user IDs
   environment?: string;
   updatedBy?: string; // User ID who last updated
+  creationMetadata?: {
+    method: 'ai' | 'template' | 'manual';
+    templateId?: string;
+    aiPrompt?: string;
+  };
+  listPosition?: number;
 }
 
 export interface Board {

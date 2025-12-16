@@ -25,6 +25,9 @@ export class Issue {
   @Column()
   priority: string; // highest, high, medium, low, lowest
 
+  @Column({ type: 'float', default: 0 })
+  listPosition: number;
+
   @ManyToOne(() => Project)
   @JoinColumn({ name: 'projectId' })
   project: Project;
@@ -63,13 +66,13 @@ export class Issue {
 
   @Column({ nullable: true })
   epicKey: string | null; // JIRA-style epic key: PROJ-100
-  
+
   @Column({ type: 'timestamp', nullable: true })
   startDate: Date; // For epics: roadmap start date
-  
+
   @Column({ type: 'timestamp', nullable: true })
   endDate: Date; // For epics: roadmap end date
-  
+
   @Column({ type: 'simple-json', nullable: true })
   dependencies: string[]; // Epic dependencies: array of epic IDs
 
@@ -126,9 +129,16 @@ export class Issue {
 
   @Column({ type: 'timestamp', nullable: true })
   flaggedAt: Date | null;
-  
+
   @Column({ nullable: true })
   flaggedBy: string | null;
+
+  @Column({ type: 'simple-json', nullable: true })
+  creationMetadata: {
+    method: 'ai' | 'template' | 'manual';
+    templateId?: string;
+    aiPrompt?: string;
+  };
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Button, Tag, Avatar, Badge, Tooltip, message, Dropdown } from 'antd';
+import { Card, Button, Tag, Avatar, Badge, Tooltip, message, Dropdown, Modal } from 'antd';
 import { Plus, MoreHorizontal, GripVertical, Bug, BookOpen, CheckSquare, Zap, X } from 'lucide-react';
-import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay, DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useStore } from '../store/useStore';
@@ -13,6 +14,7 @@ import { sprintsApi, issuesApi } from '../services/api';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { StartSprintModal } from '../components/Sprint/StartSprintModal';
 import { IssueDetailPanel } from '../components/IssueDetail/IssueDetailPanel';
+
 
 // --- Styled Components ---
 
@@ -129,7 +131,9 @@ const IssueItemContainer = styled.div<{ isDragging?: boolean; isSelected?: boole
 
 // --- Sortable Components ---
 
-const SortableIssueItem = ({ issue, onClick, isSelected }: { issue: any, onClick: () => void, isSelected?: boolean }) => {
+// --- Memoized Components ---
+
+const SortableIssueItem = React.memo(({ issue, onClick, isSelected }: { issue: any, onClick: () => void, isSelected?: boolean }) => {
   const {
     attributes,
     listeners,
@@ -184,9 +188,14 @@ const SortableIssueItem = ({ issue, onClick, isSelected }: { issue: any, onClick
       </IssueItemContainer>
     </div>
   );
-};
+}, (prev, next) => {
+  return prev.issue.id === next.issue.id &&
+    prev.isSelected === next.isSelected &&
+    prev.issue.listPosition === next.issue.listPosition &&
+    prev.issue.sprintId === next.issue.sprintId;
+});
 
-const DroppableSprint = ({ sprintId, issues, selectedIssueId, onIssueClick }: { sprintId: string, issues: any[], selectedIssueId: string | null, onIssueClick: (key: string) => void }) => {
+const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssueClick }: { sprintId: string, issues: any[], selectedIssueId: string | null, onIssueClick: (key: string) => void }) => {
   const { setNodeRef } = useDroppable({
     id: sprintId,
     data: { type: 'sprint', sprintId }
@@ -213,7 +222,7 @@ const DroppableSprint = ({ sprintId, issues, selectedIssueId, onIssueClick }: { 
       </SortableContext>
     </div>
   );
-};
+});
 
 export const BacklogView: React.FC = () => {
   const navigate = useNavigate();
@@ -240,9 +249,12 @@ export const BacklogView: React.FC = () => {
   const loadData = async () => {
     try {
       if (!currentProject) return;
-      setSprints(currentProject.id);
+      const sprintRes = await sprintsApi.getAll(currentProject.id);
+      setSprints(sprintRes.data);
       const res = await issuesApi.getByProject(currentProject.id);
-      setIssues(res.data);
+      // Sort by listPosition
+      const sortedIssues = res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0));
+      setIssues(sortedIssues);
     } catch (e) { message.error('Failed to load backlog'); }
   };
 
@@ -250,28 +262,121 @@ export const BacklogView: React.FC = () => {
     const { active, over } = event;
     if (!over) return;
 
-    const issueId = active.id as string;
-    const targetId = over.id as string;
+    const activeId = active.id as string;
+    const overId = over.id as string;
 
-    if (active.id === over.id) return;
+    // Find source and destination containers (sprint IDs or 'backlog')
+    const activeIssue = issues.find(i => i.id === activeId);
+    if (!activeIssue) return;
 
-    let newSprintId = null;
-    if (targetId !== 'backlog') {
-      const sprint = sprints.find(s => s.id === targetId);
-      if (sprint) newSprintId = sprint.id;
-      else {
-        const targetIssue = issues.find(i => i.id === targetId);
-        if (targetIssue) newSprintId = targetIssue.sprintId;
-      }
+    let newSprintId = activeIssue.sprintId;
+    let overIssue = issues.find(i => i.id === overId);
+
+    // Determine target container
+    // If overId is a container (sprint or 'backlog')
+    if (overId === 'backlog') newSprintId = null;
+    else if (sprints.find(s => s.id === overId)) newSprintId = overId;
+    else if (overIssue) newSprintId = overIssue.sprintId; // Dropped on an issue
+
+    // Optimistic Update
+    const oldIndex = issues.findIndex(i => i.id === activeId);
+    const newIndex = issues.findIndex(i => i.id === overId);
+
+    let newIssues = [...issues];
+
+    // Update Sprint ID first
+    if (activeIssue.sprintId !== newSprintId) {
+      newIssues = newIssues.map(i => i.id === activeId ? { ...i, sprintId: newSprintId } : i);
     }
 
-    setIssues(prev => prev.map(i => i.id === issueId ? { ...i, sprintId: newSprintId } : i));
-    await issuesApi.update(issueId, { sprintId: newSprintId });
+    // If reordering (moved to different position)
+    if (activeId !== overId && overIssue) {
+      newIssues = arrayMove(newIssues, oldIndex, newIndex);
+    }
+
+    // Calculate new position
+    // Get all issues in the destination container (sorted by current displayed order in newIssues)
+    const destIssues = newIssues.filter(i => (newSprintId ? i.sprintId === newSprintId : !i.sprintId));
+    const movedIssueIndex = destIssues.findIndex(i => i.id === activeId);
+
+    let newListPosition = 0;
+    const prevIssue = destIssues[movedIssueIndex - 1];
+    const nextIssue = destIssues[movedIssueIndex + 1];
+
+    if (!prevIssue && !nextIssue) {
+      newListPosition = 10000;
+    } else if (!prevIssue) {
+      newListPosition = (nextIssue.listPosition || 0) / 2;
+    } else if (!nextIssue) {
+      newListPosition = (prevIssue.listPosition || 0) + 10000;
+    } else {
+      newListPosition = ((prevIssue.listPosition || 0) + (nextIssue.listPosition || 0)) / 2;
+    }
+
+    // Update state with final position
+    newIssues = newIssues.map(i => i.id === activeId ? { ...i, listPosition: newListPosition } : i);
+
+    setIssues(newIssues);
+
+    // Persist
+    try {
+      await issuesApi.update(activeId, { sprintId: newSprintId, listPosition: newListPosition });
+    } catch (e) {
+      message.error('Failed to move issue');
+      loadData(); // Revert on error
+    }
   };
 
   const activeSprints = sprints.filter(s => s.status === 'active');
   const futureSprints = sprints.filter(s => s.status === 'future');
   const backlogIssues = issues.filter(i => !i.sprintId);
+
+  const handleCreateSprint = async () => {
+    if (!currentProject) return;
+    try {
+      // Basic next name logic
+      const nextNum = sprints.length + 1;
+      const name = `${currentProject.key} Sprint ${nextNum}`;
+
+      await sprintsApi.create({
+        name,
+        projectId: currentProject.id,
+        status: 'future'
+      });
+      message.success('Sprint created');
+      // Reload sprints
+      const sprintRes = await sprintsApi.getAll(currentProject.id);
+      setSprints(sprintRes.data);
+    } catch (e) {
+      message.error('Failed to create sprint');
+    }
+  };
+
+  const handleCompleteSprint = (sprint: any) => {
+    Modal.confirm({
+      title: `Complete ${sprint.name}`,
+      content: 'This will close the sprint. All incomplete issues will be moved to the backlog.',
+      okText: 'Complete Sprint',
+      okType: 'primary',
+      onOk: async () => {
+        try {
+          // Identify incomplete issues
+          const incompleteIssues = issues
+            .filter(i => i.sprintId === sprint.id && i.status !== 'done')
+            .map(i => ({ issueId: i.id, action: 'backlog' }));
+
+          await sprintsApi.complete(sprint.id, {
+            incompleteIssues, // Send explicit list
+            rolloverTo: 'backlog' // Fallback/Metadata
+          });
+          message.success(`${sprint.name} completed`);
+          loadData();
+        } catch (e) {
+          message.error('Failed to complete sprint');
+        }
+      }
+    });
+  };
 
   return (
     <Container>
@@ -292,10 +397,10 @@ export const BacklogView: React.FC = () => {
               <SprintHeader>
                 <SprintInfo>
                   <SprintName>{sprint.name}</SprintName>
-                  <SprintMeta>{sprint.status === 'active' ? 'Active • ' : ''}{sprint.goal || Math.floor(Math.random() * 5) + ' issues'}</SprintMeta>
+                  <SprintMeta>{sprint.status === 'active' ? 'Active • ' : ''}{sprint.goal || `${issues.filter(i => i.sprintId === sprint.id).length} issues`}</SprintMeta>
                 </SprintInfo>
                 {sprint.status === 'future' && <Button size="small" onClick={() => { setSelectedSprint(sprint); setIsStartSprintModalOpen(true); }}>Start Sprint</Button>}
-                {sprint.status === 'active' && <Button size="small" type="primary" ghost>Complete Sprint</Button>}
+                {sprint.status === 'active' && <Button size="small" type="primary" ghost onClick={() => handleCompleteSprint(sprint)}>Complete Sprint</Button>}
               </SprintHeader>
             }>
               <DroppableSprint
@@ -310,7 +415,7 @@ export const BacklogView: React.FC = () => {
           {/* Backlog */}
           <SprintCard title={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <span style={{ fontWeight: 600 }}>Backlog ({backlogIssues.length} issues)</span>
-            <Button size="small" onClick={() => { /* Create Sprint Logic */ }}>Create Sprint</Button>
+            <Button size="small" onClick={handleCreateSprint}>Create Sprint</Button>
           </div>}>
             <DroppableSprint
               sprintId="backlog"

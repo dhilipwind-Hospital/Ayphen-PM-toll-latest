@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Input, Select, Button, Tag, Avatar, Tabs, Upload, message, Modal, Tooltip } from 'antd';
-import { Edit, Paperclip, Calendar, Clock, Flag, Link, User, Trash2, Eye, Download, ArrowLeft } from 'lucide-react';
+import { Form, Input, Select, Button, Tag, Avatar, Tabs, Upload, message, Modal, Tooltip, Progress } from 'antd';
+import { Edit, Paperclip, Calendar, Clock, Flag, Link, User, Trash2, Eye, Download, ArrowLeft, Plus } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { issuesApi, commentsApi, historyApi, projectsApi } from '../services/api';
@@ -13,7 +13,8 @@ import { AutoTagButton } from '../components/AI/AutoTagButton';
 import { TestCaseGeneratorButton } from '../components/AI/TestCaseGeneratorButton';
 import { TestCaseList } from '../components/IssueDetail/TestCaseList';
 import { IssueLinkModal } from '../components/IssueDetail/IssueLinkModal';
-import { IssueBreadcrumbs } from '../components/IssueDetail/IssueBreadcrumbs';
+import { IssueBreadcrumbs } from '../components/common/IssueBreadcrumbs';
+import { CreateIssueModal } from '../components/CreateIssueModal';
 import { QuickActionsBar } from '../components/IssueDetail/QuickActionsBar';
 import { HierarchyTree } from '../components/IssueDetail/HierarchyTree';
 import { GlassCard, GlassPanel } from '../components/common/GlassPanel';
@@ -229,7 +230,7 @@ const SectionTitle = styled.h4`
 export const EpicDetailView: React.FC = () => {
   const { epicId } = useParams<{ epicId: string }>();
   const navigate = useNavigate();
-  
+
   const [issue, setIssue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
@@ -251,6 +252,7 @@ export const EpicDetailView: React.FC = () => {
   const [linkedIssues, setLinkedIssues] = useState<any[]>([]);
   const [childIssues, setChildIssues] = useState<any[]>([]);
   const [linkChildModalVisible, setLinkChildModalVisible] = useState(false);
+  const [createChildModalVisible, setCreateChildModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [project, setProject] = useState<any>(null);
 
@@ -261,6 +263,36 @@ export const EpicDetailView: React.FC = () => {
       loadIssueData();
     }
   }, [epicId]);
+
+  // Smart Nudge: Prompt to close Epic if all children are done
+  useEffect(() => {
+    if (issue && issue.type === 'epic' && issue.status !== 'done' && childIssues.length > 0) {
+      const allDone = childIssues.every((c: any) => c.status === 'done');
+      if (allDone) {
+        const key = `epic-complete-nudge-${issue.id}`;
+        if (!sessionStorage.getItem(key)) {
+          message.info({
+            content: (
+              <span>
+                🎉 All child issues are done!
+                <Button type="link" size="small" onClick={async () => {
+                  try {
+                    await issuesApi.update(issue.id, { status: 'done' });
+                    setIssue((prev: any) => ({ ...prev, status: 'done' }));
+                    message.success('Epic marked as Done');
+                  } catch (e) { message.error('Failed to update'); }
+                }}>
+                  Mark Epic as Done
+                </Button>
+              </span>
+            ),
+            duration: 8,
+          });
+          sessionStorage.setItem(key, 'shown');
+        }
+      }
+    }
+  }, [childIssues, issue]);
 
   const loadIssueData = async () => {
     try {
@@ -664,11 +696,12 @@ export const EpicDetailView: React.FC = () => {
 
       <div style={{ display: 'flex', gap: 24 }}>
         <MainContent>
+          {epicId && <IssueBreadcrumbs issueIdOrKey={epicId} />}
           <StyledGlassCard>
             <IssueHeader>
               <IssueTitleRow>
-                <Button 
-                  icon={<ArrowLeft size={16} />} 
+                <Button
+                  icon={<ArrowLeft size={16} />}
                   onClick={() => navigate(-1)}
                   type="text"
                   size="small"
@@ -679,7 +712,7 @@ export const EpicDetailView: React.FC = () => {
               </IssueTitleRow>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
                 <Tooltip title="Copy link to clipboard">
-                  <Button 
+                  <Button
                     icon={<Link size={16} />}
                     onClick={async () => {
                       const url = `${window.location.origin}/epic/${issue.id}`;
@@ -694,138 +727,200 @@ export const EpicDetailView: React.FC = () => {
               </div>
             </IssueHeader>
 
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <SectionTitle>Description</SectionTitle>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {editingDescription && (
-                    <VoiceDescriptionButton
-                      issueType={issue.type}
-                      issueSummary={issue.summary}
-                      projectId={issue.projectId}
-                      epicId={issue.epicId}
-                      parentIssueId={issue.parentId}
-                      currentDescription={descriptionValue}
-                      onTextGenerated={(text) => setDescriptionValue(text)}
-                    />
-                  )}
-                  {!editingDescription && (
-                    <Button size="small" icon={<Edit size={14} />} onClick={() => {
-                      setEditingDescription(true);
-                      setDescriptionValue(issue.description || '');
-                      generateAiSuggestions(issue.type, issue.summary);
-                    }}>Edit</Button>
-                  )}
-                </div>
-              </div>
-              {editingDescription ? (
-                <div>
-                  <Input.TextArea
-                    rows={8}
-                    value={descriptionValue}
-                    onChange={(e) => setDescriptionValue(e.target.value)}
-                    placeholder="Enter epic description with Vision, Goals, Scope, etc..."
-                    style={{ marginBottom: 8 }}
-                  />
-                  {aiSuggestions.length > 0 && (
-                    <div style={{ marginBottom: 8, padding: 8, background: '#f0f9ff', borderRadius: 4, border: '1px solid #bae6fd' }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: '#0284c7' }}>AI Suggestions:</div>
-                      {aiSuggestions.map((suggestion, idx) => (
-                        <div key={idx} style={{ fontSize: 12, padding: 4, cursor: 'pointer', borderRadius: 4 }} onClick={() => setDescriptionValue(suggestion)}>
-                          • Template {idx + 1}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <Button type="primary" onClick={async () => {
-                      try {
-                        await issuesApi.update(issue.id, { description: descriptionValue });
-                        setIssue({ ...issue, description: descriptionValue });
-                        setEditingDescription(false);
-                        message.success('Description updated');
-                      } catch (error) {
-                        message.error('Failed to update');
-                      }
-                    }}>Save</Button>
-                    <Button onClick={() => {
-                      setEditingDescription(false);
-                      setDescriptionValue('');
-                      setAiSuggestions([]);
-                    }}>Cancel</Button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{
-                  padding: 16,
-                  background: '#F9FAFB',
-                  borderRadius: 8,
-                  border: '1px solid rgba(244, 114, 182, 0.1)',
-                  cursor: 'pointer'
-                }} onClick={() => {
-                  setEditingDescription(true);
-                  setDescriptionValue(issue.description || '');
-                  generateAiSuggestions(issue.type, issue.summary);
-                }}>
-                  <MarkdownContent>
-                    <ReactMarkdown>
-                      {issue.description || '*No description provided. Click to add Vision, Goals, Scope, and Success Criteria.*'}
-                    </ReactMarkdown>
-                  </MarkdownContent>
-                </div>
-              )}
-            </div>
-
-            {/* Child Issues Section */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <SectionTitle>Linked Issues ({childIssues.length})</SectionTitle>
-                <Button size="small" icon={<Link size={14} />} onClick={async () => {
-                  // Load available issues first before opening modal
-                  try {
-                    const userId = localStorage.getItem('userId');
-                    const res = await issuesApi.getAll({ projectId: issue.projectId, userId: userId || undefined });
-                    setAvailableIssues(res.data.filter((i: any) =>
-                      i.id !== issue.id &&
-                      i.type !== 'epic' &&
-                      !i.epicLink
-                    ));
-                  } catch (error) {
-                    console.error('Failed to load issues:', error);
-                  }
-                  setLinkChildModalVisible(true);
-                }}>Link Issue</Button>
-              </div>
-              {childIssues.length === 0 ? (
-                <div style={{ padding: 16, background: '#f9fafb', borderRadius: 8, textAlign: 'center', color: '#6b7280' }}>
-                  No child issues. Link stories, bugs, or tasks to this epic.
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {childIssues.map((child: any) => (
-                    <div key={child.id} style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate(`/issue/${child.key}`)}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: '16px' }}>{getTypeIcon(child.type)}</span>
-                        <span style={{ fontWeight: 500 }}>{child.key}</span>
-                        <span>{child.summary}</span>
-                        <Tag color="blue">{child.status}</Tag>
+            <Tabs defaultActiveKey="overview" items={[
+              {
+                key: 'overview',
+                label: 'Overview',
+                children: (
+                  <div>
+                    {/* Progress Bar */}
+                    <div style={{ marginBottom: 24, padding: 20, background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <span style={{ fontWeight: 600, color: '#334155', fontSize: 15 }}>Epic Progress</span>
+                        <span style={{ color: '#64748B', fontWeight: 500 }}>
+                          {childIssues.filter((i: any) => i.status === 'done').length} of {childIssues.length} completed
+                        </span>
                       </div>
-                      <Button size="small" danger icon={<Trash2 size={14} />} onClick={async (e) => {
-                        e.stopPropagation();
-                        try {
-                          const userId = localStorage.getItem('userId') || issue.reporterId;
-                          await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/epics/${issue.id}/link/${child.id}?userId=${userId}`, { method: 'DELETE' });
-                          message.success('Child issue removed');
-                          loadIssueData();
-                        } catch (error) {
-                          message.error('Failed to remove');
-                        }
-                      }} />
+                      <Progress
+                        percent={childIssues.length ? Math.round((childIssues.filter((i: any) => i.status === 'done').length / childIssues.length) * 100) : 0}
+                        strokeColor={{ '0%': '#108ee9', '100%': '#87d068' }}
+                        strokeWidth={10}
+                      />
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+
+                    {/* Description Section */}
+                    <div style={{ marginBottom: 24 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <SectionTitle>Description</SectionTitle>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          {editingDescription && (
+                            <VoiceDescriptionButton
+                              issueType={issue.type}
+                              issueSummary={issue.summary}
+                              projectId={issue.projectId}
+                              epicId={issue.epicId}
+                              parentIssueId={issue.parentId}
+                              currentDescription={descriptionValue}
+                              onTextGenerated={(text) => setDescriptionValue(text)}
+                            />
+                          )}
+                          {!editingDescription && (
+                            <Button size="small" icon={<Edit size={14} />} onClick={() => {
+                              setEditingDescription(true);
+                              setDescriptionValue(issue.description || '');
+                              generateAiSuggestions(issue.type, issue.summary);
+                            }}>Edit</Button>
+                          )}
+                        </div>
+                      </div>
+                      {editingDescription ? (
+                        <div>
+                          <Input.TextArea
+                            rows={8}
+                            value={descriptionValue}
+                            onChange={(e) => setDescriptionValue(e.target.value)}
+                            placeholder="Enter epic description with Vision, Goals, Scope, etc..."
+                            style={{ marginBottom: 8 }}
+                          />
+                          {aiSuggestions.length > 0 && (
+                            <div style={{ marginBottom: 8, padding: 8, background: '#f0f9ff', borderRadius: 4, border: '1px solid #bae6fd' }}>
+                              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: '#0284c7' }}>AI Suggestions:</div>
+                              {aiSuggestions.map((suggestion, idx) => (
+                                <div key={idx} style={{ fontSize: 12, padding: 4, cursor: 'pointer', borderRadius: 4 }} onClick={() => setDescriptionValue(suggestion)}>
+                                  • Template {idx + 1}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <Button type="primary" onClick={async () => {
+                              try {
+                                await issuesApi.update(issue.id, { description: descriptionValue });
+                                setIssue({ ...issue, description: descriptionValue });
+                                setEditingDescription(false);
+                                message.success('Description updated');
+                              } catch (error) {
+                                message.error('Failed to update');
+                              }
+                            }}>Save</Button>
+                            <Button onClick={() => {
+                              setEditingDescription(false);
+                              setDescriptionValue('');
+                              setAiSuggestions([]);
+                            }}>Cancel</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{
+                          padding: 16,
+                          background: '#F9FAFB',
+                          borderRadius: 8,
+                          border: '1px solid rgba(244, 114, 182, 0.1)',
+                          cursor: 'pointer'
+                        }} onClick={() => {
+                          setEditingDescription(true);
+                          setDescriptionValue(issue.description || '');
+                          generateAiSuggestions(issue.type, issue.summary);
+                        }}>
+                          <MarkdownContent>
+                            <ReactMarkdown>
+                              {issue.description || '*No description provided. Click to add Vision, Goals, Scope, and Success Criteria.*'}
+                            </ReactMarkdown>
+                          </MarkdownContent>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              },
+              {
+                key: 'child-issues',
+                label: `Child Issues (${childIssues.length})`,
+                children: (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <div style={{ fontWeight: 600, color: '#475569' }}>Issues in this Epic</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <Button size="small" icon={<Link size={14} />} onClick={async () => {
+                          // Load available issues first before opening modal
+                          try {
+                            const userId = localStorage.getItem('userId');
+                            const res = await issuesApi.getAll({ projectId: issue.projectId, userId: userId || undefined });
+                            setAvailableIssues(res.data.filter((i: any) =>
+                              i.id !== issue.id &&
+                              i.type !== 'epic' &&
+                              !i.epicLink
+                            ));
+                          } catch (error) {
+                            console.error('Failed to load issues:', error);
+                          }
+                          setLinkChildModalVisible(true);
+                        }}>Link Existing Issue</Button>
+
+                        <Button size="small" type="primary" icon={<Plus size={14} />} onClick={() => setCreateChildModalVisible(true)}>
+                          Create Child Issue
+                        </Button>
+                      </div>
+                    </div>
+
+                    {childIssues.length === 0 ? (
+                      <div style={{ padding: 32, background: '#f9fafb', borderRadius: 8, textAlign: 'center', color: '#6b7280', border: '1px dashed #e2e8f0' }}>
+                        <p style={{ marginBottom: 16 }}>No child issues yet.</p>
+                        <Button type="primary" onClick={() => setCreateChildModalVisible(true)}>Create your first Story</Button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {childIssues.map((child: any) => (
+                          <div key={child.id} style={{ padding: 12, background: 'white', border: '1px solid #f0f0f0', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => navigate(`/issue/${child.key}`)}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <span style={{ fontSize: '16px' }}>{getTypeIcon(child.type)}</span>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <span style={{ fontWeight: 600, color: '#334155' }}>{child.key}</span>
+                                  <span style={{ color: '#64748B' }}>{child.summary}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                                  <Tag style={{ margin: 0, fontSize: 10, lineHeight: '18px' }} color="blue">{child.status}</Tag>
+                                  {child.assignee && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748B' }}>
+                                      <Avatar size={16} src={child.assignee.avatar}>{child.assignee.name[0]}</Avatar>
+                                      {child.assignee.name}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <Button size="small" danger type="text" icon={<Trash2 size={14} />} onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                const userId = localStorage.getItem('userId') || issue.reporterId;
+                                await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/epics/${issue.id}/link/${child.id}?userId=${userId}`, { method: 'DELETE' });
+                                message.success('Child issue removed');
+                                loadIssueData();
+                              } catch (error) {
+                                message.error('Failed to remove');
+                              }
+                            }} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              },
+              {
+                key: 'timeline',
+                label: 'Timeline',
+                children: (
+                  <div style={{ padding: 60, textAlign: 'center', color: '#999', background: '#F9FAFB', borderRadius: 12, border: '1px dashed #E2E8F0' }}>
+                    <Calendar size={48} style={{ marginBottom: 16, opacity: 0.2, color: '#334155' }} />
+                    <h3 style={{ color: '#334155' }}>Timeline View</h3>
+                    <p>Visualize your epic roadmap here.</p>
+                    <Tag color="purple">Coming Soon</Tag>
+                  </div>
+                )
+              }
+            ]} />
 
             {linkedIssues.length > 0 && (
               <div style={{ marginBottom: 16 }}>
@@ -1052,6 +1147,19 @@ export const EpicDetailView: React.FC = () => {
           </Modal>
         </Sidebar>
       </div>
-    </DetailContainer>
+      <CreateIssueModal
+        open={createChildModalVisible}
+        onClose={() => setCreateChildModalVisible(false)}
+        onSuccess={() => {
+          message.success('Child issue created');
+          loadIssueData();
+        }}
+        defaultType="story"
+        defaultValues={{
+          epicLink: issue?.id, // Pass ID to lock context
+          projectId: issue?.projectId
+        }}
+      />
+    </DetailContainer >
   );
 };
