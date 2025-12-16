@@ -74,7 +74,7 @@ class SocketService {
       // Only add if it belongs to current project (double check)
       if (currentProject && issue.projectId === currentProject.id) {
         addIssue(issue);
-        message.info(`New issue created: ${issue.key}`);
+        // Removed toast notification to prevent popup spam
       }
     });
 

@@ -84,64 +84,13 @@ export const NotificationSystem: React.FC = () => {
   const [isAiFiltering, setIsAiFiltering] = useState(false);
   const [useAiFilter, setUseAiFilter] = useState(false);
 
-  // Initial mock data
-  const initialNotifications: Notification[] = [
-    {
-      id: '1',
-      type: 'assignment',
-      title: 'New Issue Assigned',
-      message: 'You have been assigned to PROJ-123: Implement user dashboard',
-      user: 'John Doe',
-      timestamp: '5 minutes ago',
-      isRead: false,
-      issueKey: 'PROJ-123',
-      priority: 'high'
-    },
-    {
-      id: '2',
-      type: 'comment',
-      title: 'New Comment',
-      message: 'Jane Smith commented on PROJ-122: "Great work on the implementation!"',
-      user: 'Jane Smith',
-      timestamp: '15 minutes ago',
-      isRead: false,
-      issueKey: 'PROJ-122'
-    },
-    {
-      id: '3',
-      type: 'mention',
-      title: 'You were mentioned',
-      message: 'Mike Johnson mentioned you in PROJ-121: "Can you review this @you?"',
-      user: 'Mike Johnson',
-      timestamp: '1 hour ago',
-      isRead: true,
-      issueKey: 'PROJ-121'
-    },
-    {
-      id: '4',
-      type: 'status_change',
-      title: 'Status Updated',
-      message: 'PROJ-120 status changed from "In Progress" to "Done"',
-      user: 'Sarah Wilson',
-      timestamp: '2 hours ago',
-      isRead: true,
-      issueKey: 'PROJ-120'
-    },
-    {
-      id: '5',
-      type: 'deadline',
-      title: 'Deadline Approaching',
-      message: 'PROJ-119 is due in 2 days',
-      user: 'System',
-      timestamp: '3 hours ago',
-      isRead: false,
-      issueKey: 'PROJ-119',
-      priority: 'medium'
-    }
-  ];
+  // Start with empty notifications - real ones will come from API/socket
+  const initialNotifications: Notification[] = [];
 
   useEffect(() => {
     setNotifications(initialNotifications);
+    // TODO: Fetch real notifications from API
+    // fetchNotifications();
   }, []);
 
   const applyAiFilter = async () => {
@@ -222,27 +171,13 @@ export const NotificationSystem: React.FC = () => {
       return true;
     });
 
-  // Simulate real-time notifications
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newNotification: Notification = {
-        id: Date.now().toString(),
-        type: 'comment',
-        title: 'New Activity',
-        message: 'New activity in your projects',
-        user: 'System',
-        timestamp: 'Just now',
-        isRead: false
-      };
-
-      // Randomly add notifications (10% chance every 30 seconds)
-      if (Math.random() < 0.1) {
-        setNotifications(prev => [newNotification, ...prev]);
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // DISABLED: Random notification generator was causing unwanted popups
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     // ... (removed)
+  //   }, 30000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const notificationMenu = (
     <NotificationPanel>
