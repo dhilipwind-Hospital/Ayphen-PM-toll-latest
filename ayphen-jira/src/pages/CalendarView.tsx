@@ -105,21 +105,21 @@ const EventItem = styled.div<{ type: string }>`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: ${props => 
+  background: ${props =>
     props.type === 'bug' ? '#FEE2E2' :
-    props.type === 'story' ? '#D1FAE5' :
-    props.type === 'task' ? '#DBEAFE' :
-    props.type === 'sprint-start' ? '#FEF3C7' :
-    props.type === 'sprint-end' ? '#E0E7FF' :
-    '#F3F4F6'
+      props.type === 'story' ? '#D1FAE5' :
+        props.type === 'task' ? '#DBEAFE' :
+          props.type === 'sprint-start' ? '#FEF3C7' :
+            props.type === 'sprint-end' ? '#E0E7FF' :
+              '#F3F4F6'
   };
-  color: ${props => 
+  color: ${props =>
     props.type === 'bug' ? '#DC2626' :
-    props.type === 'story' ? '#059669' :
-    props.type === 'task' ? '#2563EB' :
-    props.type === 'sprint-start' ? '#D97706' :
-    props.type === 'sprint-end' ? '#4F46E5' :
-    '#374151'
+      props.type === 'story' ? '#059669' :
+        props.type === 'task' ? '#2563EB' :
+          props.type === 'sprint-start' ? '#D97706' :
+            props.type === 'sprint-end' ? '#4F46E5' :
+              '#374151'
   };
   
   &:hover {
@@ -135,10 +135,10 @@ export const CalendarView: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
 
   // Calculate stats
-  const projectIssues = currentProject 
+  const projectIssues = currentProject
     ? issues.filter(i => i.projectId === currentProject.id)
     : issues;
-  
+
   const dueThisWeek = projectIssues.filter(i => {
     if (!i.dueDate) return false;
     const due = dayjs(i.dueDate);
@@ -150,13 +150,13 @@ export const CalendarView: React.FC = () => {
     return dayjs(i.dueDate).isBefore(dayjs());
   }).length;
 
-  const upcomingSprints = sprints.filter(s => 
+  const upcomingSprints = sprints.filter(s =>
     s.status !== 'completed' && s.status !== 'active' && s.startDate && dayjs(s.startDate).isAfter(dayjs())
   ).length;
 
   const getListData = (value: Dayjs) => {
     const events: any[] = [];
-    
+
     // Find issues with due date on this day
     const dayIssues = projectIssues.filter(issue => {
       if (!issue.dueDate) return false;
@@ -201,12 +201,12 @@ export const CalendarView: React.FC = () => {
   const dateCellRender = (value: Dayjs) => {
     const listData = getListData(value);
     if (listData.length === 0) return null;
-    
+
     return (
       <div style={{ maxHeight: 60, overflow: 'hidden' }}>
         {listData.slice(0, 3).map((item) => (
           <Tooltip key={item.key} title={item.content}>
-            <EventItem 
+            <EventItem
               type={item.type}
               onClick={(e) => {
                 e.stopPropagation();
@@ -247,11 +247,11 @@ export const CalendarView: React.FC = () => {
               { label: 'Tasks', value: 'task' },
             ]}
           />
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<Plus size={16} />}
             onClick={() => setCreateModalOpen(true)}
-            style={{ background: '#EC4899', borderColor: '#EC4899' }}
+            style={{ background: 'linear-gradient(to right, #be185d, #db2777)', borderColor: '#EC4899', color: '#FFFFFF' }}
           >
             Create Issue
           </Button>
@@ -260,30 +260,30 @@ export const CalendarView: React.FC = () => {
 
       <StatsRow>
         <StatCard>
-          <Statistic 
-            title="Due This Week" 
-            value={dueThisWeek} 
+          <Statistic
+            title="Due This Week"
+            value={dueThisWeek}
             valueStyle={{ color: '#F59E0B' }}
           />
         </StatCard>
         <StatCard>
-          <Statistic 
-            title="Overdue" 
-            value={overdue} 
+          <Statistic
+            title="Overdue"
+            value={overdue}
             valueStyle={{ color: '#EF4444' }}
           />
         </StatCard>
         <StatCard>
-          <Statistic 
-            title="Upcoming Sprints" 
-            value={upcomingSprints} 
+          <Statistic
+            title="Upcoming Sprints"
+            value={upcomingSprints}
             valueStyle={{ color: '#8B5CF6' }}
           />
         </StatCard>
         <StatCard>
-          <Statistic 
-            title="Total with Due Date" 
-            value={projectIssues.filter(i => i.dueDate).length} 
+          <Statistic
+            title="Total with Due Date"
+            value={projectIssues.filter(i => i.dueDate).length}
             valueStyle={{ color: '#10B981' }}
           />
         </StatCard>
@@ -297,7 +297,7 @@ export const CalendarView: React.FC = () => {
           <LegendItem><LegendDot color="#FEF3C7" /> Sprint Start</LegendItem>
           <LegendItem><LegendDot color="#E0E7FF" /> Sprint End</LegendItem>
         </Legend>
-        <AntCalendar 
+        <AntCalendar
           dateCellRender={dateCellRender}
           value={selectedDate}
           onChange={setSelectedDate}

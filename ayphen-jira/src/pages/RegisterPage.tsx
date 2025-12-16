@@ -144,11 +144,17 @@ const StyledButton = styled(Button)`
   border-radius: 12px;
   background: linear-gradient(135deg, #F472B6, #EC4899);
   border: none;
+  color: #FFFFFF;
+  
+  span {
+    color: #FFFFFF !important;
+  }
   
   &:hover {
     background: linear-gradient(135deg, #EC4899, #DB2777);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(244, 114, 182, 0.4);
+    color: #FFFFFF !important;
   }
 `;
 

@@ -195,23 +195,27 @@ const StyledTabs = styled(Tabs)`
 
 const CommentButton = styled(Button)`
   && {
-    background-color: #E91E63;
-    color: white;
-    border: none;
+    background: linear-gradient(to right, #be185d, #db2777) !important;
+    color: #FFFFFF !important;
+    border: none !important;
     border-radius: 6px;
     padding: 10px 24px;
     height: auto;
     font-weight: 600;
     margin-top: 12px;
     font-size: 14px;
-    box-shadow: none;
+    box-shadow: 0 4px 12px rgba(190, 24, 93, 0.3);
+    
+    span {
+      color: #FFFFFF !important;
+    }
     
     &:hover {
-      background-color: #D81B60 !important;
-      color: white !important;
+      background: linear-gradient(to right, #9d174d, #be185d) !important;
+      color: #FFFFFF !important;
     }
     &:active {
-      background-color: #C2185B !important;
+      background: linear-gradient(to right, #831843, #9d174d) !important;
     }
   }
 `;
@@ -674,18 +678,26 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                         onChange={e => setNewComment(e.target.value)}
                         style={{ marginBottom: 8, borderRadius: 6, padding: 12, border: `1px solid #D0D0D0`, resize: 'vertical' }}
                       />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <CommentButton onClick={handleAddComment}>Add Comment</CommentButton>
-                          <Button
-                            icon={<Paperclip size={14} />}
-                            onClick={() => setUploadModalVisible(true)}
-                            type="text"
-                            style={{ marginTop: 12 }}
-                          >
-                            Attach
-                          </Button>
-                        </div>
+                      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                        <CommentButton onClick={handleAddComment}>Add Comment</CommentButton>
+                        <Button
+                          icon={<Paperclip size={14} />}
+                          onClick={() => setUploadModalVisible(true)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            height: 'auto',
+                            padding: '10px 16px',
+                            borderRadius: 6,
+                            border: '1px solid #D0D0D0',
+                            background: '#FFFFFF',
+                            color: '#374151',
+                            fontWeight: 500
+                          }}
+                        >
+                          Attach File
+                        </Button>
                       </div>
 
                       <div style={{ marginTop: 40 }}>

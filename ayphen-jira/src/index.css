@@ -204,7 +204,6 @@ html {
 }
 
 /* Global Button Override to match Login Style */
-/* Global Button Override to match Login Style */
 /* Exclude dangerous buttons to keep them red */
 .ant-btn-primary:not(.ant-btn-dangerous):not([class*="danger"]) {
   background: linear-gradient(to right, #be185d, #db2777) !important;
@@ -212,14 +211,29 @@ html {
   box-shadow: 0 4px 12px rgba(190, 24, 93, 0.3) !important;
   font-weight: 600 !important;
   text-shadow: none !important;
+  color: #FFFFFF !important;
 }
 
 .ant-btn-primary:not(.ant-btn-dangerous):not([class*="danger"]):hover {
   background: linear-gradient(to right, #9d174d, #be185d) !important;
   box-shadow: 0 6px 16px rgba(190, 24, 93, 0.4) !important;
   transform: translateY(-1px);
+  color: #FFFFFF !important;
 }
 
 .ant-btn-primary:not(.ant-btn-dangerous):not([class*="danger"]):active {
   transform: translateY(0);
+  color: #FFFFFF !important;
+}
+
+/* Fix for all button text visibility */
+.ant-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+.ant-btn>span {
+  color: inherit !important;
 }

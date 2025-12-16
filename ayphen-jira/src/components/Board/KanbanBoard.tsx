@@ -162,7 +162,7 @@ export const KanbanBoard: React.FC = () => {
           'review': 'in-review',
           'done': 'done'
         };
-        
+
         const newStatus = statusMap[destination.droppableId];
         if (newStatus) {
           await issuesApi.update(draggableId, { status: newStatus });
@@ -218,7 +218,7 @@ export const KanbanBoard: React.FC = () => {
 
       const response = await issuesApi.create(issueData);
       addIssue(response.data);
-      
+
       const newIssue: Issue = {
         id: response.data.id,
         title: values.title,
@@ -302,9 +302,9 @@ export const KanbanBoard: React.FC = () => {
                                   {issue.priority}
                                 </Tag>
                               </div>
-                              
+
                               <h4 style={{ margin: '8px 0', fontSize: '14px' }}>{issue.title}</h4>
-                              
+
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
                                   {issue.labels.map(label => (
@@ -354,7 +354,7 @@ export const KanbanBoard: React.FC = () => {
           <Form.Item name="title" label="Title" rules={[{ required: true }]}>
             <Input placeholder="Enter issue title" />
           </Form.Item>
-          
+
           <Form.Item name="type" label="Type" rules={[{ required: true }]}>
             <Select placeholder="Select issue type">
               <Select.Option value="story">📖 Story</Select.Option>
@@ -362,7 +362,7 @@ export const KanbanBoard: React.FC = () => {
               <Select.Option value="task">✅ Task</Select.Option>
             </Select>
           </Form.Item>
-          
+
           <Form.Item name="priority" label="Priority" rules={[{ required: true }]}>
             <Select placeholder="Select priority">
               <Select.Option value="low">🟢 Low</Select.Option>
@@ -370,11 +370,11 @@ export const KanbanBoard: React.FC = () => {
               <Select.Option value="high">🔴 High</Select.Option>
             </Select>
           </Form.Item>
-          
+
           <Form.Item name="assignee" label="Assignee">
             <Input placeholder="Assignee name" />
           </Form.Item>
-          
+
           <Form.Item name="storyPoints" label="Story Points">
             <Select placeholder="Select story points">
               <Select.Option value={1}>1</Select.Option>
@@ -384,8 +384,8 @@ export const KanbanBoard: React.FC = () => {
               <Select.Option value={8}>8</Select.Option>
             </Select>
           </Form.Item>
-          
-          <Button type="primary" htmlType="submit" block style={{ background: '#EC4899' }}>
+
+          <Button type="primary" htmlType="submit" block style={{ background: 'linear-gradient(to right, #be185d, #db2777)', color: '#FFFFFF', border: 'none' }}>
             Create Issue
           </Button>
         </Form>

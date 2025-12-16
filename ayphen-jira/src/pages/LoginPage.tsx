@@ -223,12 +223,18 @@ const PrimaryButton = styled(Button)`
   border: none;
   font-size: 16px;
   font-weight: 600;
+  color: #FFFFFF;
   box-shadow: 0 4px 12px rgba(190, 24, 93, 0.3);
+  
+  span {
+    color: #FFFFFF !important;
+  }
   
   &:hover {
     background: linear-gradient(to right, #9d174d, #be185d) !important;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(190, 24, 93, 0.4);
+    color: #FFFFFF !important;
   }
 `;
 
@@ -299,7 +305,7 @@ export const LoginPage: React.FC = () => {
           <Description>
             The all-in-one project management platform designed for high-performance agile teams. Plan, track, and deliver world-class software.
           </Description>
-          
+
           <FeatureList>
             <FeatureItem><CheckCircle2 size={20} /> Real-time Collaboration</FeatureItem>
             <FeatureItem><CheckCircle2 size={20} /> Advanced Sprint Planning</FeatureItem>

@@ -172,7 +172,7 @@ export const AdvancedSearch: React.FC = () => {
   };
 
   const updateFilter = (id: string, field: keyof SearchFilter, value: string) => {
-    setFilters(filters.map(f => 
+    setFilters(filters.map(f =>
       f.id === id ? { ...f, [field]: value } : f
     ));
   };
@@ -180,7 +180,7 @@ export const AdvancedSearch: React.FC = () => {
   const executeSearch = () => {
     // Simulate search execution
     setSearchResults(mockResults);
-    
+
     // Add to search history
     if (searchMode === 'jql' && jqlQuery) {
       setSearchHistory(prev => [jqlQuery, ...prev.filter(q => q !== jqlQuery)].slice(0, 10));
@@ -191,7 +191,7 @@ export const AdvancedSearch: React.FC = () => {
     const jqlParts = filters
       .filter(f => f.field && f.value)
       .map(f => `${f.field} ${f.operator} "${f.value}"`);
-    
+
     return jqlParts.join(' AND ');
   };
 
@@ -218,17 +218,17 @@ export const AdvancedSearch: React.FC = () => {
     <SearchContainer>
       <SearchCard title="Advanced Search" extra={
         <Button.Group>
-          <Button 
+          <Button
             type={searchMode === 'basic' ? 'primary' : 'default'}
             onClick={() => setSearchMode('basic')}
-            style={{ background: searchMode === 'basic' ? '#EC4899' : undefined }}
+            style={{ background: searchMode === 'basic' ? 'linear-gradient(to right, #be185d, #db2777)' : undefined, color: searchMode === 'basic' ? '#FFFFFF' : undefined }}
           >
             <Filter size={16} /> Basic
           </Button>
-          <Button 
+          <Button
             type={searchMode === 'jql' ? 'primary' : 'default'}
             onClick={() => setSearchMode('jql')}
-            style={{ background: searchMode === 'jql' ? '#EC4899' : undefined }}
+            style={{ background: searchMode === 'jql' ? 'linear-gradient(to right, #be185d, #db2777)' : undefined, color: searchMode === 'jql' ? '#FFFFFF' : undefined }}
           >
             <Code size={16} /> JQL
           </Button>
@@ -267,7 +267,7 @@ export const AdvancedSearch: React.FC = () => {
                 )}
               </FilterRow>
             ))}
-            
+
             <div style={{ marginBottom: 16 }}>
               <Button type="dashed" onClick={addFilter} style={{ marginRight: 8 }}>
                 Add Filter
@@ -291,7 +291,7 @@ export const AdvancedSearch: React.FC = () => {
                 style={{ fontFamily: 'Monaco, Menlo, monospace' }}
               />
             </AutoComplete>
-            
+
             <div style={{ marginBottom: 16 }}>
               <Button.Group>
                 <Button type="link" onClick={() => setJqlQuery('')}>Clear</Button>
@@ -306,7 +306,7 @@ export const AdvancedSearch: React.FC = () => {
             type="primary"
             icon={<Search size={16} />}
             onClick={executeSearch}
-            style={{ background: '#EC4899' }}
+            style={{ background: 'linear-gradient(to right, #be185d, #db2777)', color: '#FFFFFF' }}
           >
             Search
           </Button>
