@@ -85,7 +85,7 @@ const FilterBar = styled.div`
   align-items: center;
 `;
 
-const SeverityTag = styled(Tag)<{ severity: string }>`
+const SeverityTag = styled(Tag) <{ severity: string }>`
   font-weight: 600;
 `;
 
@@ -116,7 +116,7 @@ export const BugsListView: React.FC = () => {
         setLoading(false);
         return;
       }
-      
+
       // FILTER by project AND type
       const bugIssues = issues.filter(
         issue => issue.type === 'bug' && issue.projectId === currentProject.id
@@ -266,11 +266,11 @@ export const BugsListView: React.FC = () => {
           <Button icon={<Download size={16} />}>
             Export
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<Plus size={16} />}
             onClick={() => setCreateModalOpen(true)}
-            danger
+            style={{ color: '#FFFFFF' }}
           >
             Report Bug
           </Button>
