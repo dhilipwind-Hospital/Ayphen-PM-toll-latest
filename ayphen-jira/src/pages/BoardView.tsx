@@ -29,7 +29,8 @@ const BoardContainer = styled.div`
   display: flex;
   gap: 16px;
   overflow-x: auto;
-  padding-bottom: 16px;
+  padding: 16px;
+  min-height: calc(100vh - 300px);
   
   &::-webkit-scrollbar {
     height: 8px;
@@ -46,14 +47,15 @@ const BoardContainer = styled.div`
 `;
 
 const Column = styled.div<{ isOver?: boolean }>`
-  min-width: 280px;
-  max-width: 280px;
-  background: ${props => props.isOver ? 'rgba(14, 165, 233, 0.05)' : 'transparent'};
-  border-radius: 12px;
-  padding: 8px;
+  min-width: 300px;
+  width: 300px;
+  flex-shrink: 0;
+  background: ${props => props.isOver ? 'rgba(14, 165, 233, 0.08)' : '#f4f5f7'};
+  border-radius: 8px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 200px);
+  max-height: calc(100vh - 240px);
   transition: all 0.3s ease;
   border: 2px solid ${props => props.isOver ? colors.primary[200] : 'transparent'};
 `;
