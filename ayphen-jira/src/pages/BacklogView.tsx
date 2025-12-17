@@ -251,16 +251,26 @@ export const BacklogView: React.FC = () => {
   const loadData = async () => {
     try {
       if (!currentProject) return;
+      console.log('[BacklogView] Loading data for project:', currentProject.id);
+
       const sprintRes = await sprintsApi.getAll(currentProject.id);
+      console.log('[BacklogView] Sprint API response:', sprintRes.data);
+
       // Handle both array and object responses
       const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data?.sprints || [];
+      console.log('[BacklogView] Parsed sprint data:', sprintData);
+      console.log('[BacklogView] Sprint count:', sprintData.length);
+
       setSprints(sprintData);
 
       const res = await issuesApi.getByProject(currentProject.id);
       // Sort by listPosition
       const sortedIssues = res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0));
       setIssues(sortedIssues);
-    } catch (e) { message.error('Failed to load backlog'); }
+    } catch (e) {
+      console.error('[BacklogView] Failed to load backlog:', e);
+      message.error('Failed to load backlog');
+    }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -334,6 +344,12 @@ export const BacklogView: React.FC = () => {
 
   const activeSprints = sprints.filter(s => s.status === 'active');
   const futureSprints = sprints.filter(s => s.status === 'future');
+
+  // Debug logging
+  console.log('[BacklogView] Sprints from store:', sprints);
+  console.log('[BacklogView] Active sprints:', activeSprints.length);
+  console.log('[BacklogView] Future sprints:', futureSprints.length);
+
   // Filter out epics - they are containers, not work items for sprints/backlog
   const backlogIssues = issues.filter(i => !i.sprintId && i.type !== 'epic');
 
