@@ -57,18 +57,40 @@ const BrandContent = styled.div`
 `;
 
 const Logo = styled.div`
-  font-size: 32px;
-  font-weight: 800;
-  margin-bottom: 24px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  margin-bottom: 32px;
   
   img {
-    height: 40px;
+    height: 56px;
+    width: 56px;
     background: white;
-    border-radius: 8px;
-    padding: 4px;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    .brand-name {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: white;
+    }
+    
+    .brand-suffix {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      opacity: 0.85;
+      color: #BAE6FD;
+    }
   }
 `;
 
@@ -298,8 +320,11 @@ export const LoginPage: React.FC = () => {
       <LeftPanel>
         <BrandContent>
           <Logo>
-            <img src="/ayphen-logo.png" alt="Logo" />
-            Ayphen
+            <img src="/ayphen-logo.png" alt="Ayphen Logo" />
+            <div className="brand-text">
+              <div className="brand-name">Ayphen</div>
+              <div className="brand-suffix">Technologies</div>
+            </div>
           </Logo>
           <Tagline>Ship products faster, together.</Tagline>
           <Description>
