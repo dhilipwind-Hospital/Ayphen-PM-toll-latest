@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Select, Button, message, Alert } from 'antd';
 import { MailOutlined, UserAddOutlined } from '@ant-design/icons';
-import { projectInvitationsApi } from '../services/api';
+import { projectInvitationsApi, projectMembersApi } from '../services/api';
 
 interface InviteModalProps {
   visible: boolean;
   projectId: string;
   projectName: string;
+  existingUsers?: any[];
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -15,6 +16,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
   visible,
   projectId,
   projectName,
+  existingUsers = [],
   onClose,
   onSuccess,
 }) => {
@@ -25,20 +27,43 @@ export const InviteModal: React.FC<InviteModalProps> = ({
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      await projectInvitationsApi.create({
-        projectId,
-        email: values.email,
-        role: values.role,
-        invitedById: currentUserId || '',
-      });
+      // Check if user already exists in the system
+      const existingUser = existingUsers.find(
+        u => u.email?.toLowerCase() === values.email.toLowerCase()
+      );
 
-      message.success(`Invitation sent to ${values.email}`);
+      if (existingUser) {
+        // Direct addition for existing users
+        await projectMembersApi.add({
+          projectId,
+          userId: existingUser.id,
+          role: values.role,
+          addedById: currentUserId,
+        });
+        message.success(`User ${existingUser.name || values.email} added to project!`);
+      } else {
+        // Standard invitation for new users
+        await projectInvitationsApi.create({
+          projectId,
+          email: values.email,
+          role: values.role,
+          invitedById: currentUserId || '',
+        });
+        message.success(`Invitation sent to ${values.email}`);
+      }
+
       form.resetFields();
       onSuccess();
       onClose();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.error || 'Failed to send invitation';
-      message.error(errorMsg);
+      console.error(error);
+      const errorMsg = error.response?.data?.error || 'Failed to process request';
+      // If it failed on invitation specifically with UUID error, clarify
+      if (!error.response && error.message.includes('uuid')) {
+        message.error('System error: Unable to invite non-registered users at this time.');
+      } else {
+        message.error(errorMsg);
+      }
     } finally {
       setLoading(false);
     }

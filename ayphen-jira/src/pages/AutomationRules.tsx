@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, Switch, Space } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { api } from '../services/api';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -27,20 +27,21 @@ export default function AutomationRules() {
   }, []);
 
   const loadRules = async () => {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/automation/rules', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setRules(res.data);
+    try {
+      const res = await api.get('/automation/rules');
+      setRules(res.data);
+    } catch (error) {
+      console.error('Failed to load rules:', error);
+    }
   };
 
   const toggleRule = async (id: number, enabled: boolean) => {
-    const token = localStorage.getItem('token');
-    await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/automation/rules/${id}`, 
-      { enabled: !enabled },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    loadRules();
+    try {
+      await api.put(`/automation/rules/${id}`, { enabled: !enabled });
+      loadRules();
+    } catch (error) {
+      console.error('Failed to toggle rule:', error);
+    }
   };
 
   return (

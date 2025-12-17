@@ -4,10 +4,10 @@ import { MentionsInput, Mention } from 'react-mentions';
 import { Input, Button, Avatar, Badge, Tag, Tooltip, Spin, message as antMessage, Modal, List, Dropdown, Menu } from 'antd';
 import { Send, Users, Search, MoreVertical, Paperclip, Smile, Image as ImageIcon, File } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import { api } from '../../services/api';
 import { io, Socket } from 'socket.io-client';
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api/chat-v2';
+// WS_URL kept for socket connection
 const WS_URL = 'https://ayphen-pm-toll-latest.onrender.com';
 
 const Container = styled.div`
@@ -246,7 +246,7 @@ export const TeamChatEnhanced: React.FC = () => {
   useEffect(() => {
     if (user) {
       loadChannels();
-      
+
       // Initialize WebSocket connection
       socketRef.current = io(WS_URL, {
         query: { userId: user.id }
@@ -278,13 +278,13 @@ export const TeamChatEnhanced: React.FC = () => {
   useEffect(() => {
     if (activeChannel) {
       loadMessages(activeChannel.id);
-      
+
       // Join channel room for real-time updates
       if (socketRef.current) {
         socketRef.current.emit('join_channel', activeChannel.id);
       }
     }
-    
+
     return () => {
       // Leave previous channel room
       if (activeChannel && socketRef.current) {
@@ -303,18 +303,18 @@ export const TeamChatEnhanced: React.FC = () => {
 
   const loadChannels = async () => {
     try {
-      const response = await axios.get(`${API_URL}/channels`, {
+      const response = await api.get('/chat-v2/channels', {
         params: { userId: user?.id }
       });
-      
+
       // If no channels exist, initialize default channels
       if (response.data.length === 0 && user?.id) {
         try {
-          await axios.post(`${API_URL}/initialize`, {
+          await api.post('/chat-v2/initialize', {
             userId: user.id
           });
           // Reload channels after initialization
-          const reloadResponse = await axios.get(`${API_URL}/channels`, {
+          const reloadResponse = await api.get('/chat-v2/channels', {
             params: { userId: user.id }
           });
           setChannels(reloadResponse.data);
@@ -341,11 +341,11 @@ export const TeamChatEnhanced: React.FC = () => {
   const loadMessages = async (channelId: string) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/channels/${channelId}/messages`);
+      const response = await api.get(`/chat-v2/channels/${channelId}/messages`);
       setMessages(response.data);
-      
+
       // Mark as read
-      await axios.post(`${API_URL}/channels/${channelId}/read`, {
+      await api.post(`/chat-v2/channels/${channelId}/read`, {
         userId: user?.id
       });
     } catch (error) {
@@ -357,7 +357,7 @@ export const TeamChatEnhanced: React.FC = () => {
 
   const fetchMembers = async (query: string, callback: (data: any[]) => void) => {
     try {
-      const response = await axios.get(`${API_URL}/members/suggestions`, {
+      const response = await api.get('/chat-v2/members/suggestions', {
         params: {
           q: query,
           channelId: activeChannel?.id,
@@ -373,7 +373,7 @@ export const TeamChatEnhanced: React.FC = () => {
 
   const fetchIssues = async (query: string, callback: (data: any[]) => void) => {
     try {
-      const response = await axios.get(`${API_URL}/issues/suggestions`, {
+      const response = await api.get('/chat-v2/issues/suggestions', {
         params: {
           q: query,
           projectId: activeChannel?.projectId
@@ -405,8 +405,8 @@ export const TeamChatEnhanced: React.FC = () => {
     }
 
     try {
-      const response = await axios.post(
-        `${API_URL}/channels/${activeChannel.id}/messages`,
+      const response = await api.post(
+        `/chat-v2/channels/${activeChannel.id}/messages`,
         {
           content: inputValue,
           userId: user.id,
@@ -440,7 +440,7 @@ export const TeamChatEnhanced: React.FC = () => {
   const loadChannelMembers = async () => {
     if (!activeChannel) return;
     try {
-      const response = await axios.get(`${API_URL}/channels/${activeChannel.id}/members`);
+      const response = await api.get(`/chat-v2/channels/${activeChannel.id}/members`);
       setChannelMembers(response.data);
       setShowMembersModal(true);
     } catch (error) {
@@ -536,9 +536,9 @@ export const TeamChatEnhanced: React.FC = () => {
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <Tooltip title="Members">
-                  <Button 
-                    icon={<Users size={16} />} 
-                    type="text" 
+                  <Button
+                    icon={<Users size={16} />}
+                    type="text"
                     onClick={loadChannelMembers}
                   />
                 </Tooltip>
@@ -597,7 +597,7 @@ export const TeamChatEnhanced: React.FC = () => {
                   ))}
                 </AttachmentPreview>
               )}
-              
+
               <InputRow>
                 <ActionButtons>
                   <input
@@ -623,7 +623,7 @@ export const TeamChatEnhanced: React.FC = () => {
                     </IconButton>
                   </Tooltip>
                 </ActionButtons>
-                
+
                 <MentionsInput
                   value={inputValue ?? ''}
                   onChange={(_e: any, newValue: string) => setInputValue(newValue ?? '')}
@@ -694,15 +694,15 @@ export const TeamChatEnhanced: React.FC = () => {
                     displayTransform={(_id: string, display: string) => `#${display}`}
                   />
                 </MentionsInput>
-                
-                <SendButton 
+
+                <SendButton
                   onClick={sendMessage}
                   disabled={!inputValue.trim() && attachments.length === 0}
                 >
                   <Send size={16} />
                 </SendButton>
               </InputRow>
-              
+
               {showEmojiPicker && (
                 <div style={{ padding: '8px', background: '#fafafa', borderRadius: '4px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                   {['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '👍', '👎', '👏', '🙌', '🤝', '💪', '🎉', '🎊', '🔥', '✨', '⭐', '💯', '✅', '❌', '⚠️', '📌', '🚀', '💡', '🎯'].map(emoji => (

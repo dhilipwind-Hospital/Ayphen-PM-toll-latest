@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Input, Select, message, Card, Tag, Spin } from 'antd';
 import { MailOutlined, SendOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { api } from '../../services/api';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -50,7 +50,7 @@ export const EmailIntegrationPanel: React.FC<EmailIntegrationPanelProps> = ({
 
     setLoading(true);
     try {
-      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/email-to-issue/process', {
+      const response = await api.post('/email-to-issue/process', {
         email: emailData,
         projectId
       });
@@ -59,7 +59,7 @@ export const EmailIntegrationPanel: React.FC<EmailIntegrationPanelProps> = ({
         const issue = response.data.data.issue;
         setProcessedIssue(issue);
         message.success(`Issue ${issue.key} created successfully!`);
-        
+
         if (onIssueCreated) {
           onIssueCreated(issue.key);
         }
@@ -214,7 +214,7 @@ export const EmailIntegrationPanel: React.FC<EmailIntegrationPanelProps> = ({
                   <span style={{ fontWeight: 500 }}>Issue Key: </span>
                   <Tag color="blue" style={{ fontSize: 14 }}>{processedIssue.key}</Tag>
                 </div>
-                
+
                 <div>
                   <span style={{ fontWeight: 500 }}>Summary: </span>
                   <span>{processedIssue.summary}</span>
@@ -224,8 +224,8 @@ export const EmailIntegrationPanel: React.FC<EmailIntegrationPanelProps> = ({
                   <span style={{ fontWeight: 500 }}>Type: </span>
                   <Tag color={
                     processedIssue.type === 'bug' ? 'red' :
-                    processedIssue.type === 'story' ? 'blue' :
-                    'default'
+                      processedIssue.type === 'story' ? 'blue' :
+                        'default'
                   }>
                     {processedIssue.type.toUpperCase()}
                   </Tag>
@@ -235,9 +235,9 @@ export const EmailIntegrationPanel: React.FC<EmailIntegrationPanelProps> = ({
                   <span style={{ fontWeight: 500 }}>Priority: </span>
                   <Tag color={
                     processedIssue.priority === 'highest' ? 'red' :
-                    processedIssue.priority === 'high' ? 'orange' :
-                    processedIssue.priority === 'medium' ? 'gold' :
-                    'default'
+                      processedIssue.priority === 'high' ? 'orange' :
+                        processedIssue.priority === 'medium' ? 'gold' :
+                          'default'
                   }>
                     {processedIssue.priority.toUpperCase()}
                   </Tag>

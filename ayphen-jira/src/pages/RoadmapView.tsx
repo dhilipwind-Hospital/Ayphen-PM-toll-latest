@@ -4,7 +4,7 @@ import { Card, Select, Button, Drawer, Form, Input, DatePicker, Progress, Tag, m
 import { Calendar, Filter, Plus, Edit, Link as LinkIcon, ZoomIn, ZoomOut } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
-import axios from 'axios';
+import { api, issuesApi } from '../services/api';
 import dayjs from 'dayjs';
 
 const Container = styled.div`
@@ -164,8 +164,6 @@ const StatCard = styled.div`
   margin-bottom: 16px;
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
-
 interface Epic {
   id: string;
   key: string;
@@ -196,20 +194,21 @@ export const RoadmapView: React.FC = () => {
   const [resizingEpic, setResizingEpic] = useState<{ id: string; side: 'left' | 'right' } | null>(null);
   const [createEpicModalVisible, setCreateEpicModalVisible] = useState(false);
   const [createEpicForm] = Form.useForm();
-  
+
   const timelineRef = useRef<HTMLDivElement>(null);
   const projectId = currentProject?.id || 'default-project';
-  
+
   useEffect(() => {
     if (currentProject) {
       loadRoadmap();
     }
   }, [projectId, currentProject]);
-  
+
   const loadRoadmap = async () => {
+    if (!currentProject) return;
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/roadmap/${projectId}`);
+      const response = await api.get(`/roadmap/${currentProject.id}`);
       setEpics(response.data);
     } catch (error) {
       console.error('Failed to load roadmap:', error);
@@ -218,7 +217,7 @@ export const RoadmapView: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
   const calculateTimelineBounds = () => {
     if (epics.length === 0) {
       const now = new Date();
@@ -227,11 +226,11 @@ export const RoadmapView: React.FC = () => {
         end: new Date(now.getFullYear(), now.getMonth() + 6, 0),
       };
     }
-    
+
     const dates = epics
       .filter(e => e.startDate && e.endDate)
       .flatMap(e => [new Date(e.startDate), new Date(e.endDate)]);
-    
+
     if (dates.length === 0) {
       const now = new Date();
       return {
@@ -239,22 +238,22 @@ export const RoadmapView: React.FC = () => {
         end: new Date(now.getFullYear(), now.getMonth() + 6, 0),
       };
     }
-    
+
     const start = new Date(Math.min(...dates.map(d => d.getTime())));
     const end = new Date(Math.max(...dates.map(d => d.getTime())));
-    
+
     // Add padding
     start.setMonth(start.getMonth() - 1);
     end.setMonth(end.getMonth() + 1);
-    
+
     return { start, end };
   };
-  
+
   const generatePeriods = () => {
     const { start, end } = calculateTimelineBounds();
     const periods = [];
     const current = new Date(start);
-    
+
     if (view === 'quarters') {
       while (current <= end) {
         const quarter = Math.floor(current.getMonth() / 3) + 1;
@@ -290,30 +289,30 @@ export const RoadmapView: React.FC = () => {
         current.setDate(current.getDate() + 7);
       }
     }
-    
+
     return periods;
   };
-  
+
   const calculateEpicPosition = (epic: Epic) => {
     if (!epic.startDate || !epic.endDate) return { left: 0, width: 0 };
-    
+
     const { start: timelineStart } = calculateTimelineBounds();
     const periods = generatePeriods();
     const totalWidth = periods.length * 150; // 150px per period
-    
+
     const timelineStartTime = timelineStart.getTime();
     const timelineEndTime = new Date(periods[periods.length - 1].end).getTime();
     const timelineRange = timelineEndTime - timelineStartTime;
-    
+
     const epicStart = new Date(epic.startDate).getTime();
     const epicEnd = new Date(epic.endDate).getTime();
-    
+
     const left = ((epicStart - timelineStartTime) / timelineRange) * totalWidth;
     const width = ((epicEnd - epicStart) / timelineRange) * totalWidth;
-    
+
     return { left: Math.max(0, left), width: Math.max(50, width) };
   };
-  
+
   const getEpicColor = (status: string) => {
     const colorMap: Record<string, string> = {
       'todo': '#8884d8',
@@ -324,17 +323,17 @@ export const RoadmapView: React.FC = () => {
     };
     return colorMap[status] || '#8884d8';
   };
-  
+
   const handleEpicClick = (epic: Epic) => {
     setSelectedEpic(epic);
     setDrawerVisible(true);
   };
-  
+
   const handleUpdateEpic = async (values: any) => {
     if (!selectedEpic) return;
-    
+
     try {
-      await axios.put(`${API_URL}/roadmap/${selectedEpic.id}/dates`, {
+      await api.put(`/roadmap/${selectedEpic.id}/dates`, {
         startDate: values.startDate?.toISOString(),
         endDate: values.endDate?.toISOString(),
       });
@@ -351,10 +350,10 @@ export const RoadmapView: React.FC = () => {
       message.error('No project selected');
       return;
     }
-    
+
     try {
-      // Create epic via issues API (backend will generate key)
-      await axios.post(`${API_URL}/issues`, {
+      // Create epic via issues API
+      await issuesApi.create({
         summary: values.summary,
         description: values.description || '',
         type: 'epic',
@@ -369,7 +368,7 @@ export const RoadmapView: React.FC = () => {
         components: [],
         fixVersions: [],
       });
-      
+
       message.success('Epic created successfully!');
       createEpicForm.resetFields();
       setCreateEpicModalVisible(false);
@@ -379,17 +378,17 @@ export const RoadmapView: React.FC = () => {
       message.error(error.response?.data?.error || 'Failed to create epic');
     }
   };
-  
+
   const periods = generatePeriods();
-  
+
   if (!currentProject) {
     return (
       <Container>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           height: '60vh',
           gap: '16px'
         }}>
@@ -402,7 +401,7 @@ export const RoadmapView: React.FC = () => {
       </Container>
     );
   }
-  
+
   return (
     <Container>
       <Header>
@@ -422,7 +421,7 @@ export const RoadmapView: React.FC = () => {
           </Button>
         </Controls>
       </Header>
-      
+
       <TimelineContainer loading={loading}>
         {epics.length > 0 ? (
           <Timeline ref={timelineRef}>
@@ -434,27 +433,27 @@ export const RoadmapView: React.FC = () => {
                 </PeriodColumn>
               ))}
             </TimelineHeader>
-            
+
             <EpicsContainer>
               {/* Dependency lines */}
               <DependencyLine>
                 {epics.map(epic => {
                   if (!epic.dependencies || epic.dependencies.length === 0) return null;
-                  
+
                   return epic.dependencies.map(depId => {
                     const depEpic = epics.find(e => e.id === depId);
                     if (!depEpic) return null;
-                    
+
                     const epicPos = calculateEpicPosition(epic);
                     const depPos = calculateEpicPosition(depEpic);
                     const epicIndex = epics.indexOf(epic);
                     const depIndex = epics.indexOf(depEpic);
-                    
+
                     const y1 = depIndex * 76 + 30;
                     const y2 = epicIndex * 76 + 30;
                     const x1 = depPos.left + depPos.width + 220;
                     const x2 = epicPos.left + 220;
-                    
+
                     return (
                       <line
                         key={`${epic.id}-${depId}`}
@@ -483,11 +482,11 @@ export const RoadmapView: React.FC = () => {
                   </marker>
                 </defs>
               </DependencyLine>
-              
+
               {/* Epic bars */}
               {epics.map((epic, index) => {
                 const { left, width } = calculateEpicPosition(epic);
-                
+
                 return (
                   <EpicRow key={epic.id}>
                     <EpicLabel onClick={() => handleEpicClick(epic)}>
@@ -523,7 +522,7 @@ export const RoadmapView: React.FC = () => {
           </div>
         )}
       </TimelineContainer>
-      
+
       {/* Epic Details Drawer */}
       <Drawer
         title={selectedEpic ? `${selectedEpic.key} - ${selectedEpic.summary}` : 'Epic Details'}
@@ -542,7 +541,7 @@ export const RoadmapView: React.FC = () => {
                 <span>{selectedEpic.completedPoints} / {selectedEpic.totalPoints} points</span>
               </div>
             </StatCard>
-            
+
             <StatCard>
               <h4>Details</h4>
               <div style={{ marginBottom: 8 }}>
@@ -558,7 +557,7 @@ export const RoadmapView: React.FC = () => {
                 <strong>Assignee:</strong> {selectedEpic.assignee?.name || 'Unassigned'}
               </div>
             </StatCard>
-            
+
             <Form
               layout="vertical"
               initialValues={{
@@ -577,7 +576,7 @@ export const RoadmapView: React.FC = () => {
                 Update Dates
               </Button>
             </Form>
-            
+
             {selectedEpic.children && selectedEpic.children.length > 0 && (
               <StatCard style={{ marginTop: 16 }}>
                 <h4>Child Issues ({selectedEpic.children.length})</h4>

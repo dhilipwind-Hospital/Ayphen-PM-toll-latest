@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { Input, Select, DatePicker, Button, Card, List, Avatar, Tag, Tabs, AutoComplete } from 'antd';
+import { Input, Select, DatePicker, Button, Card, List, Avatar, Tag, Tabs, AutoComplete, Spin, message } from 'antd';
 import { Search, Filter, Save, History, Code, X } from 'lucide-react';
 import styled from 'styled-components';
+import { issuesApi } from '../../services/api';
+import { useStore } from '../../store/useStore';
+import dayjs from 'dayjs';
 
 const SearchContainer = styled.div`
   padding: 24px;
@@ -71,6 +74,8 @@ interface SearchResult {
 }
 
 export const AdvancedSearch: React.FC = () => {
+  const { currentProject } = useStore();
+  const [loading, setLoading] = useState(false);
   const [searchMode, setSearchMode] = useState<'basic' | 'jql'>('basic');
   const [filters, setFilters] = useState<SearchFilter[]>([
     { id: '1', field: 'project', operator: '=', value: '' }
@@ -177,13 +182,84 @@ export const AdvancedSearch: React.FC = () => {
     ));
   };
 
-  const executeSearch = () => {
-    // Simulate search execution
-    setSearchResults(mockResults);
+  const executeSearch = async () => {
+    setLoading(true);
+    try {
+      // 1. Fetch Issues (Optimized: prefer fetching by project if filter exists)
+      const projectFilter = filters.find(f => f.field === 'project');
+      let response;
 
-    // Add to search history
-    if (searchMode === 'jql' && jqlQuery) {
-      setSearchHistory(prev => [jqlQuery, ...prev.filter(q => q !== jqlQuery)].slice(0, 10));
+      const targetProjectId = projectFilter?.value || currentProject?.id;
+
+      if (targetProjectId) {
+        response = await issuesApi.getAll({ projectId: targetProjectId });
+      } else {
+        response = await issuesApi.getAll();
+      }
+
+      let issues = response.data || [];
+
+      // 2. Client-side Filter Application (Basic Mode)
+      if (searchMode === 'basic') {
+        issues = issues.filter((issue: any) => {
+          return filters.every(f => {
+            if (!f.value) return true;
+
+            let issueValue: string = '';
+
+            if (f.field === 'assignee') issueValue = issue.assignee?.name || '';
+            else if (f.field === 'reporter') issueValue = issue.reporter?.name || '';
+            else if (f.field === 'project') issueValue = issue.projectId || '';
+            else issueValue = String(issue[f.field] || '');
+
+            const filterValue = f.value.toLowerCase();
+            const actualValue = issueValue.toLowerCase();
+
+            switch (f.operator) {
+              case '=': return actualValue === filterValue;
+              case '!=': return actualValue !== filterValue;
+              case '~': // Using '~' for contains as per operatorOptions
+              case 'contains': return actualValue.includes(filterValue);
+              default: return true;
+            }
+          });
+        });
+      } else {
+        // JQL partial support: just filter by text
+        if (jqlQuery && !jqlQuery.includes('=')) {
+          const query = jqlQuery.toLowerCase();
+          issues = issues.filter((i: any) =>
+            i.summary.toLowerCase().includes(query) ||
+            (i.description && i.description.toLowerCase().includes(query))
+          );
+        }
+      }
+
+      const results: SearchResult[] = issues.map((i: any) => ({
+        id: i.id,
+        key: i.key,
+        title: i.summary,
+        type: i.type,
+        status: i.status,
+        priority: i.priority,
+        assignee: i.assignee?.name || 'Unassigned',
+        reporter: i.reporter?.name || 'Unknown',
+        created: i.createdAt,
+        updated: i.updatedAt,
+        description: i.description
+      }));
+
+      setSearchResults(results);
+
+      if (searchMode === 'jql' && jqlQuery) {
+        setSearchHistory(prev => [jqlQuery, ...prev.filter(q => q !== jqlQuery)].slice(0, 10));
+      }
+
+    } catch (error) {
+      console.error('Search failed:', error);
+      message.error('Search failed');
+    } finally {
+      setLoading(false);
     }
   };
 

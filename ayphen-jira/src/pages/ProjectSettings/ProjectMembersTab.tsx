@@ -306,6 +306,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
         visible={inviteModalVisible}
         projectId={projectId}
         projectName="Project"
+        existingUsers={users}
         onClose={() => setInviteModalVisible(false)}
         onSuccess={() => {
           loadMembers();

@@ -148,7 +148,7 @@ export const EnhancedDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState('week');
   const [projectFilter, setProjectFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const { issues, currentProject, sprints } = useStore();
+  const { issues, setIssues, currentProject, sprints, setSprints } = useStore();
   const [stats, setStats] = useState([
     { title: 'Total Issues', value: 0, icon: <TrendingUp size={28} />, color: '#0EA5E9' },
     { title: 'In Progress', value: 0, icon: <Clock size={28} />, color: '#38BDF8' },
@@ -159,9 +159,35 @@ export const EnhancedDashboard: React.FC = () => {
   const [upcomingDeadlines, setUpcomingDeadlines] = useState<any[]>([]);
   const [sprintProgress, setSprintProgress] = useState({ completed: 0, total: 0, percent: 0 });
 
+  // Fetch data if store is empty (e.g. on page refresh)
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentProject) return;
+
+      try {
+        // Fetch issues if missing
+        if (issues.length === 0) {
+          const res = await issuesApi.getByProject(currentProject.id);
+          setIssues(res.data || []);
+        }
+
+        // Fetch sprints if missing (for progress widget)
+        if (sprints.length === 0) {
+          const res = await sprintsApi.getAll(currentProject.id);
+          const sprintData = Array.isArray(res.data) ? res.data : (res.data.sprints || []);
+          setSprints(sprintData);
+        }
+      } catch (error) {
+        console.error('Failed to initialize dashboard data:', error);
+      }
+    };
+
+    fetchData();
+  }, [currentProject]);
+
   useEffect(() => {
     loadDashboardData();
-  }, [currentProject, issues]);
+  }, [currentProject, issues, sprints]);
 
   const loadDashboardData = async () => {
     setLoading(true);

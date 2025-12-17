@@ -4,7 +4,9 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tool
 import { Download, TrendingUp, Users, Clock } from 'lucide-react';
 import styled from 'styled-components';
 import { reportsApi } from '../services/api';
+import { useStore } from '../store/useStore';
 import dayjs from 'dayjs';
+import { message } from 'antd';
 
 const Container = styled.div`
   padding: 24px;
@@ -15,41 +17,52 @@ const Container = styled.div`
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const AdvancedReports: React.FC = () => {
+  const { currentProject, sprints } = useStore();
   const [loading, setLoading] = useState(false);
   const [reportType, setReportType] = useState('velocity');
   const [dateRange, setDateRange] = useState<[any, any]>([dayjs().subtract(30, 'days'), dayjs()]);
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    loadReport();
-  }, [reportType, dateRange]);
+    if (currentProject) {
+      loadReport();
+    }
+  }, [reportType, dateRange, currentProject]);
 
   const loadReport = async () => {
+    if (!currentProject) return;
     setLoading(true);
     try {
       let response;
       switch (reportType) {
         case 'velocity':
-          response = await reportsApi.getVelocity('project-1');
+          response = await reportsApi.getVelocity(currentProject.id);
           break;
         case 'burndown':
-          response = await reportsApi.getBurndown('sprint-1');
+          const activeSprint = sprints.find(s => s.status === 'active') || sprints[0];
+          if (activeSprint) {
+            response = await reportsApi.getBurndown(activeSprint.id);
+          } else {
+            message.warning('No sprints found for burndown chart');
+            response = { data: null };
+          }
           break;
         case 'cumulative':
-          response = await reportsApi.getCumulativeFlow('project-1');
+          response = await reportsApi.getCumulativeFlow(currentProject.id);
           break;
         case 'time-tracking':
-          response = await reportsApi.getTimeTracking('project-1');
+          response = await reportsApi.getTimeTracking(currentProject.id);
           break;
         case 'workload':
-          response = await reportsApi.getUserWorkload('project-1');
+          response = await reportsApi.getUserWorkload(currentProject.id);
           break;
         default:
           response = { data: null };
       }
-      setData(response.data);
+      setData(response?.data);
     } catch (error) {
       console.error('Error loading report:', error);
+      message.error('Failed to load report data');
     } finally {
       setLoading(false);
     }
@@ -58,9 +71,10 @@ export const AdvancedReports: React.FC = () => {
   const exportReport = async (format: 'pdf' | 'csv') => {
     try {
       await reportsApi.export(format, reportType);
-      alert(`Report exported as ${format.toUpperCase()}`);
+      message.success(`Report exported as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Export error:', error);
+      message.error('Export failed');
     }
   };
 

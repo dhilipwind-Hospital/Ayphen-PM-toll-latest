@@ -9,6 +9,43 @@ export const api = axios.create({
   },
 });
 
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Handle 401 Unauthorized
+      if (error.response.status === 401) {
+        // Prevent redirect loop if already on auth pages
+        if (!window.location.pathname.startsWith('/auth') &&
+          !window.location.pathname.startsWith('/login') &&
+          !window.location.pathname.startsWith('/register')) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userId');
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Projects API
 export const projectsApi = {
   getAll: (userId?: string) => api.get('/projects', { params: userId ? { userId } : {} }),

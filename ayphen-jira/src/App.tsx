@@ -5,13 +5,11 @@ import { antdTheme } from './theme/theme';
 import { BoardView } from './pages/BoardView';
 import { BacklogView } from './pages/BacklogView';
 import { RoadmapView } from './pages/RoadmapView';
-import { DashboardView } from './pages/DashboardView';
-import { EnhancedDashboardView } from './pages/EnhancedDashboardView';
 import { EnhancedDashboard } from './pages/EnhancedDashboard';
 import { KanbanBoard } from './components/Board/KanbanBoard';
 import { AdvancedSearch } from './components/Search/AdvancedSearch';
 import { TimeTracker } from './components/TimeTracking/TimeTracker';
-import { SearchPage } from './pages/SearchPage';
+
 import { ReportsView } from './components/Reports/ReportsView';
 import { FiltersView } from './pages/FiltersView';
 import { SavedFiltersList } from './components/SavedFilters/SavedFiltersList';
@@ -274,14 +272,12 @@ function App() {
                           <Route path="/advanced-reports" element={<AdvancedReports />} />
                           <Route path="/dashboard" element={<EnhancedDashboard />} />
                           <Route path="/dashboard/create" element={<EnhancedDashboard />} />
-                          <Route path="/dashboard-old" element={<DashboardView />} />
-                          <Route path="/dashboard-enhanced" element={<EnhancedDashboardView />} />
                           <Route path="/filters" element={<FiltersView />} />
                           <Route path="/filters/saved" element={<SavedFiltersList />} />
                           <Route path="/filters/advanced" element={<AdvancedSearchView />} />
                           <Route path="/search" element={<AdvancedSearch />} />
                           <Route path="/search/jql" element={<AdvancedSearch />} />
-                          <Route path="/search-old" element={<SearchPage />} />
+
                           <Route path="/filters/create" element={<FiltersView />} />
                           <Route path="/projects" element={<ProjectsView />} />
                           <Route path="/projects/:projectId" element={<ProjectDetailView />} />
@@ -295,7 +291,7 @@ function App() {
                           <Route path="/apps/installed" element={<AppsPage />} />
                           <Route path="/apps/requests" element={<AppsPage />} />
                           <Route path="/apps/marketplace" element={<AppsPage />} />
-                          <Route path="/profile" element={<DashboardView />} />
+                          <Route path="/profile" element={<Navigate to="/settings/profile" replace />} />
                           <Route path="/settings/:settingType" element={<ProjectSettingsView />} />
                           <Route path="/workflows" element={<WorkflowView />} />
                           <Route path="/workflow-editor/:id" element={<WorkflowEditor />} />

@@ -23,6 +23,10 @@ import {
   MessageCircle,
   Clock,
   Zap,
+  Shield,
+  Tag,
+  GitBranch,
+  Box,
 } from 'lucide-react';
 import { colors } from '../../theme/colors';
 import { useStore } from '../../store/useStore';
@@ -342,6 +346,25 @@ export const ProjectSidebar: React.FC = () => {
     {
       type: 'divider',
     },
+    {
+      key: 'project-settings',
+      icon: <Settings size={16} />,
+      label: 'Project Settings',
+      children: [
+        { key: 'settings-details', label: 'Details', icon: <FileText size={14} />, onClick: () => navigate('/settings/details') },
+        { key: 'settings-people', label: 'People', icon: <Users size={14} />, onClick: () => navigate('/settings/people') },
+        { key: 'settings-components', label: 'Components', icon: <Box size={14} />, onClick: () => navigate('/settings/components-settings') },
+        { key: 'settings-versions', label: 'Versions', icon: <Tag size={14} />, onClick: () => navigate('/settings/versions') },
+        { key: 'settings-types', label: 'Issue Types', icon: <Bug size={14} />, onClick: () => navigate('/settings/issue-types') },
+        { key: 'settings-workflows', label: 'Workflows', icon: <GitBranch size={14} />, onClick: () => navigate('/settings/workflows') },
+        { key: 'settings-fields', label: 'Fields', icon: <ListTodo size={14} />, onClick: () => navigate('/settings/fields') },
+        { key: 'settings-permissions', label: 'Permissions', icon: <Shield size={14} />, onClick: () => navigate('/settings/permissions') },
+        { key: 'settings-automation', label: 'Automation', icon: <Zap size={14} />, onClick: () => navigate('/settings/automation') },
+      ],
+    },
+    {
+      type: 'divider',
+    },
     ...customItems.map(item => ({
       key: item.id,
       icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
@@ -391,11 +414,6 @@ export const ProjectSidebar: React.FC = () => {
             <ProjectType>{currentProject.type} project</ProjectType>
           </ProjectDetails>
         </ProjectInfo>
-        <Dropdown menu={projectSettingsMenu} trigger={['click']} placement="bottomRight">
-          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-            <StyledSettingsIcon />
-          </div>
-        </Dropdown>
       </ProjectHeader>
 
       <StyledMenu
@@ -486,6 +504,6 @@ export const ProjectSidebar: React.FC = () => {
           </Button>
         </Form>
       </Modal>
-    </StyledSider>
+    </StyledSider >
   );
 };
