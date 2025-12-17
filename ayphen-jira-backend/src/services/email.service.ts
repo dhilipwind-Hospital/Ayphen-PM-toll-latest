@@ -11,7 +11,7 @@ export class EmailService {
   constructor() {
     this.fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@jiraclone.com';
     this.fromName = process.env.SMTP_FROM_NAME || 'Ayphen Project Management';
-    
+
     // Initialize transporter synchronously
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
       // Real SMTP configuration (Gmail, etc.)
@@ -69,7 +69,7 @@ export class EmailService {
 
       const info = await this.transporter.sendMail(mailOptions);
       console.log(`📧 Email sent to ${to}: ${subject}`);
-      
+
       // Log preview URL for Ethereal
       if (process.env.NODE_ENV !== 'production') {
         console.log('   Preview URL:', nodemailer.getTestMessageUrl(info));
@@ -255,7 +255,7 @@ export class EmailService {
       // Get user email
       const userRepo = AppDataSource.getRepository(User);
       const user = await userRepo.findOne({ where: { id: userId } });
-      
+
       if (!user || !user.email) {
         console.log(`📧 Email notification skipped for user ${userId} (no email)`);
         return;
@@ -271,7 +271,7 @@ export class EmailService {
         console.log(`📧 Email sent to ${user.email} via SendGrid`);
       } catch (sendGridError) {
         console.warn('SendGrid failed, trying SMTP fallback:', sendGridError);
-        
+
         // Fallback to SMTP
         const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
         const fromName = process.env.SMTP_FROM_NAME || 'Ayphen Project Management';
@@ -283,7 +283,7 @@ export class EmailService {
         });
 
         console.log(`📧 Email sent to ${user.email} via SMTP: ${info.messageId}`);
-        
+
         // In development, log preview URL
         if (process.env.NODE_ENV !== 'production') {
           console.log('   Preview URL:', nodemailer.getTestMessageUrl(info));
@@ -298,7 +298,7 @@ export class EmailService {
     try {
       const userRepo = AppDataSource.getRepository(User);
       const user = await userRepo.findOne({ where: { id: userId } });
-      
+
       if (!user || !user.email) {
         return;
       }
@@ -357,35 +357,44 @@ export class EmailService {
     token: string;
     expiresAt: Date;
   }): Promise<void> {
+    const { to, projectName, inviterName, role, token, expiresAt } = data;
+
+    const acceptLink = `${process.env.FRONTEND_URL || 'http://localhost:1600'}/accept-invitation/${token}`;
+    const expiryDate = new Date(expiresAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const subject = `${inviterName} invited you to join "${projectName}"`;
+
+    const html = this.getInvitationEmailTemplate({
+      projectName,
+      inviterName,
+      role,
+      acceptLink,
+      expiryDate,
+    });
+
+    // Try SendGrid Web API first (same as registration), fallback to SMTP
     try {
-      const { to, projectName, inviterName, role, token, expiresAt } = data;
-      
-      const acceptLink = `${process.env.FRONTEND_URL || 'http://localhost:1600'}/accept-invitation/${token}`;
-      const expiryDate = new Date(expiresAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      
-      const subject = `${inviterName} invited you to join "${projectName}"`;
-      
-      const html = this.getInvitationEmailTemplate({
-        projectName,
-        inviterName,
-        role,
-        acceptLink,
-        expiryDate,
-      });
-      
-      const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
-      const fromName = process.env.SMTP_FROM_NAME || 'Ayphen Jira';
-      
-      const info = await this.transporter.sendMail({
-        from: `"${fromName}" <${fromEmail}>`,
-        to,
-        subject,
-        html,
-        text: `
+      const { sendGridService } = await import('./sendgrid.service');
+      await sendGridService.sendEmail(to, subject, html);
+      console.log(`✅ Invitation email sent to ${to} via SendGrid`);
+    } catch (sendGridError) {
+      console.warn('⚠️ SendGrid failed for invitation, trying SMTP fallback:', sendGridError);
+
+      // Fallback to SMTP
+      try {
+        const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
+        const fromName = process.env.SMTP_FROM_NAME || 'Ayphen Project Management';
+
+        const info = await this.transporter.sendMail({
+          from: `"${fromName}" <${fromEmail}>`,
+          to,
+          subject,
+          html,
+          text: `
 ${inviterName} has invited you to join the project "${projectName}" as a ${role}.
 
 Click the link below to accept the invitation:
@@ -394,21 +403,22 @@ ${acceptLink}
 This invitation will expire on ${expiryDate}.
 
 If you didn't expect this invitation, you can safely ignore this email.
-        `.trim(),
-      });
+          `.trim(),
+        });
 
-      console.log(`✅ Invitation email sent to ${to}: ${info.messageId}`);
-      
-      // In development, log preview URL
-      if (process.env.NODE_ENV !== 'production') {
-        const previewUrl = nodemailer.getTestMessageUrl(info);
-        if (previewUrl) {
-          console.log('📧 Preview invitation email:', previewUrl);
+        console.log(`✅ Invitation email sent to ${to} via SMTP: ${info.messageId}`);
+
+        // In development, log preview URL
+        if (process.env.NODE_ENV !== 'production') {
+          const previewUrl = nodemailer.getTestMessageUrl(info);
+          if (previewUrl) {
+            console.log('📧 Preview invitation email:', previewUrl);
+          }
         }
+      } catch (smtpError) {
+        console.error('❌ Both SendGrid and SMTP failed to send invitation email:', smtpError);
+        throw new Error('Failed to send invitation email');
       }
-    } catch (error) {
-      console.error('❌ Failed to send invitation email:', error);
-      throw new Error('Failed to send invitation email');
     }
   }
 
@@ -423,16 +433,16 @@ If you didn't expect this invitation, you can safely ignore this email.
   }): Promise<void> {
     try {
       const { to, projectName, token, expiresAt } = data;
-      
+
       const acceptLink = `${process.env.FRONTEND_URL || 'http://localhost:1600'}/accept-invitation/${token}`;
       const expiryDate = new Date(expiresAt).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
-      
+
       const subject = `Reminder: Join "${projectName}" on Ayphen Jira`;
-      
+
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #0052CC;">📬 Reminder: You've been invited to join "${projectName}"</h2>
@@ -447,17 +457,17 @@ If you didn't expect this invitation, you can safely ignore this email.
           <p><strong>⏰ This invitation expires on ${expiryDate}</strong></p>
         </div>
       `;
-      
+
       const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
       const fromName = process.env.SMTP_FROM_NAME || 'Ayphen Jira';
-      
+
       await this.transporter.sendMail({
         from: `"${fromName}" <${fromEmail}>`,
         to,
         subject,
         html,
       });
-      
+
       console.log(`✅ Invitation reminder sent to ${to}`);
     } catch (error) {
       console.error('❌ Failed to send invitation reminder:', error);
@@ -476,7 +486,7 @@ If you didn't expect this invitation, you can safely ignore this email.
     expiryDate: string;
   }): string {
     const { projectName, inviterName, role, acceptLink, expiryDate } = data;
-    
+
     const roleDescriptions: Record<string, string> = {
       admin: `
         <li>Full access to all project features</li>
@@ -494,7 +504,7 @@ If you didn't expect this invitation, you can safely ignore this email.
         <li>Track project progress</li>
       `
     };
-    
+
     return `
 <!DOCTYPE html>
 <html>
