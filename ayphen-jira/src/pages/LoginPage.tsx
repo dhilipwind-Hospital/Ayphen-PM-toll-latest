@@ -86,6 +86,7 @@ const Logo = styled.div`
     border-radius: 12px;
     padding: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: ${glow} 3s ease-in-out infinite;
   }
   
   .brand-text {
@@ -109,6 +110,29 @@ const Logo = styled.div`
       color: #BAE6FD;
     }
   }
+`;
+
+const ParticlesContainer = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+`;
+
+const Particle = styled.div<{ size?: number; left?: string; delay?: number }>`
+  position: absolute;
+  bottom: -100px;
+  left: ${props => props.left || '50%'};
+  width: ${props => props.size || 8}px;
+  height: ${props => props.size || 8}px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: ${floatParticle} 15s linear infinite;
+  animation-delay: ${props => props.delay || 0}s;
 `;
 
 const Tagline = styled.h1`
@@ -371,6 +395,20 @@ export const LoginPage: React.FC = () => {
   return (
     <PageContainer>
       <LeftPanel>
+        <ParticlesContainer>
+          <Particle size={6} left="10%" delay={0} />
+          <Particle size={8} left="20%" delay={2} />
+          <Particle size={5} left="30%" delay={4} />
+          <Particle size={7} left="40%" delay={1} />
+          <Particle size={6} left="50%" delay={3} />
+          <Particle size={9} left="60%" delay={5} />
+          <Particle size={5} left="70%" delay={2.5} />
+          <Particle size={7} left="80%" delay={4.5} />
+          <Particle size={4} left="90%" delay={1.5} />
+          <Particle size={8} left="15%" delay={3.5} />
+          <Particle size={6} left="65%" delay={0.5} />
+          <Particle size={5} left="85%" delay={3.8} />
+        </ParticlesContainer>
         <BrandContent>
           <Logo>
             <img src="/ayphen-logo-new.png" alt="Ayphen Logo" />
