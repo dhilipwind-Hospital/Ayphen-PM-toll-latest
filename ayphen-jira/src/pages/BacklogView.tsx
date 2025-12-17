@@ -13,6 +13,7 @@ import { colors } from '../theme/colors';
 import { sprintsApi, issuesApi } from '../services/api';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { StartSprintModal } from '../components/Sprint/StartSprintModal';
+import { CreateSprintModal } from '../components/Sprint/CreateSprintModal';
 import { IssueDetailPanel } from '../components/IssueDetail/IssueDetailPanel';
 
 
@@ -233,6 +234,7 @@ export const BacklogView: React.FC = () => {
   // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
+  const [isCreateSprintModalOpen, setIsCreateSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState<any>(null);
 
   const sensors = useSensors(
@@ -438,7 +440,7 @@ export const BacklogView: React.FC = () => {
           {/* Backlog */}
           <SprintCard title={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <span style={{ fontWeight: 600 }}>Backlog ({backlogIssues.length} issues)</span>
-            <Button size="small" onClick={handleCreateSprint}>Create Sprint</Button>
+            <Button size="small" type="primary" onClick={() => setIsCreateSprintModalOpen(true)}>+ Create Sprint</Button>
           </div>}>
             <DroppableSprint
               sprintId="backlog"
@@ -468,6 +470,16 @@ export const BacklogView: React.FC = () => {
       {/* Modals */}
       <CreateIssueModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onSuccess={loadData} />
       <StartSprintModal visible={isStartSprintModalOpen} onClose={() => setIsStartSprintModalOpen(false)} sprint={selectedSprint} onSuccess={loadData} />
+      {currentProject && (
+        <CreateSprintModal
+          visible={isCreateSprintModalOpen}
+          onClose={() => setIsCreateSprintModalOpen(false)}
+          projectId={currentProject.id}
+          projectKey={currentProject.key}
+          existingSprintCount={sprints.length}
+          onSuccess={loadData}
+        />
+      )}
 
     </Container>
   );
