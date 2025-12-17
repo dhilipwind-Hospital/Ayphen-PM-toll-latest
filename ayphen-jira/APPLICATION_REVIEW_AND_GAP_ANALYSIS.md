@@ -56,12 +56,14 @@ The API definition is comprehensive (`api.ts` is 330+ lines), but frontend usage
 |------|--------|--------|
 | `AdvancedReports.tsx` | 🔴 Broken | Hardcoded Project/Sprint IDs. |
 | `WorkflowEditor.tsx` | 🟡 Beta | Complex logic, needs thorough testing. |
-| `ProjectSettingsView.tsx` | 🟢 Good | Seemingly complete. |
+| `ProjectSettingsView.tsx` | 🟢 Verified | Robust, manages multiple tabs and uses Popconfirm for safety. |
+| `RoadmapView.tsx` | 🔴 Critical | auth bypass bug! Uses raw `axios` calls that miss Auth headers. |
+| `EmailIntegrationPanel.tsx` | 🟡 Risk | Hardcoded API URL (line 53), bypasses `api.ts` config. |
 
 ### Tech Debt
 - `dashboard-old`, `search-old` routes in `App.tsx` should be removed.
-- `styles` directory might confuse with `theme` directory (check for CSS duplication).
-- `features` directory contains large AI components (`AIAssistant`, `BlockchainAudit`) - ensure they are actually connected to backend or are just UI shells.
+- `styles` directory is minimal (only responsive.css), seemingly safe.
+- **AI Features**: Confirmed `AIAssistant.tsx` is a **Shell/Stub** (uses `setTimeout`). Needs backend implementation.
 
 ---
 
@@ -81,3 +83,24 @@ The API definition is comprehensive (`api.ts` is 330+ lines), but frontend usage
 1. Implement `HierarchyView`.
 2. Connect `AdvancedSearch` to real backend search.
 3. Finalize `RoadmapView` with real date dependencies.
+
+---
+
+## 🔍 Deep Dive Verification Findings
+*Added Dec 17*
+
+### 1. Roadmap View Auth Bug
+`RoadmapView.tsx` uses a direct `axios.get()` call instead of the configured `api` instance from `services/api.ts`.
+- **Impact**: The request does NOT include the Bearer token (unless set globally, which it isn't).
+- **Result**: Roadmap will likely fail with 401 Unauthorized in production.
+- **Fix**: Replace `axios.get` with `api.get` (imported from services).
+
+### 2. AI Features are Shells
+Verified that `src/features/ai/AIAssistant.tsx` uses `setTimeout` to simulate responses.
+- **Impact**: Users clicking "Get AI Suggestions" see fake data.
+- **Action**: Mark as "Incomplete/Prototype" in UI or implement real backend connection.
+
+### 3. Hardcoded URLs in Components
+Both `RoadmapView` and `EmailIntegrationPanel` define their own `API_URL` constant.
+- **Impact**: Changing the backend URL in `api.ts` won't update these components.
+- **Fix**: Import `API_BASE_URL` or use the `api` instance which has `baseURL` configured.
