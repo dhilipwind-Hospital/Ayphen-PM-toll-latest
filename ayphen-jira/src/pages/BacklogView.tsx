@@ -250,7 +250,10 @@ export const BacklogView: React.FC = () => {
     try {
       if (!currentProject) return;
       const sprintRes = await sprintsApi.getAll(currentProject.id);
-      setSprints(sprintRes.data);
+      // Handle both array and object responses
+      const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data?.sprints || [];
+      setSprints(sprintData);
+
       const res = await issuesApi.getByProject(currentProject.id);
       // Sort by listPosition
       const sortedIssues = res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0));
