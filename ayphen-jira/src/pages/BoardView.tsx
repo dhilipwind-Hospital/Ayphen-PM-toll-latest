@@ -25,8 +25,9 @@ const Container = styled.div`
   min-height: calc(100vh - 56px);
 `;
 
-const BoardContainer = styled.div`
-  display: flex;
+
+const BoardContainer = styled.div<{ $viewMode?: 'grid' | 'list' }>`
+  display: ${props => props.$viewMode === 'list' ? 'block' : 'flex'};
   gap: 16px;
   overflow-x: auto;
   padding: 16px;
@@ -44,6 +45,12 @@ const BoardContainer = styled.div`
     background: rgba(0,0,0,0.1);
     border-radius: 4px;
   }
+`;
+
+const ListViewContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 `;
 
 const Column = styled.div<{ isOver?: boolean }>`
@@ -268,6 +275,29 @@ const CountBadge = styled.div`
   &:hover {
     color: #172B4D;
   }
+`;
+
+// List  View Components
+const ListViewStatusSection = styled.div`
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+`;
+
+const ListViewHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid ${colors.border.light};
+`;
+
+const ListViewIssuesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
 
 const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
@@ -1008,21 +1038,64 @@ export const BoardView: React.FC = () => {
           collisionDetection={pointerWithin}
           onDragEnd={handleDragEnd}
         >
-          <BoardContainer>
-            {columns.map(col => (
-              <DroppableColumn
-                key={col.id}
-                status={col.id}
-                title={col.title}
-                issues={getIssuesByStatus(col.statuses)}
-                onIssueClick={handleIssueClick}
-                onCardSelect={handleCardSelect}
-                selectedIssues={selectedIssues}
-                onContextMenu={handleContextMenu}
-                wipLimit={col.wipLimit}
-              />
-            ))}
-          </BoardContainer>
+          {viewMode === 'grid' ? (
+            <BoardContainer $viewMode="grid">
+              {columns.map(col => (
+                <DroppableColumn
+                  key={col.id}
+                  status={col.id}
+                  title={col.title}
+                  issues={getIssuesByStatus(col.statuses)}
+                  onIssueClick={handleIssueClick}
+                  onCardSelect={handleCardSelect}
+                  selectedIssues={selectedIssues}
+                  onContextMenu={handleContextMenu}
+                  wipLimit={col.wipLimit}
+                />
+              ))}
+            </BoardContainer>
+          ) : (
+            <BoardContainer $viewMode="list">
+              <ListViewContainer>
+                {columns.map(col => {
+                  const colIssues = getIssuesByStatus(col.statuses);
+                  if (colIssues.length === 0) return null;
+
+                  return (
+                    <ListViewStatusSection key={col.id}>
+                      <ListViewHeader>
+                        <StatusDot status={col.id} />
+                        <ColumnTitle>{col.title}</ColumnTitle>
+                        <IssueCount>{colIssues.length}</IssueCount>
+                      </ListViewHeader>
+                      <ListViewIssuesList>
+                        <SortableContext
+                          items={colIssues.map(i => i.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {colIssues.map((issue) => (
+                            <SortableIssue
+                              key={issue.id}
+                              issue={issue}
+                              onClick={(e) => {
+                                if (e.ctrlKey || e.metaKey) {
+                                  handleCardSelect(e, issue.id);
+                                } else {
+                                  handleIssueClick(issue);
+                                }
+                              }}
+                              onContextMenu={handleContextMenu}
+                              isSelected={selectedIssues.includes(issue.id)}
+                            />
+                          ))}
+                        </SortableContext>
+                      </ListViewIssuesList>
+                    </ListViewStatusSection>
+                  );
+                })}
+              </ListViewContainer>
+            </BoardContainer>
+          )}
           <DragOverlay>
           </DragOverlay>
         </DndContext>
