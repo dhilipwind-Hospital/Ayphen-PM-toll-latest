@@ -333,23 +333,29 @@ export const BacklogView: React.FC = () => {
   const backlogIssues = issues.filter(i => !i.sprintId && i.type !== 'epic');
 
   const handleCreateSprint = async () => {
-    if (!currentProject) return;
+    if (!currentProject) {
+      message.warning('Please select a project first');
+      return;
+    }
     try {
       // Basic next name logic
       const nextNum = sprints.length + 1;
       const name = `${currentProject.key} Sprint ${nextNum}`;
+
+      console.log('Creating sprint:', { name, projectId: currentProject.id });
 
       await sprintsApi.create({
         name,
         projectId: currentProject.id,
         status: 'future'
       });
-      message.success('Sprint created');
+      message.success('Sprint created successfully!');
       // Reload sprints
       const sprintRes = await sprintsApi.getAll(currentProject.id);
       setSprints(sprintRes.data);
-    } catch (e) {
-      message.error('Failed to create sprint');
+    } catch (e: any) {
+      console.error('Failed to create sprint:', e);
+      message.error(e?.response?.data?.message || 'Failed to create sprint');
     }
   };
 

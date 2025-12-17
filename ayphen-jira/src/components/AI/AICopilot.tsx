@@ -7,8 +7,8 @@ import axios from 'axios';
 const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 const pulse = keyframes`
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
-  50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(236, 72, 153, 0); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
+  50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
 `;
 
 const FloatingButton = styled.div<{ isOpen: boolean }>`
@@ -23,7 +23,7 @@ const FloatingButton = styled.div<{ isOpen: boolean }>`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
   animation: ${pulse} 2s infinite;
   z-index: 1000;
   transition: all 0.3s;

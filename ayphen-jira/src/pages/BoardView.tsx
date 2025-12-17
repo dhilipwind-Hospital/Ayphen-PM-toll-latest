@@ -48,7 +48,7 @@ const BoardContainer = styled.div`
 const Column = styled.div<{ isOver?: boolean }>`
   min-width: 280px;
   max-width: 280px;
-  background: ${props => props.isOver ? 'rgba(236, 72, 153, 0.05)' : 'transparent'};
+  background: ${props => props.isOver ? 'rgba(14, 165, 233, 0.05)' : 'transparent'};
   border-radius: 12px;
   padding: 8px;
   display: flex;

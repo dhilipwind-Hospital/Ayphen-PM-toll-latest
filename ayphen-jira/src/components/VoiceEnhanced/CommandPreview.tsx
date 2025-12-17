@@ -39,7 +39,7 @@ const CommandText = styled.div<{ isEditing: boolean }>`
   
   &:focus {
     border-color: #0EA5E9;
-    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
   }
 `;
 
@@ -123,7 +123,7 @@ const Button = styled.button<{ variant: 'primary' | 'secondary' | 'danger' }>`
           color: white;
           &:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
           }
         `;
       case 'secondary':

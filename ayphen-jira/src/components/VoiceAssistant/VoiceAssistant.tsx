@@ -24,7 +24,7 @@ const VoiceButton = styled.button<{ isListening: boolean }>`
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
   }
 `;
 

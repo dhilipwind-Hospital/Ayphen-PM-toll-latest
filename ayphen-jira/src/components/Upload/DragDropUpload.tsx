@@ -10,11 +10,11 @@ const UploadContainer = styled.div`
   .ant-upload-drag {
     border: 2px dashed #0EA5E9;
     border-radius: 8px;
-    background: rgba(236, 72, 153, 0.02);
+    background: rgba(14, 165, 233, 0.02);
     
     &:hover {
       border-color: #38BDF8;
-      background: rgba(236, 72, 153, 0.05);
+      background: rgba(14, 165, 233, 0.05);
     }
   }
 `;

@@ -48,7 +48,7 @@ const VoiceOrb = styled.div<{ isActive: boolean; isSpeaking: boolean }>`
   transition: all 0.3s;
   animation: ${props => (props.isActive || props.isSpeaking) ? pulse : 'none'} 2s infinite;
   box-shadow: ${props => (props.isActive || props.isSpeaking) 
-    ? '0 0 40px rgba(236, 72, 153, 0.6)'
+    ? '0 0 40px rgba(14, 165, 233, 0.6)'
     : '0 0 20px rgba(0, 0, 0, 0.2)'
   };
 

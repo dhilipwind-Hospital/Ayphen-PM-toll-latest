@@ -194,7 +194,7 @@ const FloatingButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
   z-index: 999;
   
   &:active {

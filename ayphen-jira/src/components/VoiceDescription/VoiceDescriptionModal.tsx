@@ -62,11 +62,11 @@ const MicButton = styled.button<{ $isRecording?: boolean }>`
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
   }
 
   &:active {
@@ -93,7 +93,7 @@ const TranscriptArea = styled(TextArea)`
   
   &:focus {
     border-color: #0EA5E9;
-    box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.1);
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1);
   }
 `;
 
@@ -111,7 +111,7 @@ const SuggestionCard = styled(Card) <{ $selected?: boolean }>`
 
   &:hover {
     border-color: #0EA5E9;
-    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.1);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
   }
 
   .ant-card-head {

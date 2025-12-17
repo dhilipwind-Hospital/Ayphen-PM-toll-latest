@@ -107,9 +107,9 @@ const NavItem = styled.div`
   white-space: nowrap;
 
   &:hover {
-    background: rgba(236, 72, 153, 0.1);
+    background: rgba(14, 165, 233, 0.1);
     color: #0EA5E9;
-    box-shadow: 0 0 12px rgba(236, 72, 153, 0.2);
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);
     transform: translateY(-1px);
   }
 
@@ -190,13 +190,13 @@ const CreateButton = styled(Button)`
   align-items: center;
   gap: 4px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 
   &:hover {
     background: ${colors.primary[700]} !important;
     color: white !important;
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
   }
 `;
 

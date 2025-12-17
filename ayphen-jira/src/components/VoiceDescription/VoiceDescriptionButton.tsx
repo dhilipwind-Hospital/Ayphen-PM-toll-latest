@@ -31,10 +31,10 @@ const VoiceButton = styled(Button)<{ $isRecording?: boolean }>`
 
   @keyframes pulse {
     0%, 100% {
-      box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.4);
+      box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4);
     }
     50% {
-      box-shadow: 0 0 0 8px rgba(236, 72, 153, 0);
+      box-shadow: 0 0 0 8px rgba(14, 165, 233, 0);
     }
   }
 `;

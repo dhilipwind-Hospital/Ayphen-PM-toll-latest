@@ -38,7 +38,7 @@ const VoiceButton = styled.button<{ isListening: boolean; mode: 'voice' | 'text'
   justify-content: center;
   cursor: ${props => props.mode === 'voice' ? 'pointer' : 'not-allowed'};
   transition: all 0.3s;
-  box-shadow: ${props => props.isListening ? '0 4px 12px rgba(236, 72, 153, 0.3)' : 'none'};
+  box-shadow: ${props => props.isListening ? '0 4px 12px rgba(14, 165, 233, 0.3)' : 'none'};
 
   &:hover {
     transform: ${props => props.mode === 'voice' ? 'scale(1.05)' : 'none'};
@@ -91,7 +91,7 @@ const TextInput = styled.textarea`
   &:focus {
     outline: none;
     border-color: #0EA5E9;
-    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
   }
 
   &::placeholder {

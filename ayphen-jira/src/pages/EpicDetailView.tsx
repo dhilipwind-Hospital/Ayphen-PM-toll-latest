@@ -122,7 +122,7 @@ const IssueTitleRow = styled.div`
 
 const IssueKey = styled.span`
   color: ${colors.primary[600]};
-  background: rgba(236, 72, 153, 0.1);
+  background: rgba(14, 165, 233, 0.1);
   font-size: 12px;
   font-weight: 600;
   padding: 4px 10px;

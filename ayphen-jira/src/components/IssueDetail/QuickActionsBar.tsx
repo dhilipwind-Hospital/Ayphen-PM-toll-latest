@@ -20,7 +20,7 @@ const QuickButton = styled(Button)`
   transition: all 0.2s ease;
   
   &:hover {
-    background: rgba(236, 72, 153, 0.1);
+    background: rgba(14, 165, 233, 0.1);
     border-color: ${colors.primary[600]};
     color: ${colors.primary[600]};
   }
