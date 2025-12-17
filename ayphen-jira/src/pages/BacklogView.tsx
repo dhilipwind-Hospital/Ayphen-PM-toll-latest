@@ -344,15 +344,23 @@ export const BacklogView: React.FC = () => {
 
       console.log('Creating sprint:', { name, projectId: currentProject.id });
 
-      await sprintsApi.create({
+      const createRes = await sprintsApi.create({
         name,
         projectId: currentProject.id,
         status: 'future'
       });
+      console.log('Sprint created response:', createRes.data);
+
       message.success('Sprint created successfully!');
-      // Reload sprints
+
+      // Reload sprints - handle both array and object responses
       const sprintRes = await sprintsApi.getAll(currentProject.id);
-      setSprints(sprintRes.data);
+      console.log('Sprints reload response:', sprintRes.data);
+
+      const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data.sprints || [];
+      setSprints(sprintData);
+
+      console.log('Sprints state updated:', sprintData.length, 'sprints');
     } catch (e: any) {
       console.error('Failed to create sprint:', e);
       message.error(e?.response?.data?.message || 'Failed to create sprint');

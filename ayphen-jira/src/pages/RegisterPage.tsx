@@ -61,7 +61,7 @@ const Container = styled.div`
     position: absolute;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(249, 168, 212, 0.2) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, transparent 70%);
     border-radius: 50%;
     bottom: -250px;
     left: -250px;
@@ -73,9 +73,9 @@ const Card = styled.div`
   background: rgba(255, 255, 255, 0.98);
   padding: 48px;
   border-radius: 20px;
-  box-shadow: 0 25px 80px rgba(14, 165, 233, 0.2), 0 15px 40px rgba(249, 168, 212, 0.15);
+  box-shadow: 0 25px 80px rgba(14, 165, 233, 0.2), 0 15px 40px rgba(6, 182, 212, 0.15);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(252, 231, 243, 0.3);
+  border: 1px solid rgba(224, 242, 254, 0.3);
   width: 100%;
   max-width: 480px;
   position: relative;
@@ -83,7 +83,7 @@ const Card = styled.div`
   animation: ${slideIn} 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   
   &:hover {
-    box-shadow: 0 30px 90px rgba(14, 165, 233, 0.25), 0 20px 50px rgba(249, 168, 212, 0.2);
+    box-shadow: 0 30px 90px rgba(14, 165, 233, 0.25), 0 20px 50px rgba(6, 182, 212, 0.2);
     transform: translateY(-8px) scale(1.02);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }

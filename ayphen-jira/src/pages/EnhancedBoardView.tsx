@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Tag, Avatar, Button, Select, message, Dropdown, Space, Badge, Empty, Spin, Tooltip } from 'antd';
+import { Card, Tag, Avatar, Button, Select, message, Dropdown, Space, Badge, Empty, Spin, Tooltip, Modal, Checkbox } from 'antd';
 import { Plus, Filter, Star, Settings, MoreHorizontal, Users, Flag, Grid, List, Zap, Bug, BookOpen, CheckSquare } from 'lucide-react';
 import { DndContext, useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent, DragOverlay, pointerWithin } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
@@ -57,11 +57,11 @@ const IssueList = styled.div`
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-height: 100px;
 `;
 
-// --- Item Component ---
+// --- Item Component (Compact) ---
 const BoardIssueCard = ({ issue, onClick }: { issue: any, onClick: () => void }) => {
   const {
     attributes,
@@ -84,22 +84,22 @@ const BoardIssueCard = ({ issue, onClick }: { issue: any, onClick: () => void })
         size="small"
         hoverable
         onClick={onClick}
-        style={{ cursor: 'grab', borderRadius: 6, boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)' }}
-        bodyStyle={{ padding: '12px' }}
+        style={{ cursor: 'grab', borderRadius: 6, boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)', borderLeft: `3px solid ${issue.type === 'bug' ? colors.issueType.bug : colors.issueType.story}` }}
+        bodyStyle={{ padding: '8px 10px' }}
       >
-        <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <span style={{ fontSize: 14, fontWeight: 500, color: colors.text.primary, lineHeight: 1.4 }}>{issue.summary}</span>
+        <div style={{ marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: colors.text.primary, lineHeight: 1.3 }}>{issue.summary}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {/* Type Icon */}
-            {issue.type === 'bug' && <Bug size={14} color={colors.issueType.bug} />}
-            {issue.type === 'story' && <BookOpen size={14} color={colors.issueType.story} />}
-            <span style={{ color: colors.text.secondary, fontSize: 12, fontWeight: 500 }}>{issue.key}</span>
+            {issue.type === 'bug' && <Bug size={12} color={colors.issueType.bug} />}
+            {issue.type === 'story' && <BookOpen size={12} color={colors.issueType.story} />}
+            <span style={{ color: colors.text.secondary, fontSize: 10, fontWeight: 500 }}>{issue.key}</span>
           </div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            {issue.priority === 'high' && <Flag size={12} color={colors.priority.high} fill={colors.priority.high} />}
-            <Avatar size={20} src={issue.assignee?.avatar} style={{ fontSize: 10, background: '#6366f1' }}>{issue.assignee?.name?.[0]}</Avatar>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            {issue.priority === 'high' && <Flag size={10} color={colors.priority.high} fill={colors.priority.high} />}
+            <Avatar size={18} src={issue.assignee?.avatar} style={{ fontSize: 9, background: '#0EA5E9' }}>{issue.assignee?.name?.[0]}</Avatar>
           </div>
         </div>
       </Card>
@@ -133,6 +133,9 @@ export const EnhancedBoardView: React.FC = () => {
   const { currentProject, sprints, issues, setIssues, setSprints } = useStore();
   const [activeSprint, setActiveSprint] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [filterType, setFilterType] = useState<string[]>([]);
+  const [filterPriority, setFilterPriority] = useState<string[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -198,8 +201,19 @@ export const EnhancedBoardView: React.FC = () => {
       // KANBAN: Show all except backlog (unless mapped)
       filtered = issues.filter(i => i.status !== 'backlog');
     }
+
+    // Apply type filter
+    if (filterType.length > 0) {
+      filtered = filtered.filter(i => filterType.includes(i.type));
+    }
+
+    // Apply priority filter
+    if (filterPriority.length > 0) {
+      filtered = filtered.filter(i => filterPriority.includes(i.priority));
+    }
+
     return filtered;
-  }, [issues, currentProject, activeSprint]);
+  }, [issues, currentProject, activeSprint, filterType, filterPriority]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -221,6 +235,33 @@ export const EnhancedBoardView: React.FC = () => {
     }
   };
 
+  // Filter menu items
+  const filterMenuItems = {
+    items: [
+      {
+        key: 'type',
+        label: 'Issue Type',
+        children: [
+          { key: 'story', label: <Checkbox checked={filterType.includes('story')} onChange={() => setFilterType(prev => prev.includes('story') ? prev.filter(t => t !== 'story') : [...prev, 'story'])}>Story</Checkbox> },
+          { key: 'bug', label: <Checkbox checked={filterType.includes('bug')} onChange={() => setFilterType(prev => prev.includes('bug') ? prev.filter(t => t !== 'bug') : [...prev, 'bug'])}>Bug</Checkbox> },
+          { key: 'task', label: <Checkbox checked={filterType.includes('task')} onChange={() => setFilterType(prev => prev.includes('task') ? prev.filter(t => t !== 'task') : [...prev, 'task'])}>Task</Checkbox> },
+        ]
+      },
+      {
+        key: 'priority',
+        label: 'Priority',
+        children: [
+          { key: 'highest', label: <Checkbox checked={filterPriority.includes('highest')} onChange={() => setFilterPriority(prev => prev.includes('highest') ? prev.filter(p => p !== 'highest') : [...prev, 'highest'])}>Highest</Checkbox> },
+          { key: 'high', label: <Checkbox checked={filterPriority.includes('high')} onChange={() => setFilterPriority(prev => prev.includes('high') ? prev.filter(p => p !== 'high') : [...prev, 'high'])}>High</Checkbox> },
+          { key: 'medium', label: <Checkbox checked={filterPriority.includes('medium')} onChange={() => setFilterPriority(prev => prev.includes('medium') ? prev.filter(p => p !== 'medium') : [...prev, 'medium'])}>Medium</Checkbox> },
+          { key: 'low', label: <Checkbox checked={filterPriority.includes('low')} onChange={() => setFilterPriority(prev => prev.includes('low') ? prev.filter(p => p !== 'low') : [...prev, 'low'])}>Low</Checkbox> },
+        ]
+      },
+      { type: 'divider' as const },
+      { key: 'clear', label: 'Clear All Filters', onClick: () => { setFilterType([]); setFilterPriority([]); } }
+    ]
+  };
+
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', marginTop: 100 }}><Spin size="large" /></div>;
 
   if (currentProject?.type === 'scrum' && !activeSprint) {
@@ -232,7 +273,7 @@ export const EnhancedBoardView: React.FC = () => {
             <div style={{ textAlign: 'center' }}>
               <h3>No Active Sprint</h3>
               <p>You need to start a sprint in the Backlog to see issues here.</p>
-              <Button type="primary" onClick={() => navigate('/project/backlog')}>Go to Backlog</Button>
+              <Button type="primary" onClick={() => navigate('/backlog')}>Go to Backlog</Button>
             </div>
           }
         />
@@ -247,8 +288,12 @@ export const EnhancedBoardView: React.FC = () => {
           {currentProject?.type === 'scrum' ? `${activeSprint?.name}` : 'Kanban Board'}
         </h2>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button icon={<Filter size={16} />}>Filter</Button>
-          <Button icon={<Settings size={16} />}>Settings</Button>
+          <Dropdown menu={filterMenuItems} trigger={['click']}>
+            <Button icon={<Filter size={16} />}>
+              Filter {(filterType.length + filterPriority.length) > 0 && <Badge count={filterType.length + filterPriority.length} size="small" style={{ marginLeft: 4 }} />}
+            </Button>
+          </Dropdown>
+          <Button icon={<Settings size={16} />} onClick={() => setSettingsOpen(true)}>Settings</Button>
         </div>
       </div>
 
@@ -266,6 +311,23 @@ export const EnhancedBoardView: React.FC = () => {
         </BoardGrid>
         <DragOverlay />
       </DndContext>
+
+      {/* Settings Modal */}
+      <Modal
+        title="Board Settings"
+        open={settingsOpen}
+        onCancel={() => setSettingsOpen(false)}
+        footer={<Button type="primary" onClick={() => setSettingsOpen(false)}>Done</Button>}
+      >
+        <p>Configure your board settings here:</p>
+        <ul style={{ paddingLeft: 20 }}>
+          <li>Column management</li>
+          <li>WIP limits</li>
+          <li>Swimlanes</li>
+          <li>Card display options</li>
+        </ul>
+        <p style={{ color: colors.text.secondary, marginTop: 16 }}>Full settings will be available in a future update.</p>
+      </Modal>
     </Container>
   );
-};
+}
