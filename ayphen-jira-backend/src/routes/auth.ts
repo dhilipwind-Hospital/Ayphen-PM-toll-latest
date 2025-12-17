@@ -41,19 +41,19 @@ router.get('/env-check', (req, res) => {
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    
+
     // Check if user exists
     const existingUser = await userRepo.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
     }
-    
+
     // Hash password with bcrypt
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    
+
     // Create user
     const user = userRepo.create({
       email,
@@ -64,14 +64,14 @@ router.post('/register', async (req, res) => {
       isVerified: false, // Explicitly set to false for new users
       verificationToken,
     });
-    
+
     await userRepo.save(user);
     console.log(`✅ User registered: ${email} (unverified)`);
 
     // Send verification email in background (non-blocking)
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:1600';
     const verifyLink = `${frontendUrl}/auth/verify-email?token=${verificationToken}`;
-    
+
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #0052CC;">Welcome to Ayphen Project Management! 🎉</h2>
@@ -94,7 +94,7 @@ router.post('/register', async (req, res) => {
         </p>
       </div>
     `;
-    
+
     // Send email asynchronously without blocking the response using SendGrid Web API
     sendGridService.sendEmail(
       email,
@@ -108,7 +108,7 @@ router.post('/register', async (req, res) => {
       emailService.sendEmail(email, 'Verify your email address - Ayphen Project Management', emailHtml)
         .catch(e => console.error('SMTP fallback also failed:', e));
     });
-    
+
     // Respond immediately without waiting for email
     res.status(201).json({
       message: 'Registration successful! Please check your email to verify your account.',
@@ -125,7 +125,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     // Find user
     const user = await userRepo.findOne({ where: { email } });
     if (!user) {
@@ -135,19 +135,19 @@ router.post('/login', async (req, res) => {
     // Check verification status
     // Hard-enforced: Unverified users cannot login
     if (!user.isVerified) {
-      return res.status(403).json({ 
-        error: 'Email not verified', 
+      return res.status(403).json({
+        error: 'Email not verified',
         code: 'EMAIL_NOT_VERIFIED',
-        email: user.email 
+        email: user.email
       });
     }
-    
+
     // Check password with bcrypt
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    
+
     // Create session
     const sessionId = `session_${Date.now()}_${Math.random()}`;
     const sessionData = {
@@ -157,13 +157,13 @@ router.post('/login', async (req, res) => {
       role: user.role,
       createdAt: new Date(),
     };
-    
+
     // Try Redis first, fallback to memory
     const saved = await redisService.setSession(sessionId, sessionData, SESSION_TTL);
     if (!saved) {
       sessions.set(sessionId, sessionData);
     }
-    
+
     res.json({
       user: {
         id: user.id,
@@ -184,7 +184,7 @@ router.post('/login', async (req, res) => {
 router.post('/logout', async (req, res) => {
   try {
     const { sessionId } = req.body;
-    
+
     if (sessionId) {
       // Try Redis first, fallback to memory
       const deleted = await redisService.deleteSession(sessionId);
@@ -192,7 +192,7 @@ router.post('/logout', async (req, res) => {
         sessions.delete(sessionId);
       }
     }
-    
+
     res.json({ message: 'Logged out successfully' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -203,26 +203,26 @@ router.post('/logout', async (req, res) => {
 router.get('/me', async (req, res) => {
   try {
     const sessionId = req.headers.authorization?.replace('Bearer ', '');
-    
+
     if (!sessionId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
-    
+
     // Try Redis first, fallback to memory
     let session = await redisService.getSession(sessionId);
     if (!session) {
       session = sessions.get(sessionId);
     }
-    
+
     if (!session) {
       return res.status(401).json({ error: 'Invalid session' });
     }
-    
+
     const user = await userRepo.findOne({ where: { id: session.userId } });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     res.json({
       id: user.id,
       email: user.email,
@@ -255,17 +255,17 @@ router.get('/users', async (req, res) => {
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     const user = await userRepo.findOne({ where: { email } });
     if (!user) {
-      // Don't reveal if user exists
+      // Don't reveal if user exists (security best practice)
       return res.json({ message: 'If an account exists, a reset link has been sent' });
     }
-    
+
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenHash = await bcrypt.hash(resetToken, 10);
-    
+
     // Store token (Redis first, fallback to memory)
     const saved = await redisService.setPasswordResetToken(email, resetTokenHash, 3600); // 1 hour
     if (!saved) {
@@ -273,15 +273,57 @@ router.post('/forgot-password', async (req, res) => {
       // Auto-expire from memory after 1 hour
       setTimeout(() => resetTokens.delete(email), 3600000);
     }
-    
-    // Send email
-    const resetLink = `http://localhost:1500/reset-password?token=${resetToken}&email=${email}`;
-    await emailService.sendEmail(
+
+    // Build reset link using proper frontend URL
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:1600';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
+    // HTML email template
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #0052CC;">Password Reset Request</h2>
+        <p>Hi <strong>${user.name}</strong>,</p>
+        <p>We received a request to reset your password for your Ayphen Project Management account.</p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${resetLink}" 
+             style="background: #0052CC; color: white; padding: 14px 32px; 
+                    text-decoration: none; border-radius: 4px; display: inline-block; 
+                    font-weight: 600; font-size: 16px;">
+            Reset Password
+          </a>
+        </div>
+        <p style="color: #666; font-size: 14px;">
+          If the button doesn't work, copy and paste this link into your browser:<br>
+          <a href="${resetLink}" style="color: #0052CC; word-break: break-all;">${resetLink}</a>
+        </p>
+        <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+          This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+        </p>
+      </div>
+    `;
+
+    // Send email with SendGrid, fallback to SMTP (non-blocking)
+    sendGridService.sendEmail(
       email,
-      'Password Reset Request',
-      `Click here to reset your password: ${resetLink}\n\nThis link expires in 1 hour.`
-    );
-    
+      'Password Reset Request - Ayphen Project Management',
+      emailHtml
+    ).then(() => {
+      console.log(`📧 Password reset email sent to: ${email} (SendGrid)`);
+    }).catch((sendGridError) => {
+      console.error('SendGrid failed, trying SMTP fallback:', sendGridError);
+      // Fallback to SMTP
+      emailService.sendEmail(
+        email,
+        'Password Reset Request - Ayphen Project Management',
+        emailHtml
+      ).then(() => {
+        console.log(`📧 Password reset email sent to: ${email} (SMTP fallback)`);
+      }).catch((smtpError) => {
+        console.error('Both SendGrid and SMTP failed:', smtpError);
+      });
+    });
+
+    // Respond immediately without waiting for email
     res.json({ message: 'If an account exists, a reset link has been sent' });
   } catch (error: any) {
     console.error('Forgot password error:', error);
@@ -293,45 +335,45 @@ router.post('/forgot-password', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
   try {
     const { email, token, newPassword } = req.body;
-    
+
     if (!email || !token || !newPassword) {
       return res.status(400).json({ error: 'Email, token, and new password are required' });
     }
-    
+
     // Validate password strength
     if (newPassword.length < 8) {
       return res.status(400).json({ error: 'Password must be at least 8 characters' });
     }
-    
+
     // Get stored token
     let storedToken = await redisService.getPasswordResetToken(email);
     if (!storedToken) {
       storedToken = resetTokens.get(email) || null;
     }
-    
+
     if (!storedToken) {
       return res.status(400).json({ error: 'Invalid or expired reset token' });
     }
-    
+
     // Verify token
     const isValid = await bcrypt.compare(token, storedToken);
     if (!isValid) {
       return res.status(400).json({ error: 'Invalid reset token' });
     }
-    
+
     // Update password
     const user = await userRepo.findOne({ where: { email } });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
     await userRepo.save(user);
-    
+
     // Delete reset token
     await redisService.deletePasswordResetToken(email);
     resetTokens.delete(email);
-    
+
     res.json({ message: 'Password reset successfully' });
   } catch (error: any) {
     console.error('Reset password error:', error);
@@ -395,7 +437,7 @@ router.post('/resend-verification', async (req, res) => {
     // Send email with proper HTML template
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:1600';
     const verifyLink = `${frontendUrl}/auth/verify-email?token=${verificationToken}`;
-    
+
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #0052CC;">Verify Your Email Address</h2>
@@ -415,7 +457,7 @@ router.post('/resend-verification', async (req, res) => {
         </p>
       </div>
     `;
-    
+
     // Use SendGrid Web API with SMTP fallback
     try {
       await sendGridService.sendEmail(
