@@ -435,26 +435,37 @@ export const BacklogView: React.FC = () => {
             </Controls>
           </Header>
 
+          {/* Debug info - remove after fixing */}
+          <div style={{ padding: '8px 16px', background: '#fef3c7', borderRadius: 4, marginBottom: 16, fontSize: 12 }}>
+            Debug: localSprints count = {localSprints.length}, activeSprints = {activeSprints.length}, futureSprints = {futureSprints.length}
+          </div>
+
           {/* Sprints */}
-          {[...activeSprints, ...futureSprints].map(sprint => (
-            <SprintCard key={sprint.id} title={
-              <SprintHeader>
-                <SprintInfo>
-                  <SprintName>{sprint.name}</SprintName>
-                  <SprintMeta>{sprint.status === 'active' ? 'Active • ' : ''}{sprint.goal || `${issues.filter(i => i.sprintId === sprint.id && i.type !== 'epic').length} issues`}</SprintMeta>
-                </SprintInfo>
-                {sprint.status === 'future' && <Button size="small" onClick={() => { setSelectedSprint(sprint); setIsStartSprintModalOpen(true); }}>Start Sprint</Button>}
-                {sprint.status === 'active' && <Button size="small" type="primary" ghost onClick={() => handleCompleteSprint(sprint)}>Complete Sprint</Button>}
-              </SprintHeader>
-            }>
-              <DroppableSprint
-                sprintId={sprint.id}
-                issues={issues.filter(i => i.sprintId === sprint.id && i.type !== 'epic')}
-                selectedIssueId={selectedIssueKey}
-                onIssueClick={(key) => setSelectedIssueKey(key)}
-              />
-            </SprintCard>
-          ))}
+          {[...activeSprints, ...futureSprints].length > 0 ? (
+            [...activeSprints, ...futureSprints].map(sprint => (
+              <SprintCard key={sprint.id} title={
+                <SprintHeader>
+                  <SprintInfo>
+                    <SprintName>{sprint.name}</SprintName>
+                    <SprintMeta>{sprint.status === 'active' ? 'Active • ' : ''}{sprint.goal || `${issues.filter(i => i.sprintId === sprint.id && i.type !== 'epic').length} issues`}</SprintMeta>
+                  </SprintInfo>
+                  {sprint.status === 'future' && <Button size="small" onClick={() => { setSelectedSprint(sprint); setIsStartSprintModalOpen(true); }}>Start Sprint</Button>}
+                  {sprint.status === 'active' && <Button size="small" type="primary" ghost onClick={() => handleCompleteSprint(sprint)}>Complete Sprint</Button>}
+                </SprintHeader>
+              }>
+                <DroppableSprint
+                  sprintId={sprint.id}
+                  issues={issues.filter(i => i.sprintId === sprint.id && i.type !== 'epic')}
+                  selectedIssueId={selectedIssueKey}
+                  onIssueClick={(key) => setSelectedIssueKey(key)}
+                />
+              </SprintCard>
+            ))
+          ) : (
+            <div style={{ padding: '16px', background: '#f0f9ff', borderRadius: 8, marginBottom: 16, textAlign: 'center', color: '#0369a1' }}>
+              No sprints yet. Click "+ Create Sprint" below to add one.
+            </div>
+          )}
 
           {/* Backlog */}
           <SprintCard title={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
