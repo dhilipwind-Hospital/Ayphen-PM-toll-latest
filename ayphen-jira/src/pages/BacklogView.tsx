@@ -249,34 +249,32 @@ export const BacklogView: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (!currentProject) {
-        console.log('[BacklogView] No current project');
+        console.error('[BacklogView] No current project');
         return;
       }
 
       try {
-        console.log('[BacklogView] Fetching data for project:', currentProject.id);
+        console.error('[BacklogView] Fetching data for project:', currentProject.id);
 
         // Fetch sprints
         const sprintRes = await sprintsApi.getAll(currentProject.id);
-        console.log('[BacklogView] Sprint API raw response:', sprintRes);
-        console.log('[BacklogView] Sprint API response.data:', sprintRes.data);
+        console.error('[BacklogView] Sprint API raw response:', sprintRes);
+        console.error('[BacklogView] Type of data:', typeof sprintRes.data, Array.isArray(sprintRes.data));
 
-        // Handle both array and object responses
+        // Handle ALL possible response formats
         let sprintData: any[] = [];
         if (Array.isArray(sprintRes.data)) {
           sprintData = sprintRes.data;
         } else if (sprintRes.data && Array.isArray(sprintRes.data.sprints)) {
           sprintData = sprintRes.data.sprints;
-        } else if (sprintRes.data && typeof sprintRes.data === 'object') {
-          // Maybe the response is wrapped differently
-          sprintData = Object.values(sprintRes.data).filter(item =>
-            typeof item === 'object' && item !== null && 'id' in item && 'status' in item
-          );
+        } else if (sprintRes.data && Array.isArray(sprintRes.data.data)) {
+          sprintData = sprintRes.data.data;
+        } else if (Array.isArray(sprintRes)) {
+          // In case interceptor unwaps it
+          sprintData = sprintRes as any;
         }
 
-        console.log('[BacklogView] Parsed sprint data:', sprintData);
-        console.log('[BacklogView] Setting localSprints to:', sprintData.length, 'items');
-
+        console.error('[BacklogView] Final parsed sprint data:', sprintData);
         setLocalSprints(sprintData);
 
         // Fetch issues
@@ -284,7 +282,6 @@ export const BacklogView: React.FC = () => {
         const sortedIssues = res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0));
         setIssues(sortedIssues);
 
-        console.log('[BacklogView] Data fetch complete. Sprints:', sprintData.length, 'Issues:', sortedIssues.length);
       } catch (e) {
         console.error('[BacklogView] Failed to load backlog:', e);
         message.error('Failed to load backlog');
@@ -294,21 +291,24 @@ export const BacklogView: React.FC = () => {
     fetchData();
   }, [currentProject]);
 
-  // Function for refreshing data (used by modals)
+  // Function for refreshing data
   const loadData = async () => {
     if (!currentProject) return;
-
     try {
+      console.error('[BacklogView] Manual refresh triggered');
       const sprintRes = await sprintsApi.getAll(currentProject.id);
-      const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data?.sprints || [];
+      let sprintData: any[] = [];
+      if (Array.isArray(sprintRes.data)) sprintData = sprintRes.data;
+      else if (sprintRes.data?.sprints) sprintData = sprintRes.data.sprints;
+
+      console.error('[BacklogView] Manual refresh data:', sprintData);
       setLocalSprints(sprintData);
 
       const res = await issuesApi.getByProject(currentProject.id);
-      const sortedIssues = res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0));
-      setIssues(sortedIssues);
+      setIssues(res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0)));
+      message.success('Refreshed');
     } catch (e) {
       console.error('[BacklogView] Failed to refresh:', e);
-      message.error('Failed to refresh backlog');
     }
   };
 
@@ -472,8 +472,9 @@ export const BacklogView: React.FC = () => {
           </Header>
 
           {/* Debug info - remove after fixing */}
-          <div style={{ padding: '8px 16px', background: '#fef3c7', borderRadius: 4, marginBottom: 16, fontSize: 12 }}>
-            Debug: localSprints count = {localSprints.length}, activeSprints = {activeSprints.length}, futureSprints = {futureSprints.length}
+          <div style={{ padding: '8px 16px', background: '#fef3c7', borderRadius: 4, marginBottom: 16, fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Debug: localSprints count = {localSprints.length}, activeSprints = {activeSprints.length}, futureSprints = {futureSprints.length}</span>
+            <Button size="small" onClick={loadData}>Force Refresh</Button>
           </div>
 
           {/* Sprints */}
