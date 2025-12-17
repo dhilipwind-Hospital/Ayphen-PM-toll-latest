@@ -528,7 +528,7 @@ export const TopNavigation: React.FC = () => {
               height: '44px'
             }}>
               <img
-                src="/ayphen-logo.png"
+                src="/ayphen-logo-new.png"
                 alt="Ayphen Technologies"
                 style={{ height: '36px', display: 'block' }}
               />

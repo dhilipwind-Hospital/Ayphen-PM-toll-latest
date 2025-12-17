@@ -71,7 +71,7 @@ export const ForgotPasswordPage: React.FC = () => {
       <StyledCard>
         <Logo>
           <img
-            src="/ayphen-logo.png"
+            src="/ayphen-logo-new.png"
             alt="Ayphen Technologies"
             style={{
               width: '200px',

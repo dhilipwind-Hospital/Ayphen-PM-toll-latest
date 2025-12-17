@@ -129,19 +129,52 @@ const FeatureItem = styled.div`
   }
 `;
 
+const pulse = keyframes`
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+`;
+
+const slide = keyframes`
+  0% { transform: translateX(-10px); }
+  100% { transform: translateX(10px); }
+`;
+
 const FloatingCard = styled.div`
   position: absolute;
-  bottom: -40px;
-  right: -40px;
-  width: 400px;
-  height: 300px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
+  bottom: -100px;
+  right: -80px;
+  width: 500px;
+  height: 400px;
+  background: rgba(255, 255,255, 0.15);
+  backdrop-filter: blur(30px);
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transform: rotate(-12deg);
-  animation: ${float} 6s ease-in-out infinite;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transform: rotate(-8deg);
+  animation: ${float} 8s ease-in-out infinite;
   z-index: 1;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent);
+    border-radius: 50%;
+    animation: ${pulse} 4s ease-in-out infinite;
+  }
+  
+  img {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 120%;
+    opacity: 0.3;
+    animation: ${slide} 6s ease-in-out infinite alternate;
+  }
 `;
 
 const RightPanel = styled.div`
@@ -320,7 +353,7 @@ export const LoginPage: React.FC = () => {
       <LeftPanel>
         <BrandContent>
           <Logo>
-            <img src="/ayphen-logo.png" alt="Ayphen Logo" />
+            <img src="/ayphen-logo-new.png" alt="Ayphen Logo" />
             <div className="brand-text">
               <div className="brand-name">Ayphen</div>
               <div className="brand-suffix">Technologies</div>
@@ -337,7 +370,9 @@ export const LoginPage: React.FC = () => {
             <FeatureItem><CheckCircle2 size={20} /> AI-Powered Insights</FeatureItem>
           </FeatureList>
         </BrandContent>
-        <FloatingCard />
+        <FloatingCard>
+          <img src="/project-illustration.png" alt="Project Management" />
+        </FloatingCard>
       </LeftPanel>
 
       <RightPanel>

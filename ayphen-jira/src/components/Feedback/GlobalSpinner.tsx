@@ -39,25 +39,25 @@ const LoadingText = styled.div`
 `;
 
 interface GlobalSpinnerProps {
-    isLoading: boolean;
-    text?: string;
+  isLoading: boolean;
+  text?: string;
 }
 
 export const GlobalSpinner: React.FC<GlobalSpinnerProps> = ({ isLoading, text = 'Loading application...' }) => {
-    if (!isLoading) return null;
+  if (!isLoading) return null;
 
-    return (
-        <SpinnerContainer>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <LogoWrapper>
-                    <img
-                        src="/ayphen-logo.png"
-                        alt="Ayphen Technologies"
-                        style={{ width: '200px', display: 'block' }}
-                    />
-                </LogoWrapper>
-                <LoadingText>{text}</LoadingText>
-            </div>
-        </SpinnerContainer>
-    );
+  return (
+    <SpinnerContainer>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <LogoWrapper>
+          <img
+            src="/ayphen-logo-new.png"
+            alt="Ayphen Technologies"
+            style={{ width: '200px', display: 'block' }}
+          />
+        </LogoWrapper>
+        <LoadingText>{text}</LoadingText>
+      </div>
+    </SpinnerContainer>
+  );
 };

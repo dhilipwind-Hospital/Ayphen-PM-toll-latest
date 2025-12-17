@@ -229,7 +229,7 @@ export const RegisterPage: React.FC = () => {
       <Card>
         <LogoWrapper>
           <img
-            src="/ayphen-logo.png"
+            src="/ayphen-logo-new.png"
             alt="Ayphen Technologies"
             style={{
               width: '240px',
