@@ -10,6 +10,8 @@ import { BulkOperationsToolbar } from '../components/BulkOperations/BulkOperatio
 
 const Container = styled.div`
   padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 `;
 
 const Header = styled.div`
@@ -38,23 +40,32 @@ const PlaceholderCard = styled(Card)`
   color: ${colors.text.secondary};
 `;
 
-const IssueCard = styled(Card.Grid)`
+const IssueCard = styled.div`
   width: 100%;
   cursor: pointer;
   transition: all 0.2s;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 4px;
   
   &:hover {
-    background: #f0f7ff;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: #f8fafc;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
 `;
 
 const IssueContent = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 32px minmax(300px, 1fr) 120px 120px 120px;
   gap: 16px;
+  align-items: center;
+  
+  @media (max-width: 1200px) {
+    grid-template-columns: 32px 1fr;
+    gap: 8px;
+  }
 `;
 
 const IssueMain = styled.div`
@@ -66,6 +77,7 @@ const IssueMeta = styled.div`
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+  align-items: center;
 `;
 
 const IssueDescription = styled.div`
@@ -255,7 +267,6 @@ export const FiltersView: React.FC = () => {
         {issuesList.map(issue => (
           <IssueCard
             key={issue.id}
-            hoverable
           >
             <IssueContent>
               <input
