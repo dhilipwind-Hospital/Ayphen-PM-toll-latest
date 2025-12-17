@@ -509,11 +509,35 @@ export const BoardView: React.FC = () => {
     }
   }, [currentProject]);
 
+  // Refresh active sprint when component mounts or page becomes visible
+  // This ensures board updates when sprint is started from backlog
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && currentProject) {
+        loadActiveSprint();
+      }
+    };
+
+    // Load on mount
+    if (currentProject) {
+      loadActiveSprint();
+    }
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [currentProject]);
+
   const loadActiveSprint = async () => {
     try {
-      const res = await sprintsApi.getAll(currentProject?.id);
+      const userId = localStorage.getItem('userId') || undefined;
+      const res = await sprintsApi.getAll(currentProject?.id, userId);
       const active = res.data.find((s: any) => s.status === 'active');
       setActiveSprint(active);
+      console.log('Active sprint loaded:', active ? active.name : 'No active sprint');
     } catch (e) { console.error('Failed to load sprints', e); }
   };
 
