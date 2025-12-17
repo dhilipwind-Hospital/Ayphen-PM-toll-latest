@@ -227,7 +227,10 @@ const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssue
 
 export const BacklogView: React.FC = () => {
   const navigate = useNavigate();
-  const { currentProject, sprints, setSprints } = useStore();
+  const { currentProject } = useStore();
+
+  // Use LOCAL state for sprints to ensure re-rendering
+  const [localSprints, setLocalSprints] = useState<any[]>([]);
   const [issues, setIssues] = useState<any[]>([]);
   const [selectedIssueKey, setSelectedIssueKey] = useState<string | null>(null);
 
@@ -261,7 +264,7 @@ export const BacklogView: React.FC = () => {
       console.log('[BacklogView] Parsed sprint data:', sprintData);
       console.log('[BacklogView] Sprint count:', sprintData.length);
 
-      setSprints(sprintData);
+      setLocalSprints(sprintData);
 
       const res = await issuesApi.getByProject(currentProject.id);
       // Sort by listPosition
@@ -290,7 +293,7 @@ export const BacklogView: React.FC = () => {
     // Determine target container
     // If overId is a container (sprint or 'backlog')
     if (overId === 'backlog') newSprintId = null;
-    else if (sprints.find(s => s.id === overId)) newSprintId = overId;
+    else if (localSprints.find(s => s.id === overId)) newSprintId = overId;
     else if (overIssue) newSprintId = overIssue.sprintId; // Dropped on an issue
 
     // Optimistic Update
@@ -342,11 +345,11 @@ export const BacklogView: React.FC = () => {
     }
   };
 
-  const activeSprints = sprints.filter(s => s.status === 'active');
-  const futureSprints = sprints.filter(s => s.status === 'future');
+  const activeSprints = localSprints.filter(s => s.status === 'active');
+  const futureSprints = localSprints.filter(s => s.status === 'future');
 
   // Debug logging
-  console.log('[BacklogView] Sprints from store:', sprints);
+  console.log('[BacklogView] Local sprints:', localSprints);
   console.log('[BacklogView] Active sprints:', activeSprints.length);
   console.log('[BacklogView] Future sprints:', futureSprints.length);
 
@@ -360,7 +363,7 @@ export const BacklogView: React.FC = () => {
     }
     try {
       // Basic next name logic
-      const nextNum = sprints.length + 1;
+      const nextNum = localSprints.length + 1;
       const name = `${currentProject.key} Sprint ${nextNum}`;
 
       console.log('Creating sprint:', { name, projectId: currentProject.id });
@@ -379,7 +382,7 @@ export const BacklogView: React.FC = () => {
       console.log('Sprints reload response:', sprintRes.data);
 
       const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data.sprints || [];
-      setSprints(sprintData);
+      setLocalSprints(sprintData);
 
       console.log('Sprints state updated:', sprintData.length, 'sprints');
     } catch (e: any) {
@@ -492,7 +495,7 @@ export const BacklogView: React.FC = () => {
           onClose={() => setIsCreateSprintModalOpen(false)}
           projectId={currentProject.id}
           projectKey={currentProject.key}
-          existingSprintCount={sprints.length}
+          existingSprintCount={localSprints.length}
           onSuccess={loadData}
         />
       )}
