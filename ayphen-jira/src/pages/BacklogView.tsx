@@ -245,34 +245,70 @@ export const BacklogView: React.FC = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  // Load data when project changes
   useEffect(() => {
-    if (currentProject) {
-      loadData();
-    }
+    const fetchData = async () => {
+      if (!currentProject) {
+        console.log('[BacklogView] No current project');
+        return;
+      }
+
+      try {
+        console.log('[BacklogView] Fetching data for project:', currentProject.id);
+
+        // Fetch sprints
+        const sprintRes = await sprintsApi.getAll(currentProject.id);
+        console.log('[BacklogView] Sprint API raw response:', sprintRes);
+        console.log('[BacklogView] Sprint API response.data:', sprintRes.data);
+
+        // Handle both array and object responses
+        let sprintData: any[] = [];
+        if (Array.isArray(sprintRes.data)) {
+          sprintData = sprintRes.data;
+        } else if (sprintRes.data && Array.isArray(sprintRes.data.sprints)) {
+          sprintData = sprintRes.data.sprints;
+        } else if (sprintRes.data && typeof sprintRes.data === 'object') {
+          // Maybe the response is wrapped differently
+          sprintData = Object.values(sprintRes.data).filter(item =>
+            typeof item === 'object' && item !== null && 'id' in item && 'status' in item
+          );
+        }
+
+        console.log('[BacklogView] Parsed sprint data:', sprintData);
+        console.log('[BacklogView] Setting localSprints to:', sprintData.length, 'items');
+
+        setLocalSprints(sprintData);
+
+        // Fetch issues
+        const res = await issuesApi.getByProject(currentProject.id);
+        const sortedIssues = res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0));
+        setIssues(sortedIssues);
+
+        console.log('[BacklogView] Data fetch complete. Sprints:', sprintData.length, 'Issues:', sortedIssues.length);
+      } catch (e) {
+        console.error('[BacklogView] Failed to load backlog:', e);
+        message.error('Failed to load backlog');
+      }
+    };
+
+    fetchData();
   }, [currentProject]);
 
+  // Function for refreshing data (used by modals)
   const loadData = async () => {
+    if (!currentProject) return;
+
     try {
-      if (!currentProject) return;
-      console.log('[BacklogView] Loading data for project:', currentProject.id);
-
       const sprintRes = await sprintsApi.getAll(currentProject.id);
-      console.log('[BacklogView] Sprint API response:', sprintRes.data);
-
-      // Handle both array and object responses
       const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data?.sprints || [];
-      console.log('[BacklogView] Parsed sprint data:', sprintData);
-      console.log('[BacklogView] Sprint count:', sprintData.length);
-
       setLocalSprints(sprintData);
 
       const res = await issuesApi.getByProject(currentProject.id);
-      // Sort by listPosition
       const sortedIssues = res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0));
       setIssues(sortedIssues);
     } catch (e) {
-      console.error('[BacklogView] Failed to load backlog:', e);
-      message.error('Failed to load backlog');
+      console.error('[BacklogView] Failed to refresh:', e);
+      message.error('Failed to refresh backlog');
     }
   };
 
