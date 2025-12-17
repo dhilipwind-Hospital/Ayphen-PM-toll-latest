@@ -472,6 +472,12 @@ export const LoginPage: React.FC = () => {
                       <StyledPassword prefix={<Lock size={18} color="#9ca3af" />} placeholder="Enter your password" />
                     </Form.Item>
 
+                    <div style={{ textAlign: 'right', marginBottom: 16 }}>
+                      <a href="/forgot-password" style={{ color: '#0284C7', fontSize: 14, fontWeight: 500 }}>
+                        Forgot Password?
+                      </a>
+                    </div>
+
                     <Form.Item>
                       <PrimaryButton type="primary" htmlType="submit" loading={loading} block>
                         Sign In <ArrowRight size={18} style={{ marginLeft: 8 }} />
