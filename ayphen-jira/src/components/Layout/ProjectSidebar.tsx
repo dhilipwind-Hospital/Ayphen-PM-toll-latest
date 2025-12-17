@@ -76,7 +76,7 @@ const ProjectAvatar = styled.div`
   color: white;
   font-weight: 700;
   font-size: 14px;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 `;
 
 const ProjectDetails = styled.div`
@@ -119,13 +119,13 @@ const StyledMenu = styled(Menu)`
     transition: all 0.3s ease;
 
     &:hover {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(249, 168, 212, 0.1));
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(6, 182, 212, 0.1));
       transform: translateX(4px);
       box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
     }
 
     &.ant-menu-item-selected {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(249, 168, 212, 0.15));
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(6, 182, 212, 0.15));
       color: #0EA5E9;
       font-weight: 600;
       border-left: 3px solid #0EA5E9;
@@ -142,13 +142,13 @@ const StyledMenu = styled(Menu)`
       transition: all 0.3s ease;
 
       &:hover {
-        background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(249, 168, 212, 0.1));
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(6, 182, 212, 0.1));
         transform: translateX(4px);
       }
     }
     
     .ant-menu-sub {
-      background: rgba(248, 244, 250, 0.8);
+      background: rgba(224, 242, 254, 0.8);
       
       .ant-menu-item {
         margin: 2px 8px;

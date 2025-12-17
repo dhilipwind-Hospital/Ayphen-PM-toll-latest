@@ -129,28 +129,29 @@ const IssueList = styled.div`
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   padding: 4px;
 `;
 
 const StyledIssueCard = styled(GlassCard) <{ isDragging?: boolean; type: string; isStarred?: boolean; isSelected?: boolean }>`
-  margin-bottom: 0; /* Gap handled by flex container */
+  margin-bottom: 0;
   cursor: ${props => props.isDragging ? 'grabbing' : 'grab'};
   opacity: ${props => props.isDragging ? 0.8 : 1};
   border: ${props => props.isSelected ? `2px solid ${colors.primary[500]}` : `1px solid ${colors.glass.border}`};
-  border-left: 4px solid ${props => props.type === 'epic' ? '#6554C0' :
+  border-left: 3px solid ${props => props.type === 'epic' ? '#6554C0' :
     props.type === 'story' ? '#0052CC' :
       props.type === 'bug' ? '#DE350B' : '#0052CC'
   };
-  background: white; /* Make opaque for better visibility */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12); /* Standard card shadow */
-  padding: 12px; /* Tighter padding */
+  background: white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  padding: 8px 10px;
   position: relative;
-  border-radius: 8px; /* Slightly smaller radius for cards */
+  border-radius: 6px;
   z-index: ${props => props.isDragging ? 999 : 1};
   
   &:hover {
     border-color: ${colors.primary[300]};
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
   }
 `;
 
@@ -158,7 +159,7 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 `;
 
 const StarIcon = styled(Star) <{ isStarred: boolean }>`
@@ -197,24 +198,24 @@ const LabelTag = styled(Tag)`
 `;
 
 const IssueKey = styled.div`
-  font-size: 11px;
+  font-size: 10px;
   color: #5E6C84;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 `;
 
 const IssueSummary = styled.div`
-  font-size: 14px;
+  font-size: 13px;
   color: #172B4D;
-  margin-bottom: 12px;
-  line-height: 1.4;
+  margin-bottom: 6px;
+  line-height: 1.3;
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  max-height: 2.8em;
+  max-height: 2.6em;
   
   &:hover {
     color: #0052CC;

@@ -75,21 +75,21 @@ const ViewToggle = styled.div`
   margin-left: auto;
 `;
 
-const ViewButton = styled(Button)<{ $active?: boolean }>`
+const ViewButton = styled(Button) <{ $active?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
   padding: 0;
-  background: ${props => props.$active ? '#8B5CF6' : 'white'};
+  background: ${props => props.$active ? '#0EA5E9' : 'white'};
   color: ${props => props.$active ? 'white' : colors.text.secondary};
-  border: 1px solid ${props => props.$active ? '#8B5CF6' : colors.border.light};
+  border: 1px solid ${props => props.$active ? '#0EA5E9' : colors.border.light};
   
   &:hover {
-    background: ${props => props.$active ? '#7C3AED' : '#F9FAFB'};
+    background: ${props => props.$active ? '#0284C7' : '#F9FAFB'};
     color: ${props => props.$active ? 'white' : colors.text.primary};
-    border-color: ${props => props.$active ? '#7C3AED' : colors.border.main};
+    border-color: ${props => props.$active ? '#0284C7' : colors.border.main};
   }
 `;
 
