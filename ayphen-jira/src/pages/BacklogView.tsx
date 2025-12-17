@@ -257,7 +257,8 @@ export const BacklogView: React.FC = () => {
         console.error('[BacklogView] Fetching data for project:', currentProject.id);
 
         // Fetch sprints
-        const sprintRes = await sprintsApi.getAll(currentProject.id);
+        const userId = localStorage.getItem('userId') || undefined;
+        const sprintRes = await sprintsApi.getAll(currentProject.id, userId);
         console.error('[BacklogView] Sprint API raw response:', sprintRes);
         console.error('[BacklogView] Type of data:', typeof sprintRes.data, Array.isArray(sprintRes.data));
 
@@ -296,7 +297,8 @@ export const BacklogView: React.FC = () => {
     if (!currentProject) return;
     try {
       console.error('[BacklogView] Manual refresh triggered');
-      const sprintRes = await sprintsApi.getAll(currentProject.id);
+      const userId = localStorage.getItem('userId') || undefined;
+      const sprintRes = await sprintsApi.getAll(currentProject.id, userId);
       let sprintData: any[] = [];
       if (Array.isArray(sprintRes.data)) sprintData = sprintRes.data;
       else if (sprintRes.data?.sprints) sprintData = sprintRes.data.sprints;
