@@ -27,30 +27,14 @@ export const InviteModal: React.FC<InviteModalProps> = ({
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      // Check if user already exists in the system
-      const existingUser = existingUsers.find(
-        u => u.email?.toLowerCase() === values.email.toLowerCase()
-      );
+      await projectInvitationsApi.create({
+        projectId,
+        email: values.email,
+        role: values.role,
+        invitedById: currentUserId || '',
+      });
 
-      if (existingUser) {
-        // Direct addition for existing users
-        await projectMembersApi.add({
-          projectId,
-          userId: existingUser.id,
-          role: values.role,
-          addedById: currentUserId,
-        });
-        message.success(`User ${existingUser.name || values.email} added to project!`);
-      } else {
-        // Standard invitation for new users
-        await projectInvitationsApi.create({
-          projectId,
-          email: values.email,
-          role: values.role,
-          invitedById: currentUserId || '',
-        });
-        message.success(`Invitation sent to ${values.email}`);
-      }
+      message.success(`Invitation sent to ${values.email}`);
 
       form.resetFields();
       onSuccess();
