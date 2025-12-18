@@ -122,7 +122,7 @@ const MemberHeader = styled.div`
   margin-bottom: 20px;
 `;
 
-const MemberAvatar = styled(Avatar)<{ bgColor: string }>`
+const MemberAvatar = styled(Avatar) <{ bgColor: string }>`
   background: ${props => props.bgColor};
   font-size: 32px;
   font-weight: 600;
@@ -243,27 +243,27 @@ export const PeoplePage: React.FC = () => {
       const userId = localStorage.getItem('userId');
       const usersResponse = await axios.get(`${API_URL}/users`);
       const issuesResponse = await axios.get(`${API_URL}/issues`, { params: { userId } });
-      
+
       const users = usersResponse.data;
       const issues = issuesResponse.data;
-      
+
       const teamMembers: TeamMember[] = users.map((user: any, index: number) => {
         const userIssues = issues.filter((issue: any) => issue.assignee?.id === user.id);
         const doneIssues = userIssues.filter((issue: any) => issue.status === 'done');
-        const activeIssues = userIssues.filter((issue: any) => 
+        const activeIssues = userIssues.filter((issue: any) =>
           issue.status !== 'done' && issue.status !== 'backlog'
         );
-        
+
         const colors = ['#1890FF', '#52C41A', '#722ED1', '#FA8C16', '#13C2C2', '#EB2F96'];
-        
+
         return {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role || 'member',
           avatarColor: colors[index % colors.length],
-          completionRate: userIssues.length > 0 
-            ? Math.round((doneIssues.length / userIssues.length) * 100) 
+          completionRate: userIssues.length > 0
+            ? Math.round((doneIssues.length / userIssues.length) * 100)
             : 0,
           stats: {
             total: userIssues.length,
@@ -272,7 +272,7 @@ export const PeoplePage: React.FC = () => {
           },
         };
       });
-      
+
       setMembers(teamMembers);
     } catch (error) {
       console.error('Failed to load team members:', error);
@@ -291,10 +291,10 @@ export const PeoplePage: React.FC = () => {
         role: values.role || 'member',
       };
       console.log('Sending POST request to:', `${API_URL}/users`, 'with payload:', payload);
-      
+
       const response = await axios.post(`${API_URL}/users`, payload);
       console.log('Response:', response.data);
-      
+
       message.success('Team member added successfully');
       setIsAddModalOpen(false);
       form.resetFields();
@@ -312,10 +312,10 @@ export const PeoplePage: React.FC = () => {
       console.error('No editing member set');
       return;
     }
-    
+
     console.log('handleEditMember called with values:', values);
     console.log('Editing member:', editingMember);
-    
+
     try {
       const payload = {
         name: values.name,
@@ -323,10 +323,10 @@ export const PeoplePage: React.FC = () => {
         role: values.role,
       };
       console.log('Sending PATCH request to:', `${API_URL}/users/${editingMember.id}`, 'with payload:', payload);
-      
+
       const response = await axios.patch(`${API_URL}/users/${editingMember.id}`, payload);
       console.log('Update response:', response.data);
-      
+
       message.success('Team member updated successfully');
       setIsEditModalOpen(false);
       setEditingMember(null);
@@ -341,13 +341,17 @@ export const PeoplePage: React.FC = () => {
   };
 
   const handleDeleteMember = async (memberId: string) => {
+    setLoading(true);
     try {
       await axios.delete(`${API_URL}/users/${memberId}`);
-      message.success('Team member deleted successfully');
+      message.success('Team member removed successfully');
       loadTeamMembers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete member:', error);
-      message.error('Failed to delete team member');
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to remove team member';
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -379,9 +383,9 @@ export const PeoplePage: React.FC = () => {
             <Title>Team</Title>
             <Subtitle>Manage your team members and track their progress</Subtitle>
           </div>
-          <Button 
-            type="primary" 
-            icon={<UserPlus size={16} />} 
+          <Button
+            type="primary"
+            icon={<UserPlus size={16} />}
             size="large"
             onClick={() => setIsAddModalOpen(true)}
           >
@@ -445,8 +449,8 @@ export const PeoplePage: React.FC = () => {
           <Col xs={24} sm={12} lg={8} key={member.id}>
             <MemberCard>
               <CardActions>
-                <ActionButton 
-                  type="text" 
+                <ActionButton
+                  type="text"
                   icon={<Edit size={16} />}
                   onClick={() => openEditModal(member)}
                 />
@@ -457,8 +461,8 @@ export const PeoplePage: React.FC = () => {
                   okText="Yes"
                   cancelText="No"
                 >
-                  <ActionButton 
-                    type="text" 
+                  <ActionButton
+                    type="text"
                     danger
                     icon={<Trash2 size={16} />}
                   />
@@ -485,13 +489,13 @@ export const PeoplePage: React.FC = () => {
                   <CompletionLabel>Completion Rate</CompletionLabel>
                   <CompletionRate>{member.completionRate}%</CompletionRate>
                 </CompletionHeader>
-                <Progress 
-                  percent={member.completionRate} 
+                <Progress
+                  percent={member.completionRate}
                   showInfo={false}
                   strokeColor={
                     member.completionRate === 100 ? '#52C41A' :
-                    member.completionRate >= 50 ? '#1890FF' :
-                    '#FA8C16'
+                      member.completionRate >= 50 ? '#1890FF' :
+                        '#FA8C16'
                   }
                 />
               </CompletionSection>
@@ -511,7 +515,7 @@ export const PeoplePage: React.FC = () => {
                 </StatItem>
               </StatsGrid>
 
-              <ViewProfileButton 
+              <ViewProfileButton
                 type="default"
                 onClick={() => window.location.href = `/settings/profile?userId=${member.id}`}
               >

@@ -5,7 +5,7 @@ import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress 
 import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen, Star } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
-import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi } from '../../services/api';
+import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi, api } from '../../services/api';
 import { useStore } from '../../store/useStore';
 import { colors } from '../../theme/colors';
 import { CreateIssueModal } from '../CreateIssueModal';
@@ -718,18 +718,59 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                       </div>
 
                       <div style={{ marginTop: 40 }}>
-                        {comments.length > 0 ? comments.map(c => (
-                          <div key={c.id} style={{ marginBottom: 32, display: 'flex', gap: 16 }}>
-                            <Avatar size={40} src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                <span style={{ fontWeight: 600, color: '#1A1A1A', fontSize: 15 }}>{c.user?.name}</span>
-                                <span style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(c.createdAt).toLocaleString()}</span>
+                        {comments.length > 0 ? comments.map(c => {
+                          const currentUserId = localStorage.getItem('userId');
+                          const isCommentAuthor = c.userId === currentUserId || c.author?.id === currentUserId || c.user?.id === currentUserId;
+
+                          return (
+                            <div key={c.id} style={{ marginBottom: 32, display: 'flex', gap: 16 }}>
+                              <Avatar size={40} src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <span style={{ fontWeight: 600, color: '#1A1A1A', fontSize: 15 }}>{c.user?.name}</span>
+                                    <span style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(c.createdAt).toLocaleString()}</span>
+                                  </div>
+                                  {isCommentAuthor && (
+                                    <Tooltip title="Delete Comment">
+                                      <Button
+                                        type="text"
+                                        danger
+                                        size="small"
+                                        icon={<Trash2 size={14} />}
+                                        onClick={async () => {
+                                          Modal.confirm({
+                                            title: 'Delete Comment?',
+                                            content: 'This action cannot be undone.',
+                                            okText: 'Delete',
+                                            okButtonProps: { danger: true },
+                                            cancelText: 'Cancel',
+                                            onOk: async () => {
+                                              try {
+                                                await api.delete(`/comments/${c.id}`, { params: { userId: currentUserId } });
+                                                message.success('Comment deleted');
+                                                const res = await commentsApi.getByIssue(issue.id);
+                                                setComments(res.data || []);
+
+                                                // Reload history
+                                                const historyRes = await historyApi.getByIssue(issue.id);
+                                                setHistory(historyRes.data || []);
+                                              } catch (err) {
+                                                message.error('Failed to delete comment');
+                                              }
+                                            }
+                                          });
+                                        }}
+                                        style={{ padding: 4 }}
+                                      />
+                                    </Tooltip>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: 14, color: '#333333', lineHeight: 1.6 }}>{c.content}</div>
                               </div>
-                              <div style={{ fontSize: 14, color: '#333333', lineHeight: 1.6 }}>{c.content}</div>
                             </div>
-                          </div>
-                        )) : <EmptyStateText style={{ textAlign: 'center' }}>No comments yet.</EmptyStateText>}
+                          );
+                        }) : <EmptyStateText style={{ textAlign: 'center' }}>No comments yet.</EmptyStateText>}
                       </div>
                     </div>
                   )

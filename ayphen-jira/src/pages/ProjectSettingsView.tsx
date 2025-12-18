@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Card, Form, Input, Select, Button, Switch, Divider, List, Avatar, Tag, Modal, message, Popconfirm, Space } from 'antd';
 import { Settings, Users, Workflow, FileText, Shield, Zap, Plus, Edit, Trash2, GitBranch } from 'lucide-react';
@@ -38,6 +38,7 @@ const Section = styled(Card)`
 export const ProjectSettingsView: React.FC = () => {
   const { settingType } = useParams<{ settingType: string }>();
   const { currentProject, setCurrentProject } = useStore();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
 
   // State for different settings
@@ -443,6 +444,60 @@ export const ProjectSettingsView: React.FC = () => {
                 Save Changes
               </Button>
             </Form>
+
+            {/* Danger Zone */}
+            <Divider />
+            <div style={{
+              marginTop: 32,
+              padding: 24,
+              border: '2px solid #ff4d4f',
+              borderRadius: 8,
+              background: '#fff1f0'
+            }}>
+              <h3 style={{ color: '#cf1322', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Trash2 size={20} />
+                Danger Zone
+              </h3>
+              <p style={{ color: '#666', marginBottom: 16, fontSize: 14 }}>
+                Once you delete a project, there is no going back. All issues, sprints, board configurations, and historical data will be permanently lost.
+              </p>
+              <Popconfirm
+                title="Delete Project Forever?"
+                description={
+                  <div>
+                    <p>This will permanently delete:</p>
+                    <ul style={{ marginLeft: 20, marginTop: 8 }}>
+                      <li>All issues and subtasks</li>
+                      <li>All sprints and backlog items</li>
+                      <li>All comments and attachments</li>
+                      <li>Team members and permissions</li>
+                    </ul>
+                    <p style={{ marginTop: 12, fontWeight: 600 }}>This action cannot be undone!</p>
+                  </div>
+                }
+                onConfirm={async () => {
+                  try {
+                    setLoading(true);
+                    await projectsApi.delete(currentProject.id);
+                    message.success('Project deleted successfully');
+                    setCurrentProject(null);
+                    navigate('/projects');
+                  } catch (error: any) {
+                    console.error('Failed to delete project:', error);
+                    message.error(error.response?.data?.error || 'Failed to delete project');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                okText="Yes, Delete Forever"
+                cancelText="Cancel"
+                okButtonProps={{ danger: true }}
+              >
+                <Button danger icon={<Trash2 size={14} />} loading={loading}>
+                  Delete This Project
+                </Button>
+              </Popconfirm>
+            </div>
           </Section>
         );
 
