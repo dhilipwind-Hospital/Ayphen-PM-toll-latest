@@ -602,21 +602,34 @@ export const BoardView: React.FC = () => {
     const issue = issues.find(i => i.id === issueId);
     if (!issue || issue.status === newStatus) return;
 
-    // Optimistic update
+    // Store previous state for rollback
     const previousStatus = issue.status;
+    const previousIssues = [...issues];
+
+    // Optimistic update - immediate UI feedback
     updateIssue(issueId, { status: newStatus });
 
     try {
+      // Update on server with full issue data
+      const userId = localStorage.getItem('userId');
       await axios.put(`${API_URL}/issues/${issueId}`, {
         ...issue,
-        status: newStatus
+        status: newStatus,
+        userId,
+        updatedBy: userId
       });
+
+      // Force refresh from server to ensure consistency
+      await loadIssues();
+
       message.success(`Moved to ${newStatus.replace('-', ' ')}`);
-    } catch (error) {
-      // Rollback on error
-      updateIssue(issueId, { status: previousStatus });
+    } catch (error: any) {
+      // Rollback optimistic update on error
+      setIssues(previousIssues);
+
       console.error('Failed to update issue:', error);
-      message.error('Failed to update issue status');
+      const errorMessage = error.response?.data?.error || 'Failed to update issue status';
+      message.error(errorMessage);
     }
   };
 
