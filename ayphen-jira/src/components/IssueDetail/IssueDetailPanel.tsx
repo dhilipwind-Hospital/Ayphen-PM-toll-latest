@@ -354,12 +354,31 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       // Include userId to properly record history
       const userId = localStorage.getItem('userId') || issue.reporterId;
 
-      // Make API call with proper payload
-      const response = await issuesApi.update(issue.id, {
-        [field]: value,
+      // Prepare complete update payload with all required fields
+      const updatePayload: any = {
+        ...issue, // Include all existing issue data
+        [field]: value, // Override with new value
         userId,
         updatedBy: userId,
+      };
+
+      // Remove fields that shouldn't be sent in update
+      delete updatePayload.id;
+      delete updatePayload.key;
+      delete updatePayload.createdAt;
+      delete updatePayload.updatedAt;
+
+      console.log('🔄 Updating issue:', {
+        issueId: issue.id,
+        field,
+        value,
+        userId
       });
+
+      // Make API call with complete payload
+      const response = await issuesApi.update(issue.id, updatePayload);
+
+      console.log('✅ Update successful:', response.data);
 
       // Update with server response to ensure data consistency
       if (response.data) {
@@ -379,8 +398,20 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       }
 
     } catch (error: any) {
-      console.error('Update failed:', error);
-      message.error(error.response?.data?.error || 'Failed to update');
+      console.error('❌ Update failed:', {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        field,
+        value
+      });
+
+      const errorMessage = error.response?.data?.error
+        || error.response?.data?.message
+        || error.message
+        || 'Failed to update';
+
+      message.error(`Update failed: ${errorMessage}`);
 
       // Revert to server state on error
       loadIssueData();
