@@ -248,6 +248,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [comments, setComments] = useState<any[]>([]);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [subtasks, setSubtasks] = useState<any[]>([]);
+  const [epics, setEpics] = useState<any[]>([]);
   // const [linkedIssues, setLinkedIssues] = useState<any[]>([]); // Replaced by React Query
   const [history, setHistory] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -308,6 +309,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
       loadAttachments(res.data.id);
       loadSubtasks(res.data.id);
+      loadEpics(res.data.projectId);
       // loadLinkedIssues(res.data.id); // Handled by React Query
 
     } catch (error) {
@@ -315,6 +317,22 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadEpics = async (projectId: string) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const res = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issues?projectId=${projectId}&type=epic&userId=${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setEpics(data || []);
+      } else {
+        setEpics([]);
+      }
+    } catch (e) {
+      console.error('Failed to load epics:', e);
+      setEpics([]);
     }
   };
 
@@ -1235,6 +1253,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       <IssueRightSidebar
         issue={issue}
         users={projectMembers}
+        epics={epics}
         onUpdate={handleUpdate}
         onAIAction={(action) => message.info(`AI Action: ${action}`)}
       />

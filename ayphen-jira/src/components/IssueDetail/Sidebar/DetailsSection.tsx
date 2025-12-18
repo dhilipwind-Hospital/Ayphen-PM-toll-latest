@@ -30,11 +30,12 @@ const Value = styled.div`
 
 interface DetailsSectionProps {
     issue: any;
+    epics?: any[];
     onUpdate: (field: string, value: any) => Promise<void>;
     onAIAction?: (action: string) => void;
 }
 
-export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate, onAIAction }) => {
+export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [], onUpdate, onAIAction }) => {
     return (
         <SidebarSection title="Details">
             <FieldRow>
@@ -111,6 +112,49 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate,
                     <Select.Option value="API">API</Select.Option>
                 </Select>
             </FieldRow>
+
+            {/* Epic Link - Only show for non-epic issue types */}
+            {issue.type !== 'epic' && (
+                <FieldRow>
+                    <Label>Epic Link</Label>
+                    <Select
+                        style={{ width: '100%' }}
+                        placeholder="None"
+                        bordered={false}
+                        allowClear
+                        value={issue.epicId || issue.epicLink || undefined}
+                        onChange={(val) => onUpdate('epicId', val)}
+                    >
+                        {epics.map((epic: any) => (
+                            <Select.Option key={epic.id} value={epic.id}>
+                                <span style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 8
+                                }}>
+                                    <span style={{
+                                        background: '#9333EA',
+                                        color: 'white',
+                                        padding: '2px 6px',
+                                        borderRadius: 4,
+                                        fontSize: 11,
+                                        fontWeight: 600
+                                    }}>
+                                        {epic.key}
+                                    </span>
+                                    <span style={{
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        {epic.summary}
+                                    </span>
+                                </span>
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </FieldRow>
+            )}
 
             <FieldRow>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -66,6 +66,7 @@ const ResultCard = styled(Card)`
 interface IssueRightSidebarProps {
     issue: any;
     users: any[];
+    epics?: any[];
     onUpdate: (field: string, value: any) => Promise<void>;
     onAIAction?: (action: string) => void;
 }
@@ -73,6 +74,7 @@ interface IssueRightSidebarProps {
 export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
     issue,
     users,
+    epics = [],
     onUpdate,
     onAIAction
 }) => {
@@ -199,9 +201,9 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                             <strong>Reasoning:</strong> {aiResult.data.reasoning}
                         </div>
                     )}
-                    <Button 
-                        type="primary" 
-                        onClick={applyPriority} 
+                    <Button
+                        type="primary"
+                        onClick={applyPriority}
                         loading={loading}
                         style={{ background: '#0EA5E9', borderColor: '#0EA5E9' }}
                     >
@@ -214,10 +216,10 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
         if (aiResult.type === 'description' && aiResult.description) {
             return (
                 <ResultCard title={<span><FileText size={16} style={{ marginRight: 8 }} />Generated Description</span>}>
-                    <div style={{ 
-                        background: '#F9FAFB', 
-                        padding: 12, 
-                        borderRadius: 8, 
+                    <div style={{
+                        background: '#F9FAFB',
+                        padding: 12,
+                        borderRadius: 8,
                         marginBottom: 16,
                         maxHeight: 200,
                         overflowY: 'auto',
@@ -226,8 +228,8 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                     }}>
                         {aiResult.description}
                     </div>
-                    <Button 
-                        type="primary" 
+                    <Button
+                        type="primary"
                         onClick={applyDescription}
                         style={{ background: '#0EA5E9', borderColor: '#0EA5E9' }}
                     >
@@ -240,9 +242,9 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
         if (aiResult.type === 'criteria' && aiResult.criteria) {
             return (
                 <ResultCard title={<span><CheckCircle size={16} style={{ marginRight: 8 }} />Acceptance Criteria</span>}>
-                    <div style={{ 
-                        background: '#F9FAFB', 
-                        padding: 12, 
+                    <div style={{
+                        background: '#F9FAFB',
+                        padding: 12,
                         borderRadius: 8,
                         maxHeight: 250,
                         overflowY: 'auto',
@@ -306,7 +308,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                 setAiModalVisible(true);
                 handleAIAction(action);
             }} />
-            <DetailsSection issue={issue} onUpdate={onUpdate} onAIAction={(action) => {
+            <DetailsSection issue={issue} epics={epics} onUpdate={onUpdate} onAIAction={(action) => {
                 setAiModalVisible(true);
                 handleAIAction(action);
             }} />
