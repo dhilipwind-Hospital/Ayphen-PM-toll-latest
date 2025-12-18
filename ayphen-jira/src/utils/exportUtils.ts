@@ -41,7 +41,6 @@ export const exportToPNG = async (elementId: string, filename: string) => {
   try {
     // This would require html2canvas library
     // For now, just show a message
-    console.log('Export to PNG:', elementId, filename);
     alert('PNG export will be available soon. Use browser screenshot for now.');
   } catch (error) {
     console.error('Export to PNG failed:', error);

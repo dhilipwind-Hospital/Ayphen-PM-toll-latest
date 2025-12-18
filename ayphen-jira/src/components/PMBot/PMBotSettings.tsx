@@ -223,7 +223,6 @@ export const PMBotSettings: React.FC<PMBotSettingsProps> = ({ projectId, onSave 
 
     const handleSave = () => {
         // Save to backend
-        console.log('Saving PMBot settings:', settings);
         if (onSave) {
             onSave(settings);
         }

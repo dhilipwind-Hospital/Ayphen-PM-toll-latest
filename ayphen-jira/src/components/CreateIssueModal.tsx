@@ -103,7 +103,6 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
     }
     try {
       const response = await issuesApi.getAll({ projectId: currentProject.id, type: 'epic', userId: currentUser.id });
-      console.log('Loaded epics:', response.data?.length || 0);
       setEpics(response.data || []);
     } catch (error) {
       console.error('Failed to load epics', error);

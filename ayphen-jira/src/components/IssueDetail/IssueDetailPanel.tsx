@@ -389,7 +389,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       delete updatePayload.createdAt;
       delete updatePayload.updatedAt;
 
-      console.log('🔄 Updating issue:', {
         issueId: issue.id,
         field,
         value,
@@ -399,7 +398,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       // Make API call with complete payload
       const response = await issuesApi.update(issue.id, updatePayload);
 
-      console.log('✅ Update successful:', response.data);
 
       // Update with server response to ensure data consistency
       if (response.data) {
@@ -519,7 +517,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       // Force fresh fetch with cache-busting timestamp
       const res = await api.get(`/comments/issue/${issue.id}?t=${Date.now()}`);
       setComments(res.data || []);
-      console.log('Comments refreshed:', res.data);
     } catch (e) {
       console.error('Failed to update comment:', e);
       message.error('Failed to update comment');

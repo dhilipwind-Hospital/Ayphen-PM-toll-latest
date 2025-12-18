@@ -317,7 +317,6 @@ export const TopNavigation: React.FC = () => {
 
   const filtersMenu = {
     onClick: ({ key }: any) => {
-      console.log('Filter menu clicked:', key);
       if (key === 'all-filters') handleNavigation('/filters');
       if (key === 'recent') handleNavigation('/filters?filter=recent');
       if (key === 'my-open-issues') handleNavigation('/filters?filter=my-open');

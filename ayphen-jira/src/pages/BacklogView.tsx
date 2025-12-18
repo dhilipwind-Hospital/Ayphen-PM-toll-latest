@@ -387,9 +387,6 @@ export const BacklogView: React.FC = () => {
   const futureSprints = localSprints.filter(s => s.status === 'future');
 
   // Debug logging
-  console.log('[BacklogView] Local sprints:', localSprints);
-  console.log('[BacklogView] Active sprints:', activeSprints.length);
-  console.log('[BacklogView] Future sprints:', futureSprints.length);
 
   // Filter out epics - they are containers, not work items for sprints/backlog
   const backlogIssues = issues.filter(i => !i.sprintId && i.type !== 'epic');
@@ -404,25 +401,21 @@ export const BacklogView: React.FC = () => {
       const nextNum = localSprints.length + 1;
       const name = `${currentProject.key} Sprint ${nextNum}`;
 
-      console.log('Creating sprint:', { name, projectId: currentProject.id });
 
       const createRes = await sprintsApi.create({
         name,
         projectId: currentProject.id,
         status: 'future'
       });
-      console.log('Sprint created response:', createRes.data);
 
       message.success('Sprint created successfully!');
 
       // Reload sprints - handle both array and object responses
       const sprintRes = await sprintsApi.getAll(currentProject.id);
-      console.log('Sprints reload response:', sprintRes.data);
 
       const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data.sprints || [];
       setLocalSprints(sprintData);
 
-      console.log('Sprints state updated:', sprintData.length, 'sprints');
     } catch (e: any) {
       console.error('Failed to create sprint:', e);
       message.error(e?.response?.data?.message || 'Failed to create sprint');

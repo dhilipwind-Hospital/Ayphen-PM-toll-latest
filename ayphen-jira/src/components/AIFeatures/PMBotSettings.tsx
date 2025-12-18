@@ -23,7 +23,6 @@ export const PMBotSettings: React.FC<PMBotSettingsProps> = ({ projectId }) => {
         duration: 3
       });
       
-      console.log('PMBot Settings saved:', values);
     } catch (error: any) {
       console.error('Failed to save settings:', error);
       message.error('Failed to save settings');

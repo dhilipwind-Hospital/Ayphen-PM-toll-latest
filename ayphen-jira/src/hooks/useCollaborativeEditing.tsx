@@ -51,7 +51,6 @@ export const useCollaborativeEditing = (issueId: string, userId: string, userNam
     });
 
     newSocket.on('connect', () => {
-      console.log('✅ Connected to collaboration server');
       setIsConnected(true);
       
       // Join editing session
@@ -64,7 +63,6 @@ export const useCollaborativeEditing = (issueId: string, userId: string, userNam
     });
 
     newSocket.on('disconnect', () => {
-      console.log('❌ Disconnected from collaboration server');
       setIsConnected(false);
     });
 
@@ -105,7 +103,6 @@ export const useCollaborativeEditing = (issueId: string, userId: string, userNam
     // Handle edit operations
     newSocket.on('edit-operation', (operation: EditOperation) => {
       // This will be handled by the component using this hook
-      console.log('📝 Edit operation received:', operation);
     });
 
     // Handle typing indicators
@@ -127,13 +124,11 @@ export const useCollaborativeEditing = (issueId: string, userId: string, userNam
 
     // Handle issue updates
     newSocket.on('issue-updated', (update: any) => {
-      console.log('🔄 Issue updated:', update);
       // This will trigger a refresh in the component
     });
 
     // Handle conflicts
     newSocket.on('edit-conflict', (conflict: any) => {
-      console.log('⚠️ Edit conflict detected:', conflict);
       // Show conflict resolution UI
     });
 

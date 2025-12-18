@@ -51,7 +51,6 @@ export const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
                 endDate: values.dateRange?.[1]?.toISOString() || null,
             };
 
-            console.log('Creating sprint with data:', sprintData);
 
             await sprintsApi.create(sprintData);
 

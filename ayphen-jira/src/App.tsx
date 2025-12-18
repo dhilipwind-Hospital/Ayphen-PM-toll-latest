@@ -111,11 +111,9 @@ function App() {
 
         // 🔒 ONLY LOAD DATA IF USER IS LOGGED IN
         if (!userId || !sessionId) {
-          console.log('⚠️ No userId/sessionId found - skipping data load (user not logged in)');
           return;
         }
 
-        console.log('🔄 Loading data from backend for user:', userId);
 
         // Fetch all data with individual error handling + userId for filtering
         const [projectsRes, issuesRes, usersRes, sprintsRes] = await Promise.allSettled([
@@ -136,7 +134,6 @@ function App() {
             // Use stored project if valid, otherwise default to first
             setCurrentProject(targetProject || projects[0]);
           }
-          console.log(`✅ Loaded ${projects.length} projects`);
         } else {
           console.warn('⚠️ No projects loaded');
         }
@@ -144,7 +141,6 @@ function App() {
         // Handle issues
         if (issuesRes.status === 'fulfilled' && issuesRes.value.data) {
           setIssues(issuesRes.value.data);
-          console.log(`✅ Loaded ${issuesRes.value.data.length} issues`);
         } else {
           console.warn('⚠️ No issues loaded');
         }
@@ -153,7 +149,6 @@ function App() {
         if (usersRes.status === 'fulfilled' && usersRes.value.data) {
           const users = usersRes.value.data;
           // Don't override currentUser - it's set by AuthContext
-          console.log(`✅ Loaded ${users.length} users`);
         } else {
           console.warn('⚠️ No users loaded');
         }
@@ -161,7 +156,6 @@ function App() {
         // Handle sprints
         if (sprintsRes.status === 'fulfilled' && sprintsRes.value.data) {
           setSprints(sprintsRes.value.data);
-          console.log(`✅ Loaded ${sprintsRes.value.data.length} sprints`);
         } else {
           console.warn('⚠️ No sprints loaded');
         }
@@ -207,13 +201,10 @@ function App() {
           } as any;
           setBoards([board]);
           setCurrentBoard(board);
-          console.log('✅ Board created');
         }
 
-        console.log('✅ All data loaded successfully');
       } catch (error) {
         console.error('❌ Error loading data:', error);
-        console.log('⚠️ Continuing with empty data - backend may be unavailable');
         // Don't throw - allow app to continue with empty data
       }
     };
@@ -231,12 +222,10 @@ function App() {
       const project = storeProjects.find((p: any) => p.id === lastProjectId);
       if (project) {
         setProject(project);
-        console.log('✅ Restored last project:', project.name);
       }
     } else if (storeProjects.length > 0 && !currentProject) {
       // If no last project, set first project as default
       setProject(storeProjects[0]);
-      console.log('✅ Set default project:', storeProjects[0].name);
     }
   }, []);
 

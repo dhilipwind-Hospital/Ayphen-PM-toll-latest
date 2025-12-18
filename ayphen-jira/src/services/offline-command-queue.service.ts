@@ -272,12 +272,10 @@ export class OfflineCommandQueueService {
    */
   private setupOnlineListener(): void {
     window.addEventListener('online', () => {
-      console.log('Back online - syncing queued commands');
       this.syncQueue();
     });
 
     window.addEventListener('offline', () => {
-      console.log('Gone offline - commands will be queued');
     });
   }
 

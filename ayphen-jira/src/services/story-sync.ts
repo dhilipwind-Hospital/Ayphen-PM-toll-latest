@@ -58,7 +58,6 @@ export async function syncAIStoryToIssue(
     );
 
     if (alreadySynced) {
-      console.log(`Story ${aiStory.id} already synced as issue ${alreadySynced.id}`);
       return alreadySynced;
     }
 
@@ -73,7 +72,6 @@ export async function syncAIStoryToIssue(
       jiraIssueKey: response.data.key,
     });
 
-    console.log(`✅ Synced story ${aiStory.id} to issue ${response.data.id}`);
     return response.data;
   } catch (error: any) {
     console.error(`❌ Failed to sync story ${aiStory.id}:`, error);
@@ -175,7 +173,6 @@ export async function updateIssueFromAIStory(
     );
 
     if (!linkedIssue) {
-      console.log('No linked issue found, skipping update');
       return;
     }
 
@@ -187,7 +184,6 @@ export async function updateIssueFromAIStory(
     };
 
     await issuesApi.update(linkedIssue.id, updates);
-    console.log(`✅ Updated issue ${linkedIssue.id} from AI story ${aiStory.id}`);
   } catch (error: any) {
     const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
     console.error('❌ Failed to update issue from AI story:', errorMessage);

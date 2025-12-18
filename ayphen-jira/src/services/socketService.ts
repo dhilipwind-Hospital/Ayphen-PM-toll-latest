@@ -19,12 +19,10 @@ class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('🔌 Socket connected');
       this.socket?.emit('authenticate', userId);
     });
 
     this.socket.on('authenticated', () => {
-      console.log('✅ Socket authenticated');
       // Re-join project if we were in one
       if (this.currentProjectId) {
         this.joinProject(this.currentProjectId);
@@ -54,7 +52,6 @@ class SocketService {
 
     this.socket.emit('join_project', projectId);
     this.currentProjectId = projectId;
-    console.log(`Joined project room: ${projectId}`);
   }
 
   public leaveProject(projectId: string) {
@@ -68,7 +65,6 @@ class SocketService {
 
     // Issue Created
     this.socket.on('issue_created', (issue: any) => {
-      console.log('🔔 Socket: issue_created', issue);
       const { addIssue, currentProject } = useStore.getState();
 
       // Only add if it belongs to current project (double check)
@@ -80,7 +76,6 @@ class SocketService {
 
     // Issue Updated (General)
     this.socket.on('issue_updated', (data: { issue: any, changes: any, updaterId: string }) => {
-      console.log('🔔 Socket: issue_updated', data);
       const { updateIssue, currentProject } = useStore.getState();
 
       if (currentProject && data.issue.projectId === currentProject.id) {
@@ -93,7 +88,6 @@ class SocketService {
 
     // Status Changed
     this.socket.on('status_changed', (data: { issue: any, oldStatus: string, newStatus: string }) => {
-      console.log('🔔 Socket: status_changed', data);
       const { updateIssue, currentProject } = useStore.getState();
 
       if (currentProject && data.issue.projectId === currentProject.id) {

@@ -127,7 +127,6 @@ export const ProjectSettingsView: React.FC = () => {
 
   // CRUD handlers for Workflows
   const handleCreateWorkflow = async (values: any) => {
-    console.log('Creating workflow with values:', values);
     setLoading(true);
     try {
       // Convert comma-separated statuses to proper format
@@ -135,7 +134,6 @@ export const ProjectSettingsView: React.FC = () => {
         ? values.statuses.split(',').map((s: string) => s.trim())
         : values.statuses;
 
-      console.log('Status names:', statusNames);
 
       const statuses = statusNames.map((name: string, index: number) => ({
         id: name.toLowerCase().replace(/\s+/g, '-'),
@@ -160,10 +158,8 @@ export const ProjectSettingsView: React.FC = () => {
         isDefault: false,
       };
 
-      console.log('Sending workflow data:', workflowData);
 
       const response = await workflowsApi.create(workflowData);
-      console.log('Workflow created:', response.data);
 
       setWorkflows([...workflows, response.data]);
       message.success('Workflow created successfully');

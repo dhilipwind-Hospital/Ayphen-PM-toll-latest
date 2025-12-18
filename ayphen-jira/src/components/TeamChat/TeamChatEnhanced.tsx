@@ -253,7 +253,6 @@ export const TeamChatEnhanced: React.FC = () => {
       });
 
       socketRef.current.on('connect', () => {
-        console.log('WebSocket connected');
       });
 
       socketRef.current.on('new_message', (message: Message) => {
@@ -266,7 +265,6 @@ export const TeamChatEnhanced: React.FC = () => {
       });
 
       socketRef.current.on('disconnect', () => {
-        console.log('WebSocket disconnected');
       });
 
       return () => {

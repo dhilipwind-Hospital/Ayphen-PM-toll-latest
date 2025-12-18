@@ -23,7 +23,6 @@ export const useRealTimeCollaboration = (issueId?: string) => {
     });
 
     newSocket.on('connect', () => {
-      console.log('✅ Real-time collaboration connected');
       if (issueId) {
         newSocket.emit('join_issue', issueId);
       }

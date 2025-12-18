@@ -567,7 +567,6 @@ export const BoardView: React.FC = () => {
       const res = await sprintsApi.getAll(currentProject?.id, userId);
       const active = res.data.find((s: any) => s.status === 'active');
       setActiveSprint(active);
-      console.log('Active sprint loaded:', active ? active.name : 'No active sprint');
     } catch (e) { console.error('Failed to load sprints', e); }
   };
 

@@ -113,20 +113,16 @@ export const RequirementsPage: React.FC = () => {
   };
 
   const handleDelete = async (requirementId: string, title: string) => {
-    console.log('🗑️ Delete button clicked for:', requirementId, title);
     
     // Use window.confirm as a fallback
     const confirmed = window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`);
     
     if (!confirmed) {
-      console.log('❌ Delete cancelled by user');
       return;
     }
     
     try {
-      console.log('🗑️ Deleting requirement:', requirementId);
       await aiRequirementsApi.delete(requirementId);
-      console.log('✅ Delete successful');
       message.success('Requirement deleted successfully');
       loadRequirements();
     } catch (error: any) {
@@ -139,7 +135,6 @@ export const RequirementsPage: React.FC = () => {
     const hide = message.loading('🚀 Generating everything (Stories + Test Cases + Suites)...', 0);
     
     try {
-      console.log('🚀 Starting complete generation for requirement:', requirementId);
       
       // Update status to 'processing' immediately
       await aiRequirementsApi.update(requirementId, { status: 'processing' });
@@ -147,7 +142,6 @@ export const RequirementsPage: React.FC = () => {
       
       const res = await aiGenerationApi.generateComplete(requirementId);
       hide();
-      console.log('✅ Complete generation response:', res.data);
       
       const summary = res.data.summary;
       
@@ -258,7 +252,6 @@ export const RequirementsPage: React.FC = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    console.log('🔘 Button clicked for requirement:', req.id);
                     handleGenerate(req.id);
                   }}
                 >
@@ -280,7 +273,6 @@ export const RequirementsPage: React.FC = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    console.log('🔘 Delete button clicked!');
                     handleDelete(req.id, req.title);
                   }}
                   style={{ pointerEvents: 'auto', cursor: 'pointer' }}

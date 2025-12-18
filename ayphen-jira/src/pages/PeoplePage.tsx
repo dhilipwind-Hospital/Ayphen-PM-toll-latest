@@ -283,17 +283,14 @@ export const PeoplePage: React.FC = () => {
   };
 
   const handleAddMember = async (values: any) => {
-    console.log('handleAddMember called with values:', values);
     try {
       const payload = {
         name: values.name,
         email: values.email,
         role: values.role || 'member',
       };
-      console.log('Sending POST request to:', `${API_URL}/users`, 'with payload:', payload);
 
       const response = await axios.post(`${API_URL}/users`, payload);
-      console.log('Response:', response.data);
 
       message.success('Team member added successfully');
       setIsAddModalOpen(false);
@@ -313,8 +310,6 @@ export const PeoplePage: React.FC = () => {
       return;
     }
 
-    console.log('handleEditMember called with values:', values);
-    console.log('Editing member:', editingMember);
 
     try {
       const payload = {
@@ -322,10 +317,8 @@ export const PeoplePage: React.FC = () => {
         email: values.email,
         role: values.role,
       };
-      console.log('Sending PATCH request to:', `${API_URL}/users/${editingMember.id}`, 'with payload:', payload);
 
       const response = await axios.patch(`${API_URL}/users/${editingMember.id}`, payload);
-      console.log('Update response:', response.data);
 
       message.success('Team member updated successfully');
       setIsEditModalOpen(false);

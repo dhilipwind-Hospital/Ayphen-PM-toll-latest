@@ -77,7 +77,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
 
     newSocket.on('connect', () => {
-      console.log('🔌 Connected to WebSocket server');
       setIsConnected(true);
       
       // Authenticate
@@ -85,12 +84,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
 
     newSocket.on('disconnect', () => {
-      console.log('🔌 Disconnected from WebSocket server');
       setIsConnected(false);
     });
 
     newSocket.on('authenticated', (data) => {
-      console.log('✅ Authenticated:', data);
     });
 
     newSocket.on('authentication_error', (error) => {
@@ -99,7 +96,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     // Notification events
     newSocket.on('new_notification', (notification: Notification) => {
-      console.log('🔔 New notification:', notification);
       setNotifications((prev) => [notification, ...prev]);
       
       // Show toast notification
@@ -126,11 +122,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     // Issue collaboration events
     newSocket.on('user_joined_issue', (data: { userId: string; issueId: string }) => {
-      console.log('👤 User joined issue:', data);
     });
 
     newSocket.on('user_left_issue', (data: { userId: string; issueId: string }) => {
-      console.log('👋 User left issue:', data);
       setIssueViewers((prev) => {
         const viewers = prev[data.issueId] || [];
         return {
@@ -174,33 +168,26 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     // Real-time updates
     newSocket.on('issue_created', (issue: any) => {
-      console.log('📝 Issue created:', issue);
     });
 
     newSocket.on('issue_updated', (data: { issue: any; changes: any; updaterId: string }) => {
-      console.log('📝 Issue updated:', data);
     });
 
     newSocket.on('comment_added', (data: { comment: any; commenterId: string }) => {
-      console.log('💬 Comment added:', data);
     });
 
     newSocket.on('status_changed', (data: { issue: any; oldStatus: string; newStatus: string }) => {
-      console.log('🔄 Status changed:', data);
     });
 
     newSocket.on('sprint_started', (sprint: any) => {
-      console.log('🏃 Sprint started:', sprint);
       antdMessage.success(`Sprint "${sprint.name}" has started!`);
     });
 
     newSocket.on('sprint_completed', (sprint: any) => {
-      console.log('✅ Sprint completed:', sprint);
       antdMessage.success(`Sprint "${sprint.name}" has been completed!`);
     });
 
     newSocket.on('presence_update', (data: { userId: string; status: string; timestamp: Date }) => {
-      console.log('👤 Presence update:', data);
     });
 
     setSocket(newSocket);

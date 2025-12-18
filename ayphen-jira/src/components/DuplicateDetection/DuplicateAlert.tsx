@@ -134,7 +134,6 @@ export const DuplicateAlert: React.FC<DuplicateAlertProps> = ({
         userAction: action,
         userId: 'current-user-id' // Would be actual user ID
       });
-      console.log(`📊 Feedback recorded: ${action}`);
     } catch (error) {
       console.error('Failed to record feedback:', error);
     }

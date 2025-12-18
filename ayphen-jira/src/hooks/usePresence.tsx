@@ -28,7 +28,6 @@ export const usePresence = (userId: string, userName: string, userAvatar?: strin
     });
 
     newSocket.on('connect', () => {
-      console.log('✅ Connected to presence server');
       setIsConnected(true);
       
       // Announce user is online
@@ -43,7 +42,6 @@ export const usePresence = (userId: string, userName: string, userAvatar?: strin
     });
 
     newSocket.on('disconnect', () => {
-      console.log('❌ Disconnected from presence server');
       setIsConnected(false);
       stopHeartbeat();
     });

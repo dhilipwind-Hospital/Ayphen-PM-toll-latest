@@ -108,7 +108,6 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
 
   const handleDelete = async (e: React.MouseEvent, attachment: any) => {
     e.stopPropagation(); // Prevent event bubbling
-    console.log('🗑️ Delete clicked for attachment:', attachment.id, attachment);
     
     Modal.confirm({
       title: 'Delete Attachment',
@@ -117,20 +116,16 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
       okType: 'danger',
       onOk: async () => {
         try {
-          console.log('📤 Sending DELETE request to:', `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/${attachment.id}`);
           
           const response = await axios.delete(
             `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/${attachment.id}`
           );
           
-          console.log('✅ Delete response:', response.status, response.data);
           message.success('Attachment deleted successfully');
           
           // Refresh the list
           if (onRefresh) {
-            console.log('🔄 Calling onRefresh to reload attachments...');
             await onRefresh();
-            console.log('✅ Attachments refreshed');
           } else {
             console.warn('⚠️ No onRefresh function provided');
           }
@@ -147,7 +142,6 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
     });
   };
 
-  console.log('📎 AttachmentList rendering with', attachments.length, 'attachments', attachments);
 
   if (!attachments || attachments.length === 0) {
     return (

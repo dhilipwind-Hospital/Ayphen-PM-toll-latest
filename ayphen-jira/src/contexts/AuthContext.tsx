@@ -83,7 +83,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data.user);
       setCurrentUser(response.data.user); // Sync with store
       
-      console.log('✅ Login successful - userId:', response.data.user.id);
       message.success('Login successful!');
       navigate('/dashboard');
     } catch (error: any) {
@@ -102,7 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Registration successful but user needs to verify email
       if (response.data.requiresVerification) {
-        console.log('✅ Registration successful - verification required');
         message.success({
           content: response.data.message || 'Registration successful! Please check your email to verify your account.',
           duration: 5,
@@ -150,7 +148,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSprints([]);
       setCurrentProject(null);
       
-      console.log('✅ Logged out - all data cleared (including lastProjectId)');
       message.success('Logged out successfully');
       navigate('/login');
     }
