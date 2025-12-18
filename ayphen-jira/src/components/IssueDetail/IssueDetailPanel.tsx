@@ -494,8 +494,14 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       message.success('Comment updated');
       setEditingCommentId(null);
       setEditingCommentText('');
-      const res = await commentsApi.getByIssue(issue.id);
+
+      // Small delay to ensure backend has committed the update
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Force fresh fetch with cache-busting timestamp
+      const res = await api.get(`/comments/issue/${issue.id}?t=${Date.now()}`);
       setComments(res.data || []);
+      console.log('Comments refreshed:', res.data);
     } catch (e) {
       console.error('Failed to update comment:', e);
       message.error('Failed to update comment');
