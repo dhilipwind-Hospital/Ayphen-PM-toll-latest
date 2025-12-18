@@ -49,11 +49,20 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate,
                     onChange={(val) => onUpdate('status', val)}
                     dropdownMatchSelectWidth={false}
                 >
+                    <Select.Option value="backlog">
+                        <Tag color="default">Backlog</Tag>
+                    </Select.Option>
                     <Select.Option value="todo">
                         <Tag color={colors.status.todo}>To Do</Tag>
                     </Select.Option>
                     <Select.Option value="in-progress">
                         <Tag color={colors.status.inProgress}>In Progress</Tag>
+                    </Select.Option>
+                    <Select.Option value="in-review">
+                        <Tag color="purple">In Review</Tag>
+                    </Select.Option>
+                    <Select.Option value="blocked">
+                        <Tag color="red">Blocked</Tag>
                     </Select.Option>
                     <Select.Option value="done">
                         <Tag color={colors.status.done}>Done</Tag>
@@ -122,7 +131,22 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, onUpdate,
                     bordered={false}
                     value={issue.labels || []}
                     onChange={(val) => onUpdate('labels', val)}
-                />
+                >
+                    <Select.Option value="frontend">frontend</Select.Option>
+                    <Select.Option value="backend">backend</Select.Option>
+                    <Select.Option value="api">api</Select.Option>
+                    <Select.Option value="bug">bug</Select.Option>
+                    <Select.Option value="feature">feature</Select.Option>
+                    <Select.Option value="enhancement">enhancement</Select.Option>
+                    <Select.Option value="documentation">documentation</Select.Option>
+                    <Select.Option value="urgent">urgent</Select.Option>
+                    <Select.Option value="blocked">blocked</Select.Option>
+                    <Select.Option value="needs-review">needs-review</Select.Option>
+                    <Select.Option value="testing">testing</Select.Option>
+                    <Select.Option value="design">design</Select.Option>
+                    <Select.Option value="performance">performance</Select.Option>
+                    <Select.Option value="security">security</Select.Option>
+                </Select>
             </FieldRow>
         </SidebarSection>
     );
