@@ -387,7 +387,7 @@ export const TeamChatEnhanced: React.FC = () => {
   };
 
   const sendMessage = async () => {
-    if (!inputValue.trim() || !activeChannel || !user) return;
+    if ((!inputValue.trim() && attachments.length === 0) || !activeChannel || !user) return;
 
     // Extract mentions
     const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
@@ -405,18 +405,57 @@ export const TeamChatEnhanced: React.FC = () => {
     }
 
     try {
+      let uploadedAttachments: any[] = [];
+
+      // Upload attachments if any
+      if (attachments.length > 0) {
+        const formData = new FormData();
+        attachments.forEach(file => {
+          formData.append('files', file);
+        });
+
+        try {
+          const uploadRes = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            uploadedAttachments = uploadData.map((f: any) => ({
+              filename: f.filename,
+              url: `https://ayphen-pm-toll-latest.onrender.com/uploads/${f.filename}`,
+              type: f.mimetype,
+              size: f.size
+            }));
+          }
+        } catch (uploadError) {
+          console.error('Failed to upload attachments:', uploadError);
+          antMessage.warning('Some attachments failed to upload');
+        }
+      }
+
+      // Build message content with attachment references
+      let messageContent = inputValue;
+      if (uploadedAttachments.length > 0) {
+        const attachmentRefs = uploadedAttachments.map(a => `[file: ${a.filename}]`).join(' ');
+        messageContent = messageContent ? `${messageContent}\n${attachmentRefs}` : attachmentRefs;
+      }
+
       const response = await api.post(
         `/chat-v2/channels/${activeChannel.id}/messages`,
         {
-          content: inputValue,
+          content: messageContent,
           userId: user.id,
           mentions,
-          issueLinks
+          issueLinks,
+          attachments: uploadedAttachments
         }
       );
 
       setMessages([...messages, response.data]);
       setInputValue('');
+      setAttachments([]); // Clear attachments after send
     } catch (error) {
       console.error('Failed to send message:', error);
       antMessage.error('Failed to send message');
