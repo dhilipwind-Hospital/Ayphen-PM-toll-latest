@@ -65,19 +65,21 @@ export async function syncAIStoryToIssue(
     // Create new issue
     const issueData = convertAIStoryToIssue(aiStory, projectId, reporterId);
     const response = await issuesApi.create(issueData);
-    
+
     // Update AI story with issue ID and sync status
     await aiStoriesApi.update(aiStory.id, {
       issueId: response.data.id,
       syncStatus: 'synced',
       jiraIssueKey: response.data.key,
     });
-    
+
     console.log(`✅ Synced story ${aiStory.id} to issue ${response.data.id}`);
     return response.data;
-  } catch (error) {
-    console.error(`Failed to sync story ${aiStory.id}:`, error);
-    throw error;
+  } catch (error: any) {
+    console.error(`❌ Failed to sync story ${aiStory.id}:`, error);
+    const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
+    message.error(`Failed to sync story: ${errorMessage}`);
+    throw new Error(`Story sync failed: ${errorMessage}`);
   }
 }
 
@@ -104,16 +106,20 @@ export async function syncAllAIStoriesToIssues(
         } else {
           skipped++;
         }
-      } catch (error) {
+      } catch (error: any) {
         errors++;
-        console.error(`Error syncing story ${story.id}:`, error);
+        const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
+        console.error(`❌ Error syncing story ${story.id}:`, errorMessage);
+        // Don't show message for each error, will show summary at end
       }
     }
 
     return { synced, skipped, errors };
-  } catch (error) {
-    console.error('Failed to sync stories:', error);
-    throw error;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
+    console.error('❌ Failed to sync stories:', errorMessage);
+    message.error(`Failed to fetch AI stories: ${errorMessage}`);
+    throw new Error(`Batch sync failed: ${errorMessage}`);
   }
 }
 
@@ -123,7 +129,7 @@ export async function syncAllAIStoriesToIssues(
 export async function syncAllAIStories(projectId: string, reporterId: string): Promise<void> {
   try {
     message.loading('Syncing AI stories to backlog...', 0);
-    
+
     // Get all AI stories
     const aiStoriesResponse = await aiStoriesApi.getAll();
     const aiStories = aiStoriesResponse.data || [];
@@ -137,7 +143,7 @@ export async function syncAllAIStories(projectId: string, reporterId: string): P
     const result = await syncAllAIStoriesToIssues(projectId, reporterId);
 
     message.destroy();
-    
+
     if (result.errors === 0) {
       message.success(`✅ Synced ${result.synced} stories to backlog!`);
     } else {
@@ -145,10 +151,11 @@ export async function syncAllAIStories(projectId: string, reporterId: string): P
         `Synced ${result.synced} stories, ${result.errors} failed`
       );
     }
-  } catch (error) {
+  } catch (error: any) {
     message.destroy();
-    message.error('Failed to sync stories');
-    console.error('Sync error:', error);
+    const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
+    message.error(`Failed to sync stories: ${errorMessage}`);
+    console.error('❌ Sync error:', errorMessage, error);
   }
 }
 
@@ -181,8 +188,10 @@ export async function updateIssueFromAIStory(
 
     await issuesApi.update(linkedIssue.id, updates);
     console.log(`✅ Updated issue ${linkedIssue.id} from AI story ${aiStory.id}`);
-  } catch (error) {
-    console.error('Failed to update issue from AI story:', error);
-    throw error;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
+    console.error('❌ Failed to update issue from AI story:', errorMessage);
+    message.error(`Failed to update issue: ${errorMessage}`);
+    throw new Error(`Issue update from AI story failed: ${errorMessage}`);
   }
 }
