@@ -882,7 +882,98 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                     </Tooltip>
                                   )}
                                 </div>
-                                <div style={{ fontSize: 14, color: '#333333', lineHeight: 1.6 }}>{c.content}</div>
+                                {/* Render comment content with inline attachments */}
+                                {(() => {
+                                  // Parse comment content for attachment references
+                                  const attachmentRegex = /\[attachment:\s*([^\]]+)\]/g;
+                                  const parts = c.content.split(attachmentRegex);
+                                  const hasAttachments = parts.length > 1;
+
+                                  // Get just the text content (before any attachments)
+                                  const textContent = c.content.replace(attachmentRegex, '').trim();
+
+                                  // Extract attachment filenames
+                                  const attachmentMatches = [...c.content.matchAll(attachmentRegex)];
+                                  const attachmentFiles = attachmentMatches.map(m => m[1].trim());
+
+                                  const baseUrl = 'https://ayphen-pm-toll-latest.onrender.com/uploads/';
+
+                                  return (
+                                    <>
+                                      {textContent && (
+                                        <div style={{ fontSize: 14, color: '#333333', lineHeight: 1.6, marginBottom: hasAttachments ? 12 : 0 }}>
+                                          {textContent}
+                                        </div>
+                                      )}
+                                      {attachmentFiles.length > 0 && (
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                                          {attachmentFiles.map((filename, idx) => {
+                                            const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filename);
+                                            const fileUrl = baseUrl + filename;
+
+                                            if (isImage) {
+                                              return (
+                                                <div
+                                                  key={idx}
+                                                  style={{
+                                                    border: '1px solid #E5E7EB',
+                                                    borderRadius: 8,
+                                                    overflow: 'hidden',
+                                                    cursor: 'pointer',
+                                                    maxWidth: 300
+                                                  }}
+                                                  onClick={() => setPreviewImage(fileUrl)}
+                                                >
+                                                  <img
+                                                    src={fileUrl}
+                                                    alt={filename}
+                                                    style={{
+                                                      maxWidth: '100%',
+                                                      maxHeight: 200,
+                                                      objectFit: 'cover',
+                                                      display: 'block'
+                                                    }}
+                                                    onError={(e) => {
+                                                      (e.target as HTMLImageElement).style.display = 'none';
+                                                      (e.target as HTMLImageElement).parentElement!.innerHTML = `
+                                                        <div style="padding: 12px; display: flex; align-items: center; gap: 8px; color: #6B7280; font-size: 13px;">
+                                                          📎 ${filename}
+                                                        </div>
+                                                      `;
+                                                    }}
+                                                  />
+                                                </div>
+                                              );
+                                            } else {
+                                              return (
+                                                <a
+                                                  key={idx}
+                                                  href={fileUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 8,
+                                                    padding: '8px 12px',
+                                                    border: '1px solid #E5E7EB',
+                                                    borderRadius: 6,
+                                                    color: '#0EA5E9',
+                                                    fontSize: 13,
+                                                    textDecoration: 'none',
+                                                    background: '#F9FAFB'
+                                                  }}
+                                                >
+                                                  📎 {filename}
+                                                </a>
+                                              );
+                                            }
+                                          })}
+                                        </div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </div>
                           );
