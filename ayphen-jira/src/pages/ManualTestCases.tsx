@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Button, Table, Modal, Form, Input, Select, Space, message, Tag, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Table, Modal, Form, Input, Select, Space, message, Tag, Tooltip, Avatar } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined, BugOutlined, FileTextOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import styled from 'styled-components';
+import { useStore } from '../store/useStore';
+import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
   padding: 24px;
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
 `;
 
 const Header = styled.div`
@@ -13,44 +17,124 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  background: white;
+  padding: 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 `;
+
+const StyledTable = styled(Table)`
+  .ant-table {
+    background: white;
+    border-radius: 12px;
+  }
+`;
+
+const IssueLink = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const getIssueTypeIcon = (type: string) => {
+  switch (type) {
+    case 'bug':
+      return <BugOutlined style={{ color: '#EF4444' }} />;
+    case 'story':
+      return <FileTextOutlined style={{ color: '#10B981' }} />;
+    case 'task':
+      return <CheckSquareOutlined style={{ color: '#3B82F6' }} />;
+    case 'epic':
+      return <span style={{ color: '#9333EA', fontWeight: 'bold' }}>⚡</span>;
+    default:
+      return <FileTextOutlined style={{ color: '#6B7280' }} />;
+  }
+};
+
+const getIssueTypeColor = (type: string) => {
+  switch (type) {
+    case 'bug': return 'error';
+    case 'story': return 'success';
+    case 'task': return 'processing';
+    case 'epic': return 'purple';
+    default: return 'default';
+  }
+};
 
 export default function ManualTestCases() {
   const [testCases, setTestCases] = useState<any[]>([]);
+  const [issues, setIssues] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
   const [editId, setEditId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const { currentProject } = useStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadTestCases();
-  }, []);
+    loadIssues();
+  }, [currentProject]);
 
   const loadTestCases = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
       const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId, projectId: currentProject?.id }
       });
-      setTestCases(res.data);
+      setTestCases(res.data || []);
     } catch (error) {
-      message.error('Failed to load test cases');
+      // Return empty array if API fails
+      setTestCases([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadIssues = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/issues', {
+        params: { userId, projectId: currentProject?.id }
+      });
+      setIssues(res.data || []);
+    } catch (error) {
+      setIssues([]);
     }
   };
 
   const handleSave = async (values: any) => {
     try {
       const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      // Find linked issue details
+      const linkedIssue = issues.find(i => i.id === values.linkedIssueId);
+
+      const payload = {
+        ...values,
+        userId,
+        projectId: currentProject?.id,
+        linkedIssueKey: linkedIssue?.key,
+        linkedIssueType: linkedIssue?.type,
+        linkedIssueSummary: linkedIssue?.summary
+      };
+
       if (editId) {
-        await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases/${editId}`, values, {
+        await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases/${editId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         message.success('Test case updated successfully');
       } else {
-        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', values, {
+        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         message.success('Test case created successfully');
@@ -65,7 +149,10 @@ export default function ManualTestCases() {
   };
 
   const handleEdit = (tc: any) => {
-    form.setFieldsValue(tc);
+    form.setFieldsValue({
+      ...tc,
+      linkedIssueId: tc.linked_issue_id || tc.linkedIssueId
+    });
     setEditId(tc.id);
     setOpen(true);
   };
@@ -88,24 +175,44 @@ export default function ManualTestCases() {
       title: 'Title',
       dataIndex: 'title',
       key: 'title',
-      width: 200,
+      width: 180,
+      render: (title: string, record: any) => (
+        <span style={{ fontWeight: 500 }}>{title}</span>
+      ),
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      width: 250,
-      ellipsis: true,
+      title: 'Linked Issue',
+      key: 'linkedIssue',
+      width: 200,
+      render: (_: any, record: any) => {
+        const issueKey = record.linked_issue_key || record.linkedIssueKey;
+        const issueType = record.linked_issue_type || record.linkedIssueType;
+        const issueSummary = record.linked_issue_summary || record.linkedIssueSummary;
+
+        if (!issueKey) return <Tag>No linked issue</Tag>;
+
+        return (
+          <IssueLink onClick={() => navigate(`/issue/${issueKey}`)}>
+            {getIssueTypeIcon(issueType)}
+            <Tag color={getIssueTypeColor(issueType)}>{issueKey}</Tag>
+            <Tooltip title={issueSummary}>
+              <span style={{ color: '#666', fontSize: 12 }}>
+                {issueSummary?.substring(0, 25)}{issueSummary?.length > 25 ? '...' : ''}
+              </span>
+            </Tooltip>
+          </IssueLink>
+        );
+      }
     },
     {
       title: 'Steps',
       dataIndex: 'steps',
       key: 'steps',
-      width: 200,
+      width: 180,
       ellipsis: true,
       render: (steps: string) => (
         <Tooltip title={steps}>
-          <span>{steps?.substring(0, 50)}{steps?.length > 50 ? '...' : ''}</span>
+          <span>{steps?.substring(0, 40)}{steps?.length > 40 ? '...' : ''}</span>
         </Tooltip>
       ),
     },
@@ -113,7 +220,7 @@ export default function ManualTestCases() {
       title: 'Priority',
       dataIndex: 'priority',
       key: 'priority',
-      width: 100,
+      width: 90,
       render: (priority: string) => {
         const colors: Record<string, string> = {
           'High': 'red',
@@ -127,7 +234,7 @@ export default function ManualTestCases() {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 90,
       render: (status: string) => {
         const colors: Record<string, string> = {
           'Passed': 'success',
@@ -163,7 +270,12 @@ export default function ManualTestCases() {
   return (
     <Container>
       <Header>
-        <h1>Manual Test Cases</h1>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>Manual Test Cases</h1>
+          <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+            Create and manage test cases linked to User Stories, Bugs, and Tasks
+          </p>
+        </div>
         <Button
           type="primary"
           icon={<PlusOutlined />}
@@ -172,20 +284,27 @@ export default function ManualTestCases() {
             setEditId(null);
             setOpen(true);
           }}
+          style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', borderColor: '#0EA5E9' }}
         >
           Create Test Case
         </Button>
       </Header>
 
-      <Table
+      <StyledTable
         columns={columns}
         dataSource={testCases}
         rowKey="id"
         loading={loading}
+        pagination={{ pageSize: 10 }}
       />
 
       <Modal
-        title={editId ? 'Edit Test Case' : 'Create Test Case'}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <CheckSquareOutlined style={{ color: '#0EA5E9' }} />
+            {editId ? 'Edit Test Case' : 'Create Test Case'}
+          </div>
+        }
         open={open}
         onCancel={() => {
           setOpen(false);
@@ -193,20 +312,52 @@ export default function ManualTestCases() {
           setEditId(null);
         }}
         onOk={() => form.submit()}
-        width={600}
+        width={700}
+        okText={editId ? 'Update' : 'Create'}
+        okButtonProps={{ style: { background: '#0EA5E9' } }}
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSave}
-          initialValues={{ priority: 'Medium' }}
+          initialValues={{ priority: 'Medium', status: 'Pending' }}
         >
           <Form.Item
             name="title"
-            label="Title"
+            label="Test Case Title"
             rules={[{ required: true, message: 'Please enter a title' }]}
           >
-            <Input />
+            <Input placeholder="e.g., Verify login with valid credentials" />
+          </Form.Item>
+
+          {/* Linked Issue Dropdown */}
+          <Form.Item
+            name="linkedIssueId"
+            label={
+              <span>
+                <LinkOutlined /> Linked Issue (User Story / Bug / Task)
+              </span>
+            }
+          >
+            <Select
+              placeholder="Select an issue to link"
+              showSearch
+              allowClear
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.children as any)?.props?.children?.toString().toLowerCase().includes(input.toLowerCase())
+              }
+            >
+              {issues.map(issue => (
+                <Select.Option key={issue.id} value={issue.id}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {getIssueTypeIcon(issue.type)}
+                    <Tag color={getIssueTypeColor(issue.type)} style={{ marginRight: 0 }}>{issue.key}</Tag>
+                    <span style={{ color: '#666' }}>{issue.summary?.substring(0, 40)}</span>
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item
@@ -214,47 +365,68 @@ export default function ManualTestCases() {
             label="Description"
             rules={[{ required: true, message: 'Please enter a description' }]}
           >
-            <Input.TextArea rows={3} />
+            <Input.TextArea rows={2} placeholder="Brief description of what this test case covers" />
           </Form.Item>
 
           <Form.Item
             name="steps"
-            label="Steps"
+            label="Test Steps"
             rules={[{ required: true, message: 'Please enter test steps' }]}
           >
-            <Input.TextArea rows={4} placeholder="1. Step one&#10;2. Step two&#10;3. Step three" />
+            <Input.TextArea
+              rows={4}
+              placeholder="1. Navigate to login page&#10;2. Enter valid username&#10;3. Enter valid password&#10;4. Click Login button"
+            />
           </Form.Item>
 
           <Form.Item
             name="expectedResult"
             label="Expected Result"
           >
-            <Input.TextArea rows={2} placeholder="Describe the expected outcome" />
+            <Input.TextArea rows={2} placeholder="User should be redirected to dashboard" />
           </Form.Item>
 
-          <Form.Item
-            name="priority"
-            label="Priority"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              <Select.Option value="Low">Low</Select.Option>
-              <Select.Option value="Medium">Medium</Select.Option>
-              <Select.Option value="High">High</Select.Option>
-            </Select>
-          </Form.Item>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Form.Item
+              name="priority"
+              label="Priority"
+              rules={[{ required: true }]}
+              style={{ flex: 1 }}
+            >
+              <Select>
+                <Select.Option value="Low">
+                  <Tag color="green">Low</Tag>
+                </Select.Option>
+                <Select.Option value="Medium">
+                  <Tag color="orange">Medium</Tag>
+                </Select.Option>
+                <Select.Option value="High">
+                  <Tag color="red">High</Tag>
+                </Select.Option>
+              </Select>
+            </Form.Item>
 
-          <Form.Item
-            name="status"
-            label="Status"
-          >
-            <Select placeholder="Select status">
-              <Select.Option value="Pending">Pending</Select.Option>
-              <Select.Option value="Passed">Passed</Select.Option>
-              <Select.Option value="Failed">Failed</Select.Option>
-              <Select.Option value="Blocked">Blocked</Select.Option>
-            </Select>
-          </Form.Item>
+            <Form.Item
+              name="status"
+              label="Status"
+              style={{ flex: 1 }}
+            >
+              <Select placeholder="Select status">
+                <Select.Option value="Pending">
+                  <Tag color="warning">Pending</Tag>
+                </Select.Option>
+                <Select.Option value="Passed">
+                  <Tag color="success">Passed</Tag>
+                </Select.Option>
+                <Select.Option value="Failed">
+                  <Tag color="error">Failed</Tag>
+                </Select.Option>
+                <Select.Option value="Blocked">
+                  <Tag>Blocked</Tag>
+                </Select.Option>
+              </Select>
+            </Form.Item>
+          </div>
         </Form>
       </Modal>
     </Container>

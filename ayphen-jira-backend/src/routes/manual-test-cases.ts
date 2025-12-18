@@ -43,10 +43,13 @@ router.get('/', async (req, res) => {
 // CREATE a test case
 router.post('/', async (req, res) => {
   try {
-    const { title, description, steps, priority = 'Medium', expectedResult, status = 'Pending', projectId } = req.body;
+    const {
+      title, description, steps, priority = 'Medium', expectedResult, status = 'Pending',
+      projectId, linkedIssueId, linkedIssueKey, linkedIssueType, linkedIssueSummary
+    } = req.body;
     const userId = req.body.userId || req.query.userId || 'system';
 
-    // Create table if not exists
+    // Create table if not exists with linked issue columns
     await AppDataSource.query(`
       CREATE TABLE IF NOT EXISTS manual_test_cases (
         id SERIAL PRIMARY KEY,
@@ -58,16 +61,34 @@ router.post('/', async (req, res) => {
         status VARCHAR(50) DEFAULT 'Pending',
         project_id VARCHAR(255),
         created_by VARCHAR(255),
+        linked_issue_id VARCHAR(255),
+        linked_issue_key VARCHAR(50),
+        linked_issue_type VARCHAR(50),
+        linked_issue_summary TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `);
 
+    // Try to add columns if they don't exist (for existing tables)
+    try {
+      await AppDataSource.query(`ALTER TABLE manual_test_cases ADD COLUMN IF NOT EXISTS linked_issue_id VARCHAR(255)`);
+      await AppDataSource.query(`ALTER TABLE manual_test_cases ADD COLUMN IF NOT EXISTS linked_issue_key VARCHAR(50)`);
+      await AppDataSource.query(`ALTER TABLE manual_test_cases ADD COLUMN IF NOT EXISTS linked_issue_type VARCHAR(50)`);
+      await AppDataSource.query(`ALTER TABLE manual_test_cases ADD COLUMN IF NOT EXISTS linked_issue_summary TEXT`);
+    } catch (e) {
+      // Columns might already exist
+    }
+
     const result = await AppDataSource.query(
-      `INSERT INTO manual_test_cases (title, description, steps, expected_result, priority, status, project_id, created_by, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+      `INSERT INTO manual_test_cases (
+        title, description, steps, expected_result, priority, status, project_id, created_by,
+        linked_issue_id, linked_issue_key, linked_issue_type, linked_issue_summary, created_at, updated_at
+      )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
        RETURNING *`,
-      [title, description, steps, expectedResult, priority, status, projectId, userId]
+      [title, description, steps, expectedResult, priority, status, projectId, userId,
+        linkedIssueId, linkedIssueKey, linkedIssueType, linkedIssueSummary]
     );
 
     res.json(result[0]);
@@ -97,15 +118,22 @@ router.get('/:id', async (req, res) => {
 // UPDATE a test case
 router.put('/:id', async (req, res) => {
   try {
-    const { title, description, steps, priority, expectedResult, status } = req.body;
+    const {
+      title, description, steps, priority, expectedResult, status,
+      linkedIssueId, linkedIssueKey, linkedIssueType, linkedIssueSummary
+    } = req.body;
 
     const result = await AppDataSource.query(
       `UPDATE manual_test_cases 
        SET title = $1, description = $2, steps = $3, priority = $4, 
-           expected_result = $5, status = $6, updated_at = NOW()
-       WHERE id = $7
+           expected_result = $5, status = $6,
+           linked_issue_id = $7, linked_issue_key = $8, 
+           linked_issue_type = $9, linked_issue_summary = $10,
+           updated_at = NOW()
+       WHERE id = $11
        RETURNING *`,
-      [title, description, steps, priority, expectedResult, status, req.params.id]
+      [title, description, steps, priority, expectedResult, status,
+        linkedIssueId, linkedIssueKey, linkedIssueType, linkedIssueSummary, req.params.id]
     );
 
     if (result.length === 0) {
