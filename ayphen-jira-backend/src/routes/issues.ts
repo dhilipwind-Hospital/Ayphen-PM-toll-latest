@@ -299,8 +299,31 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    // 4. UPDATE ISSUE
-    await issueRepo.update(req.params.id, req.body);
+    // 4. UPDATE ISSUE - Filter to only valid Issue entity fields
+    // These fields should NOT be passed to the update query
+    const { userId, updatedBy, createdAt, updatedAt, id, key, ...validUpdateFields } = req.body;
+
+    // Only update with valid Issue entity fields
+    const allowedFields = [
+      'summary', 'description', 'type', 'status', 'priority',
+      'assigneeId', 'reporterId', 'projectId', 'sprintId',
+      'storyPoints', 'dueDate', 'labels', 'components', 'fixVersions',
+      'epicLink', 'epicId', 'epicKey', 'epicName', 'parentId',
+      'environment', 'originalEstimate', 'remainingEstimate', 'timeSpent'
+    ];
+
+    const updatePayload: any = {};
+    for (const field of allowedFields) {
+      if (validUpdateFields[field] !== undefined) {
+        updatePayload[field] = validUpdateFields[field];
+      }
+    }
+
+    console.log('📝 Updating issue with payload:', JSON.stringify(updatePayload, null, 2));
+
+    if (Object.keys(updatePayload).length > 0) {
+      await issueRepo.update(req.params.id, updatePayload);
+    }
 
     // 5. GET UPDATED ISSUE WITH RELATIONS
     const updatedIssue = await issueRepo.findOne({
@@ -313,7 +336,8 @@ router.put('/:id', async (req, res) => {
     }
 
     // 6. RECORD HISTORY (with safe error handling)
-    const userId = req.body.userId || req.body.updatedBy || null;
+    // userId and updatedBy were already extracted at line 304
+    const historyUserId = userId || updatedBy || null;
     const trackableFields = ['status', 'priority', 'assigneeId', 'summary', 'description', 'type', 'storyPoints', 'dueDate', 'labels', 'sprintId', 'epicLink'];
     const changedFields = trackableFields.filter(key =>
       req.body[key] !== undefined && existingIssue[key] !== req.body[key]
@@ -363,7 +387,7 @@ router.put('/:id', async (req, res) => {
 
             const historyEntry = historyRepo.create({
               issueId: req.params.id,
-              userId: userId,
+              userId: historyUserId,
               field,
               oldValue: oldVal !== undefined ? JSON.stringify(oldVal) : null,
               newValue: newVal !== undefined ? JSON.stringify(newVal) : null,
