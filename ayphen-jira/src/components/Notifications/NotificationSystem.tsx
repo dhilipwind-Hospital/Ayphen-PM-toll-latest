@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Badge, Dropdown, List, Avatar, Button, Typography, Tag, Empty, Switch, message } from 'antd';
 import { Bell, Check, X, Settings, Filter } from 'lucide-react';
 import styled from 'styled-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '../../services/api';
 
 const NotificationButton = styled(Button)`
   border: none;
@@ -75,7 +77,29 @@ interface Notification {
 }
 
 export const NotificationSystem: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const queryClient = useQueryClient();
+  const userId = localStorage.getItem('userId') || '';
+
+  // Fetch notifications from API with polling
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ['notifications', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      try {
+        const response = await api.get('/notifications', {
+          params: { userId }
+        });
+        return response.data || [];
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+        return [];
+      }
+    },
+    enabled: !!userId,
+    refetchInterval: 30000, // Poll every 30 seconds
+    staleTime: 20000,
+  });
+
   const [aiFiltered, setAiFiltered] = useState<{
     critical: Notification[];
     important: Notification[];
@@ -83,15 +107,6 @@ export const NotificationSystem: React.FC = () => {
   } | null>(null);
   const [isAiFiltering, setIsAiFiltering] = useState(false);
   const [useAiFilter, setUseAiFilter] = useState(false);
-
-  // Start with empty notifications - real ones will come from API/socket
-  const initialNotifications: Notification[] = [];
-
-  useEffect(() => {
-    setNotifications(initialNotifications);
-    // TODO: Fetch real notifications from API
-    // fetchNotifications();
-  }, []);
 
   const applyAiFilter = async () => {
     if (!notifications.length) return;
@@ -102,7 +117,7 @@ export const NotificationSystem: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'current-user', // TODO: Get actual user ID
+          userId: userId,
           notifications: notifications
         })
       });
@@ -121,10 +136,10 @@ export const NotificationSystem: React.FC = () => {
   };
 
   useEffect(() => {
-    if (useAiFilter && !aiFiltered) {
+    if (useAiFilter && !aiFiltered && notifications.length > 0) {
       applyAiFilter();
     }
-  }, [useAiFilter]);
+  }, [useAiFilter, notifications]);
 
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
@@ -150,18 +165,44 @@ export const NotificationSystem: React.FC = () => {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-    );
+  const markAsRead = async (id: string) => {
+    try {
+      await api.patch(`/notifications/${id}/read`, { userId });
+      // Optimistically update UI
+      queryClient.setQueryData(['notifications', userId], (old: any) =>
+        old?.map((n: any) => n.id === id ? { ...n, isRead: true } : n) || []
+      );
+      // Refetch to sync with server
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
+    } catch (error) {
+      console.error('Failed to mark as read:', error);
+      message.error('Failed to mark notification as read');
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+  const markAllAsRead = async () => {
+    try {
+      await api.post('/notifications/mark-all-read', { userId });
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
+      message.success('All notifications marked as read');
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+      message.error('Failed to mark all as read');
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      await api.delete(`/notifications/${id}`, { params: { userId } });
+      // Optimistically update UI
+      queryClient.setQueryData(['notifications', userId], (old: any) =>
+        old?.filter((n: any) => n.id !== id) || []
+      );
+      message.success('Notification deleted');
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+      message.error('Failed to delete notification');
+    }
   };
 
   const filteredNotifications = useAiFilter && aiFiltered
