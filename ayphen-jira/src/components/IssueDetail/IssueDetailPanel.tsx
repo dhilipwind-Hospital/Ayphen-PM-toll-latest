@@ -347,25 +347,42 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const handleUpdate = async (field: string, value: any) => {
     try {
       const oldValue = issue[field];
+
+      // Optimistic update for immediate UI response
       setIssue((prev: any) => ({ ...prev, [field]: value }));
 
       // Include userId to properly record history
       const userId = localStorage.getItem('userId') || issue.reporterId;
-      await issuesApi.update(issue.id, {
+
+      // Make API call with proper payload
+      const response = await issuesApi.update(issue.id, {
         [field]: value,
         userId,
-        // Send old value for history tracking
-        _oldValue: oldValue,
-        _fieldChanged: field
+        updatedBy: userId,
       });
 
-      message.success('Updated');
+      // Update with server response to ensure data consistency
+      if (response.data) {
+        setIssue(response.data);
+        setDescriptionInput(response.data.description || '');
+        setTitleInput(response.data.summary || '');
+      }
+
+      message.success('Updated successfully');
 
       // Reload history to show the change
-      const historyRes = await historyApi.getByIssue(issue.id);
-      setHistory(historyRes.data || []);
-    } catch (error) {
-      message.error('Failed to update');
+      try {
+        const historyRes = await historyApi.getByIssue(issue.id);
+        setHistory(historyRes.data || []);
+      } catch (histErr) {
+        console.error('Failed to reload history:', histErr);
+      }
+
+    } catch (error: any) {
+      console.error('Update failed:', error);
+      message.error(error.response?.data?.error || 'Failed to update');
+
+      // Revert to server state on error
       loadIssueData();
     }
   };
