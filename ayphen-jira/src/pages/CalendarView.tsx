@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Calendar as AntCalendar, Badge, Card, Select, Tag, Button, Tooltip, Row, Col, Statistic } from 'antd';
+import { Calendar as AntCalendar, Badge, Card, Select, Tag, Button, Tooltip, Row, Col, Statistic, Spin } from 'antd';
 import { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -129,15 +129,59 @@ const EventItem = styled.div<{ type: string }>`
 
 export const CalendarView: React.FC = () => {
   const navigate = useNavigate();
-  const { issues, sprints, currentProject } = useStore();
+  const { currentProject } = useStore();
   const [filter, setFilter] = useState<string>('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
 
+  // Local state for fresh API data
+  const [issues, setIssues] = useState<any[]>([]);
+  const [sprints, setSprints] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch fresh data from API
+  useEffect(() => {
+    const loadData = async () => {
+      if (!currentProject?.id) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const userId = localStorage.getItem('userId');
+
+        // Fetch issues and sprints in parallel
+        const [issuesRes, sprintsRes] = await Promise.all([
+          fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issues?projectId=${currentProject.id}&userId=${userId}`),
+          fetch(`https://ayphen-pm-toll-latest.onrender.com/api/sprints?projectId=${currentProject.id}`)
+        ]);
+
+        if (issuesRes.ok) {
+          const issuesData = await issuesRes.json();
+          setIssues(issuesData || []);
+        }
+
+        if (sprintsRes.ok) {
+          const sprintsData = await sprintsRes.json();
+          setSprints(sprintsData || []);
+        }
+      } catch (error) {
+        console.error('Failed to load calendar data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+
+    // Refresh data every 30 seconds
+    const interval = setInterval(loadData, 30000);
+    return () => clearInterval(interval);
+  }, [currentProject?.id]);
+
   // Calculate stats
-  const projectIssues = currentProject
-    ? issues.filter(i => i.projectId === currentProject.id)
-    : issues;
+  const projectIssues = issues;
 
   const dueThisWeek = projectIssues.filter(i => {
     if (!i.dueDate) return false;
@@ -290,18 +334,20 @@ export const CalendarView: React.FC = () => {
       </StatsRow>
 
       <CalendarCard>
-        <Legend>
-          <LegendItem><LegendDot color="#D1FAE5" /> Story</LegendItem>
-          <LegendItem><LegendDot color="#FEE2E2" /> Bug</LegendItem>
-          <LegendItem><LegendDot color="#DBEAFE" /> Task</LegendItem>
-          <LegendItem><LegendDot color="#FEF3C7" /> Sprint Start</LegendItem>
-          <LegendItem><LegendDot color="#E0E7FF" /> Sprint End</LegendItem>
-        </Legend>
-        <AntCalendar
-          dateCellRender={dateCellRender}
-          value={selectedDate}
-          onChange={setSelectedDate}
-        />
+        <Spin spinning={loading} tip="Loading calendar data...">
+          <Legend>
+            <LegendItem><LegendDot color="#D1FAE5" /> Story</LegendItem>
+            <LegendItem><LegendDot color="#FEE2E2" /> Bug</LegendItem>
+            <LegendItem><LegendDot color="#DBEAFE" /> Task</LegendItem>
+            <LegendItem><LegendDot color="#FEF3C7" /> Sprint Start</LegendItem>
+            <LegendItem><LegendDot color="#E0E7FF" /> Sprint End</LegendItem>
+          </Legend>
+          <AntCalendar
+            dateCellRender={dateCellRender}
+            value={selectedDate}
+            onChange={setSelectedDate}
+          />
+        </Spin>
       </CalendarCard>
 
       <CreateIssueModal

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Table, Modal, Form, Input, Select, Space, message } from 'antd';
+import { Button, Table, Modal, Form, Input, Select, Space, message, Tag, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import styled from 'styled-components';
@@ -88,31 +88,71 @@ export default function ManualTestCases() {
       title: 'Title',
       dataIndex: 'title',
       key: 'title',
+      width: 200,
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+      width: 250,
+      ellipsis: true,
+    },
+    {
+      title: 'Steps',
+      dataIndex: 'steps',
+      key: 'steps',
+      width: 200,
+      ellipsis: true,
+      render: (steps: string) => (
+        <Tooltip title={steps}>
+          <span>{steps?.substring(0, 50)}{steps?.length > 50 ? '...' : ''}</span>
+        </Tooltip>
+      ),
     },
     {
       title: 'Priority',
       dataIndex: 'priority',
       key: 'priority',
+      width: 100,
+      render: (priority: string) => {
+        const colors: Record<string, string> = {
+          'High': 'red',
+          'Medium': 'orange',
+          'Low': 'green'
+        };
+        return <Tag color={colors[priority] || 'blue'}>{priority}</Tag>;
+      }
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 100,
+      render: (status: string) => {
+        const colors: Record<string, string> = {
+          'Passed': 'success',
+          'Failed': 'error',
+          'Pending': 'warning',
+          'Blocked': 'default'
+        };
+        return <Tag color={colors[status] || 'default'}>{status || 'Pending'}</Tag>;
+      }
     },
     {
       title: 'Actions',
       key: 'actions',
+      width: 100,
       render: (_: any, record: any) => (
         <Space>
-          <Button 
-            type="link" 
-            icon={<EditOutlined />} 
+          <Button
+            type="link"
+            icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
           />
-          <Button 
-            type="link" 
-            danger 
-            icon={<DeleteOutlined />} 
+          <Button
+            type="link"
+            danger
+            icon={<DeleteOutlined />}
             onClick={() => handleDelete(record.id)}
           />
         </Space>
@@ -124,9 +164,9 @@ export default function ManualTestCases() {
     <Container>
       <Header>
         <h1>Manual Test Cases</h1>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
           onClick={() => {
             form.resetFields();
             setEditId(null);
@@ -137,9 +177,9 @@ export default function ManualTestCases() {
         </Button>
       </Header>
 
-      <Table 
-        columns={columns} 
-        dataSource={testCases} 
+      <Table
+        columns={columns}
+        dataSource={testCases}
         rowKey="id"
         loading={loading}
       />
@@ -182,7 +222,14 @@ export default function ManualTestCases() {
             label="Steps"
             rules={[{ required: true, message: 'Please enter test steps' }]}
           >
-            <Input.TextArea rows={4} />
+            <Input.TextArea rows={4} placeholder="1. Step one&#10;2. Step two&#10;3. Step three" />
+          </Form.Item>
+
+          <Form.Item
+            name="expectedResult"
+            label="Expected Result"
+          >
+            <Input.TextArea rows={2} placeholder="Describe the expected outcome" />
           </Form.Item>
 
           <Form.Item
@@ -194,6 +241,18 @@ export default function ManualTestCases() {
               <Select.Option value="Low">Low</Select.Option>
               <Select.Option value="Medium">Medium</Select.Option>
               <Select.Option value="High">High</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="status"
+            label="Status"
+          >
+            <Select placeholder="Select status">
+              <Select.Option value="Pending">Pending</Select.Option>
+              <Select.Option value="Passed">Passed</Select.Option>
+              <Select.Option value="Failed">Failed</Select.Option>
+              <Select.Option value="Blocked">Blocked</Select.Option>
             </Select>
           </Form.Item>
         </Form>
