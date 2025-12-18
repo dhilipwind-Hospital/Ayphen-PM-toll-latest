@@ -250,148 +250,219 @@ router.post('/', async (req, res) => {
 // PUT update issue
 router.put('/:id', async (req, res) => {
   try {
-    const existingIssue = await issueRepo.findOne({ where: { id: req.params.id } });
+    // 1. VALIDATE INPUT FIRST
+    const { assigneeId, reporterId, status, priority, type } = req.body;
+
+    // Validate UUID formats
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    if (assigneeId && !uuidRegex.test(assigneeId)) {
+      return res.status(400).json({ error: `Invalid assignee ID format: ${assigneeId}` });
+    }
+
+    if (reporterId && !uuidRegex.test(reporterId)) {
+      return res.status(400).json({ error: `Invalid reporter ID format: ${reporterId}` });
+    }
+
+    // Validate enum values
+    const validStatuses = ['backlog', 'todo', 'in-progress', 'in-review', 'done', 'selected-for-development', 'blocked'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({ error: `Invalid status: ${status}. Must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    const validPriorities = ['highest', 'high', 'medium', 'low', 'lowest'];
+    if (priority && !validPriorities.includes(priority)) {
+      return res.status(400).json({ error: `Invalid priority: ${priority}. Must be one of: ${validPriorities.join(', ')}` });
+    }
+
+    const validTypes = ['epic', 'story', 'task', 'bug', 'subtask'];
+    if (type && !validTypes.includes(type)) {
+      return res.status(400).json({ error: `Invalid type: ${type}. Must be one of: ${validTypes.join(', ')}` });
+    }
+
+    // 2. CHECK IF ISSUE EXISTS
+    const existingIssue = await issueRepo.findOne({
+      where: { id: req.params.id },
+      relations: ['reporter', 'assignee', 'project']
+    });
+
     if (!existingIssue) {
       return res.status(404).json({ error: 'Issue not found' });
     }
 
+    // 3. VALIDATE ASSIGNEE EXISTS (if being changed)
+    if (assigneeId !== undefined && assigneeId !== null) {
+      const userRepo = AppDataSource.getRepository(User);
+      const assigneeUser = await userRepo.findOne({ where: { id: assigneeId } });
+      if (!assigneeUser) {
+        return res.status(400).json({ error: `Assignee user not found: ${assigneeId}` });
+      }
+    }
+
+    // 4. UPDATE ISSUE
     await issueRepo.update(req.params.id, req.body);
+
+    // 5. GET UPDATED ISSUE WITH RELATIONS
     const updatedIssue = await issueRepo.findOne({
       where: { id: req.params.id },
       relations: ['reporter', 'assignee', 'project'],
     });
 
-    // Record history for field changes - save to database
+    if (!updatedIssue) {
+      return res.status(500).json({ error: 'Issue was updated but could not be retrieved' });
+    }
+
+    // 6. RECORD HISTORY (with safe error handling)
     const userId = req.body.userId || req.body.updatedBy || null;
     const trackableFields = ['status', 'priority', 'assigneeId', 'summary', 'description', 'type', 'storyPoints', 'dueDate', 'labels', 'sprintId', 'epicLink'];
     const changedFields = trackableFields.filter(key =>
       req.body[key] !== undefined && existingIssue[key] !== req.body[key]
     );
 
-    // Import History entity and save to database
-    const { History } = require('../entities/History');
-    const historyRepo = AppDataSource.getRepository(History);
-
-    for (const field of changedFields) {
+    if (changedFields.length > 0) {
       try {
-        // Generate human-readable description
-        let description = `updated ${field}`;
-        const oldVal = existingIssue[field];
-        const newVal = req.body[field];
-        
-        switch (field) {
-          case 'status':
-            description = `changed status from "${oldVal || 'none'}" to "${newVal}"`;
-            break;
-          case 'priority':
-            description = `changed priority from "${oldVal || 'none'}" to "${newVal}"`;
-            break;
-          case 'assigneeId':
-            description = `changed assignee`;
-            break;
-          case 'summary':
-            description = `updated summary`;
-            break;
-          case 'description':
-            description = `updated description`;
-            break;
-          case 'type':
-            description = `changed type from "${oldVal}" to "${newVal}"`;
-            break;
-          case 'storyPoints':
-            description = `changed story points from "${oldVal || 0}" to "${newVal}"`;
-            break;
-          case 'dueDate':
-            description = `changed due date`;
-            break;
-          case 'sprintId':
-            description = `moved to a different sprint`;
-            break;
-        }
+        const { History } = require('../entities/History');
+        const historyRepo = AppDataSource.getRepository(History);
 
-        const historyEntry = historyRepo.create({
-          issueId: req.params.id,
-          userId: userId,
-          field,
-          oldValue: oldVal !== undefined ? JSON.stringify(oldVal) : null,
-          newValue: newVal !== undefined ? JSON.stringify(newVal) : null,
-          changeType: 'field_change',
-          description,
-          projectId: existingIssue.projectId,
-        });
-        
-        await historyRepo.save(historyEntry);
-        console.log(`📝 History recorded: ${description} for issue ${existingIssue.key}`);
-      } catch (historyError) {
-        console.error('Failed to record history:', historyError);
+        for (const field of changedFields) {
+          try {
+            // Generate human-readable description
+            let description = `updated ${field}`;
+            const oldVal = existingIssue[field];
+            const newVal = req.body[field];
+
+            switch (field) {
+              case 'status':
+                description = `changed status from "${oldVal || 'none'}" to "${newVal}"`;
+                break;
+              case 'priority':
+                description = `changed priority from "${oldVal || 'none'}" to "${newVal}"`;
+                break;
+              case 'assigneeId':
+                description = `changed assignee`;
+                break;
+              case 'summary':
+                description = `updated summary`;
+                break;
+              case 'description':
+                description = `updated description`;
+                break;
+              case 'type':
+                description = `changed type from "${oldVal}" to "${newVal}"`;
+                break;
+              case 'storyPoints':
+                description = `changed story points from "${oldVal || 0}" to "${newVal}"`;
+                break;
+              case 'dueDate':
+                description = `changed due date`;
+                break;
+              case 'sprintId':
+                description = `moved to a different sprint`;
+                break;
+            }
+
+            const historyEntry = historyRepo.create({
+              issueId: req.params.id,
+              userId: userId,
+              field,
+              oldValue: oldVal !== undefined ? JSON.stringify(oldVal) : null,
+              newValue: newVal !== undefined ? JSON.stringify(newVal) : null,
+              changeType: 'field_change',
+              description,
+              projectId: existingIssue.projectId,
+            });
+
+            await historyRepo.save(historyEntry);
+            console.log(`📝 History recorded: ${description} for issue ${existingIssue.key}`);
+          } catch (historyError) {
+            console.error('⚠️ History logging failed (non-critical):', historyError);
+            // Continue - history failure shouldn't block the update
+          }
+        }
+      } catch (historySetupError) {
+        console.error('⚠️ History system error (non-critical):', historySetupError);
       }
     }
 
-    // Notify via WebSocket
-    if (websocketService && updatedIssue) {
-      const userId = req.body.updatedBy || 'system'; // Client should send updatedBy
+    // 7. NOTIFICATIONS (with safe error handling)
+    try {
+      if (websocketService && updatedIssue) {
+        const userId = req.body.updatedBy || req.body.userId || 'system';
 
-      websocketService.notifyIssueUpdated(updatedIssue, userId, req.body);
+        websocketService.notifyIssueUpdated(updatedIssue, userId, req.body);
 
-      if (existingIssue.status !== updatedIssue.status) {
-        websocketService.notifyStatusChanged(
-          updatedIssue,
-          existingIssue.status,
-          updatedIssue.status,
-          userId
-        );
+        // Status change notification
+        if (existingIssue.status !== updatedIssue.status) {
+          websocketService.notifyStatusChanged(
+            updatedIssue,
+            existingIssue.status,
+            updatedIssue.status,
+            userId
+          );
 
-        // Send email notification for status change
-        if (updatedIssue.assignee && updatedIssue.assignee.id) {
-          try {
-            const userRepo = AppDataSource.getRepository(User);
-            const actor = await userRepo.findOne({ where: { id: userId } });
-            await emailService.sendNotificationEmail(updatedIssue.assignee.id, 'status_changed', {
-              actorName: actor?.name || 'Someone',
-              projectKey: updatedIssue.project?.key || 'PROJECT',
-              issueKey: updatedIssue.key,
-              oldStatus: existingIssue.status,
-              newStatus: updatedIssue.status,
-            });
-            console.log(`📧 Status change email sent to assignee: ${updatedIssue.assignee.email}`);
-          } catch (emailError) {
-            console.error('Failed to send status change email:', emailError);
+          // Email for status change
+          if (updatedIssue.assignee && updatedIssue.assignee.id) {
+            try {
+              const userRepo = AppDataSource.getRepository(User);
+              const actor = await userRepo.findOne({ where: { id: userId } });
+              await emailService.sendNotificationEmail(updatedIssue.assignee.id, 'status_changed', {
+                actorName: actor?.name || 'Someone',
+                projectKey: updatedIssue.project?.key || 'PROJECT',
+                issueKey: updatedIssue.key,
+                oldStatus: existingIssue.status,
+                newStatus: updatedIssue.status,
+              });
+              console.log(`📧 Status change email sent to: ${updatedIssue.assignee.email}`);
+            } catch (emailError) {
+              console.error('⚠️ Status change email failed (non-critical):', emailError);
+            }
+          }
+        }
+
+        // Assignment change notification
+        if (existingIssue.assigneeId !== updatedIssue.assigneeId && updatedIssue.assigneeId) {
+          websocketService.notifyAssignmentChanged(
+            updatedIssue,
+            updatedIssue.assigneeId,
+            userId
+          );
+
+          // Email for assignment change
+          if (updatedIssue.assignee && updatedIssue.assignee.id) {
+            try {
+              const userRepo = AppDataSource.getRepository(User);
+              const actor = await userRepo.findOne({ where: { id: userId } });
+              await emailService.sendNotificationEmail(updatedIssue.assignee.id, 'assignment_changed', {
+                actorName: actor?.name || 'Someone',
+                projectKey: updatedIssue.project?.key || 'PROJECT',
+                issueKey: updatedIssue.key,
+                summary: updatedIssue.summary,
+                priority: updatedIssue.priority,
+                status: updatedIssue.status,
+              });
+              console.log(`📧 Assignment email sent to: ${updatedIssue.assignee.email}`);
+            } catch (emailError) {
+              console.error('⚠️ Assignment email failed (non-critical):', emailError);
+            }
           }
         }
       }
-
-      if (existingIssue.assigneeId !== updatedIssue.assigneeId && updatedIssue.assigneeId) {
-        websocketService.notifyAssignmentChanged(
-          updatedIssue,
-          updatedIssue.assigneeId,
-          userId
-        );
-
-        // Send email notification for assignment change
-        if (updatedIssue.assignee && updatedIssue.assignee.id) {
-          try {
-            const userRepo = AppDataSource.getRepository(User);
-            const actor = await userRepo.findOne({ where: { id: userId } });
-            await emailService.sendNotificationEmail(updatedIssue.assignee.id, 'assignment_changed', {
-              actorName: actor?.name || 'Someone',
-              projectKey: updatedIssue.project?.key || 'PROJECT',
-              issueKey: updatedIssue.key,
-              summary: updatedIssue.summary,
-              priority: updatedIssue.priority,
-              status: updatedIssue.status,
-            });
-            console.log(`📧 Assignment email sent to new assignee: ${updatedIssue.assignee.email}`);
-          } catch (emailError) {
-            console.error('Failed to send assignment email:', emailError);
-          }
-        }
-      }
+    } catch (notificationError) {
+      console.error('⚠️ Notification error (non-critical):', notificationError);
+      // Continue - notification failure shouldn't block the update
     }
 
+    // 8. RETURN SUCCESS
+    console.log(`✅ Issue ${updatedIssue.key} updated successfully`);
     res.json(updatedIssue);
-  } catch (error) {
-    console.error('Failed to update issue:', error);
-    res.status(500).json({ error: 'Failed to update issue' });
+
+  } catch (error: any) {
+    console.error('❌ Failed to update issue:', error);
+    res.status(500).json({
+      error: 'Failed to update issue',
+      details: error.message,
+      code: error.code
+    });
   }
 });
 
