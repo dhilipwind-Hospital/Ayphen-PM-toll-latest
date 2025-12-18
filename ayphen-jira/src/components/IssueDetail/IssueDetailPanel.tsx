@@ -292,7 +292,19 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const loadIssueData = async () => {
     try {
       setLoading(true);
-      const res = await issuesApi.getByKey(issueKey);
+
+      // Detect if issueKey is a UUID (issue ID) or a key format (like POW-1)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(issueKey);
+
+      let res;
+      if (isUUID) {
+        // It's an ID, fetch by ID
+        res = await issuesApi.getById(issueKey);
+      } else {
+        // It's a key like POW-1, fetch by key
+        res = await issuesApi.getByKey(issueKey);
+      }
+
       setIssue(res.data);
       setDescriptionInput(res.data.description || '');
       setTitleInput(res.data.summary || '');
