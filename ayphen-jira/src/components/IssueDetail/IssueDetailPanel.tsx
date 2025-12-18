@@ -389,12 +389,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       delete updatePayload.createdAt;
       delete updatePayload.updatedAt;
 
-        issueId: issue.id,
-        field,
-        value,
-        userId
-      });
-
       // Make API call with complete payload
       const response = await issuesApi.update(issue.id, updatePayload);
 
