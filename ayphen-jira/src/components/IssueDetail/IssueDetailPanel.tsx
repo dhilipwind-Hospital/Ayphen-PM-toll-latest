@@ -251,6 +251,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   // const [linkedIssues, setLinkedIssues] = useState<any[]>([]); // Replaced by React Query
   const [history, setHistory] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [commentAttachments, setCommentAttachments] = useState<any[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -426,15 +427,58 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() && commentAttachments.length === 0) return;
     try {
       const userId = localStorage.getItem('userId') || issue.reporterId;
-      await commentsApi.create({ issueId: issue.id, content: newComment, authorId: userId, userId });
+
+      // First upload any attachments
+      let attachmentUrls: string[] = [];
+      if (commentAttachments.length > 0) {
+        const formData = new FormData();
+        commentAttachments.forEach(file => formData.append('files', file.originFileObj || file));
+        formData.append('issueId', issue.id);
+        formData.append('uploaderId', userId);
+        formData.append('commentAttachment', 'true');
+
+        try {
+          const uploadRes = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple', {
+            method: 'POST',
+            body: formData
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            attachmentUrls = uploadData.map((att: any) => att.fileName || att.path);
+          }
+        } catch (uploadErr) {
+          console.error('Attachment upload failed:', uploadErr);
+        }
+      }
+
+      // Build comment content with attachment references
+      let commentContent = newComment;
+      if (attachmentUrls.length > 0) {
+        const attachmentText = attachmentUrls.map(url => `[attachment: ${url}]`).join('\n');
+        commentContent = commentContent + (commentContent ? '\n\n' : '') + attachmentText;
+      }
+
+      await commentsApi.create({
+        issueId: issue.id,
+        content: commentContent,
+        authorId: userId,
+        userId,
+        attachments: attachmentUrls
+      });
+
       setNewComment('');
+      setCommentAttachments([]);
       message.success('Comment added');
       const res = await commentsApi.getByIssue(issue.id);
       setComments(res.data || []);
-    } catch (e) { message.error('Failed to comment'); }
+      loadAttachments(issue.id); // Reload attachments to show new ones
+    } catch (e) {
+      console.error('Failed to add comment:', e);
+      message.error('Failed to add comment');
+    }
   };
 
   const handleFileUpload = async () => {
@@ -720,14 +764,55 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   children: (
                     <div style={{ paddingTop: 8 }}>
                       <TextArea
-                        rows={6}
+                        rows={4}
                         placeholder="Add a comment..."
                         value={newComment}
                         onChange={e => setNewComment(e.target.value)}
                         style={{ marginBottom: 8, borderRadius: 6, padding: 12, border: `1px solid #D0D0D0`, resize: 'vertical' }}
                       />
+
+                      {/* Inline Attachment Upload for Comments */}
+                      <Upload.Dragger
+                        multiple
+                        fileList={commentAttachments}
+                        beforeUpload={(file) => {
+                          setCommentAttachments(prev => [...prev, file]);
+                          return false; // Prevent auto upload
+                        }}
+                        onRemove={(file) => {
+                          setCommentAttachments(prev => prev.filter(f => f.uid !== file.uid));
+                        }}
+                        style={{
+                          marginBottom: 12,
+                          background: '#FAFAFA',
+                          border: '1px dashed #D0D0D0',
+                          borderRadius: 6,
+                          padding: '10px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 0' }}>
+                          <Paperclip size={16} color="#6B7280" />
+                          <span style={{ color: '#6B7280', fontSize: 13 }}>
+                            Drag files here or <span style={{ color: '#0EA5E9', cursor: 'pointer' }}>browse</span>
+                          </span>
+                        </div>
+                      </Upload.Dragger>
+
+                      {commentAttachments.length > 0 && (
+                        <div style={{ marginBottom: 12, padding: 8, background: '#F0F9FF', borderRadius: 6, border: '1px solid #BAE6FD' }}>
+                          <div style={{ fontSize: 12, color: '#0369A1', fontWeight: 500, marginBottom: 4 }}>
+                            📎 {commentAttachments.length} file{commentAttachments.length > 1 ? 's' : ''} attached
+                          </div>
+                          <div style={{ fontSize: 11, color: '#0284C7' }}>
+                            {commentAttachments.map(f => f.name).join(', ')}
+                          </div>
+                        </div>
+                      )}
+
                       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-                        <CommentButton onClick={handleAddComment}>Add Comment</CommentButton>
+                        <CommentButton onClick={handleAddComment}>
+                          {commentAttachments.length > 0 ? `Add Comment with ${commentAttachments.length} file${commentAttachments.length > 1 ? 's' : ''}` : 'Add Comment'}
+                        </CommentButton>
                         <Button
                           icon={<Paperclip size={14} />}
                           onClick={() => setUploadModalVisible(true)}
@@ -744,7 +829,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                             fontWeight: 500
                           }}
                         >
-                          Attach File
+                          Add to Issue
                         </Button>
                       </div>
 
