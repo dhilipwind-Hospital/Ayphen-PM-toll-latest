@@ -915,8 +915,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
                           return (
                             <div key={c.id} style={{ marginBottom: 32, display: 'flex', gap: 16 }}>
-                              <Avatar size={40} src={c.user?.avatar}>{c.user?.name?.[0]}</Avatar>
-                              <div style={{ flex: 1 }}>
+                              <Avatar size={40} src={c.user?.avatar} style={{ flexShrink: 0 }}>{c.user?.name?.[0]}</Avatar>
+                              <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <span style={{ fontWeight: 600, color: '#1A1A1A', fontSize: 15 }}>{c.user?.name}</span>
@@ -976,7 +976,15 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                   return (
                                     <>
                                       {textContent && (
-                                        <div style={{ fontSize: 14, color: '#333333', lineHeight: 1.6, marginBottom: hasAttachments ? 12 : 0 }}>
+                                        <div style={{
+                                          fontSize: 14,
+                                          color: '#333333',
+                                          lineHeight: 1.6,
+                                          marginBottom: hasAttachments ? 12 : 0,
+                                          wordBreak: 'break-word',
+                                          overflowWrap: 'break-word',
+                                          whiteSpace: 'pre-wrap'
+                                        }}>
                                           {textContent}
                                         </div>
                                       )}
