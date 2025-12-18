@@ -763,74 +763,149 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><MessageSquare size={14} /> Comments ({comments.length})</span>,
                   children: (
                     <div style={{ paddingTop: 8 }}>
-                      <TextArea
-                        rows={4}
-                        placeholder="Add a comment..."
-                        value={newComment}
-                        onChange={e => setNewComment(e.target.value)}
-                        style={{ marginBottom: 8, borderRadius: 6, padding: 12, border: `1px solid #D0D0D0`, resize: 'vertical' }}
-                      />
-
-                      {/* Inline Attachment Upload for Comments */}
-                      <Upload.Dragger
-                        multiple
-                        fileList={commentAttachments}
-                        beforeUpload={(file) => {
-                          setCommentAttachments(prev => [...prev, file]);
-                          return false; // Prevent auto upload
-                        }}
-                        onRemove={(file) => {
-                          setCommentAttachments(prev => prev.filter(f => f.uid !== file.uid));
-                        }}
-                        style={{
-                          marginBottom: 12,
-                          background: '#FAFAFA',
-                          border: '1px dashed #D0D0D0',
-                          borderRadius: 6,
-                          padding: '10px'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 0' }}>
-                          <Paperclip size={16} color="#6B7280" />
-                          <span style={{ color: '#6B7280', fontSize: 13 }}>
-                            Drag files here or <span style={{ color: '#0EA5E9', cursor: 'pointer' }}>browse</span>
-                          </span>
-                        </div>
-                      </Upload.Dragger>
-
-                      {commentAttachments.length > 0 && (
-                        <div style={{ marginBottom: 12, padding: 8, background: '#F0F9FF', borderRadius: 6, border: '1px solid #BAE6FD' }}>
-                          <div style={{ fontSize: 12, color: '#0369A1', fontWeight: 500, marginBottom: 4 }}>
-                            📎 {commentAttachments.length} file{commentAttachments.length > 1 ? 's' : ''} attached
-                          </div>
-                          <div style={{ fontSize: 11, color: '#0284C7' }}>
-                            {commentAttachments.map(f => f.name).join(', ')}
-                          </div>
-                        </div>
-                      )}
-
-                      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-                        <CommentButton onClick={handleAddComment}>
-                          {commentAttachments.length > 0 ? `Add Comment with ${commentAttachments.length} file${commentAttachments.length > 1 ? 's' : ''}` : 'Add Comment'}
-                        </CommentButton>
-                        <Button
-                          icon={<Paperclip size={14} />}
-                          onClick={() => setUploadModalVisible(true)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            height: 'auto',
-                            padding: '10px 16px',
-                            borderRadius: 6,
-                            border: '1px solid #D0D0D0',
-                            background: '#FFFFFF',
-                            color: '#374151',
-                            fontWeight: 500
-                          }}
+                      {/* Clean Comment Input - Jira Style */}
+                      <div style={{
+                        display: 'flex',
+                        gap: 12,
+                        marginBottom: 16
+                      }}>
+                        <Avatar
+                          size={36}
+                          style={{ flexShrink: 0, backgroundColor: '#0EA5E9' }}
                         >
-                          Add to Issue
-                        </Button>
+                          {localStorage.getItem('userName')?.[0] || 'U'}
+                        </Avatar>
+                        <div style={{ flex: 1 }}>
+                          <div style={{
+                            border: '1px solid #E5E7EB',
+                            borderRadius: 8,
+                            background: '#FAFAFA',
+                            overflow: 'hidden'
+                          }}>
+                            <TextArea
+                              rows={2}
+                              placeholder="Add a comment..."
+                              value={newComment}
+                              onChange={e => setNewComment(e.target.value)}
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                padding: 12,
+                                resize: 'none',
+                                boxShadow: 'none'
+                              }}
+                            />
+
+                            {/* Attached files preview - show thumbnails */}
+                            {commentAttachments.length > 0 && (
+                              <div style={{
+                                padding: '8px 12px',
+                                borderTop: '1px solid #E5E7EB',
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 8
+                              }}>
+                                {commentAttachments.map((file: any, idx: number) => {
+                                  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+                                  const previewUrl = isImage && file.originFileObj ? URL.createObjectURL(file.originFileObj) : (isImage ? URL.createObjectURL(file) : null);
+
+                                  return (
+                                    <div key={file.uid || idx} style={{
+                                      position: 'relative',
+                                      border: '1px solid #E5E7EB',
+                                      borderRadius: 6,
+                                      overflow: 'hidden',
+                                      background: 'white'
+                                    }}>
+                                      {isImage && previewUrl ? (
+                                        <img
+                                          src={previewUrl}
+                                          alt={file.name}
+                                          style={{ width: 60, height: 60, objectFit: 'cover', display: 'block' }}
+                                        />
+                                      ) : (
+                                        <div style={{
+                                          width: 60,
+                                          height: 60,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          fontSize: 10,
+                                          color: '#6B7280',
+                                          padding: 4,
+                                          textAlign: 'center'
+                                        }}>
+                                          📎 {file.name.length > 10 ? file.name.slice(0, 8) + '...' : file.name}
+                                        </div>
+                                      )}
+                                      <button
+                                        onClick={() => setCommentAttachments((prev: any[]) => prev.filter((f: any) => f.uid !== file.uid))}
+                                        style={{
+                                          position: 'absolute',
+                                          top: 2,
+                                          right: 2,
+                                          width: 18,
+                                          height: 18,
+                                          borderRadius: '50%',
+                                          border: 'none',
+                                          background: 'rgba(0,0,0,0.5)',
+                                          color: 'white',
+                                          cursor: 'pointer',
+                                          fontSize: 10,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center'
+                                        }}
+                                      >×</button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Bottom bar with attachment icon and Comment button */}
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '8px 12px',
+                              borderTop: '1px solid #E5E7EB',
+                              background: 'white'
+                            }}>
+                              <Upload
+                                multiple
+                                showUploadList={false}
+                                beforeUpload={(file) => {
+                                  setCommentAttachments((prev: any[]) => [...prev, file]);
+                                  return false;
+                                }}
+                              >
+                                <Tooltip title="Attach files">
+                                  <Button
+                                    type="text"
+                                    icon={<Paperclip size={18} color="#9CA3AF" />}
+                                    style={{ padding: 4 }}
+                                  />
+                                </Tooltip>
+                              </Upload>
+
+                              <Button
+                                type="primary"
+                                onClick={handleAddComment}
+                                disabled={!newComment.trim() && commentAttachments.length === 0}
+                                style={{
+                                  background: '#0EA5E9',
+                                  border: 'none',
+                                  borderRadius: 6,
+                                  fontWeight: 500,
+                                  height: 32
+                                }}
+                              >
+                                Comment
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       <div style={{ marginTop: 40 }}>
