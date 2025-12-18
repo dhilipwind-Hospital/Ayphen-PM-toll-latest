@@ -252,6 +252,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [history, setHistory] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [commentAttachments, setCommentAttachments] = useState<any[]>([]);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -478,6 +480,25 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     } catch (e) {
       console.error('Failed to add comment:', e);
       message.error('Failed to add comment');
+    }
+  };
+
+  const handleEditComment = async (commentId: string) => {
+    if (!editingCommentText.trim()) return;
+    try {
+      const userId = localStorage.getItem('userId');
+      await api.put(`/comments/${commentId}`, {
+        content: editingCommentText,
+        userId
+      });
+      message.success('Comment updated');
+      setEditingCommentId(null);
+      setEditingCommentText('');
+      const res = await commentsApi.getByIssue(issue.id);
+      setComments(res.data || []);
+    } catch (e) {
+      console.error('Failed to update comment:', e);
+      message.error('Failed to update comment');
     }
   };
 
@@ -923,140 +944,192 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                     <span style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(c.createdAt).toLocaleString()}</span>
                                   </div>
                                   {isCommentAuthor && (
-                                    <Tooltip title="Delete Comment">
-                                      <Button
-                                        type="text"
-                                        danger
-                                        size="small"
-                                        icon={<Trash2 size={14} />}
-                                        onClick={async () => {
-                                          Modal.confirm({
-                                            title: 'Delete Comment?',
-                                            content: 'This action cannot be undone.',
-                                            okText: 'Delete',
-                                            okButtonProps: { danger: true },
-                                            cancelText: 'Cancel',
-                                            onOk: async () => {
-                                              try {
-                                                await api.delete(`/comments/${c.id}`, { params: { userId: currentUserId } });
-                                                message.success('Comment deleted');
-                                                const res = await commentsApi.getByIssue(issue.id);
-                                                setComments(res.data || []);
+                                    <div style={{ display: 'flex', gap: 4 }}>
+                                      <Tooltip title="Edit Comment">
+                                        <Button
+                                          type="text"
+                                          size="small"
+                                          icon={<Pencil size={14} />}
+                                          onClick={() => {
+                                            setEditingCommentId(c.id);
+                                            setEditingCommentText(c.content);
+                                          }}
+                                          style={{ padding: 4, color: '#6B7280' }}
+                                        />
+                                      </Tooltip>
+                                      <Tooltip title="Delete Comment">
+                                        <Button
+                                          type="text"
+                                          danger
+                                          size="small"
+                                          icon={<Trash2 size={14} />}
+                                          onClick={async () => {
+                                            Modal.confirm({
+                                              title: 'Delete Comment?',
+                                              content: 'This action cannot be undone.',
+                                              okText: 'Delete',
+                                              okButtonProps: { danger: true },
+                                              cancelText: 'Cancel',
+                                              onOk: async () => {
+                                                try {
+                                                  await api.delete(`/comments/${c.id}`, { params: { userId: currentUserId } });
+                                                  message.success('Comment deleted');
+                                                  const res = await commentsApi.getByIssue(issue.id);
+                                                  setComments(res.data || []);
 
-                                                // Reload history
-                                                const historyRes = await historyApi.getByIssue(issue.id);
-                                                setHistory(historyRes.data || []);
-                                              } catch (err) {
-                                                message.error('Failed to delete comment');
+                                                  // Reload history
+                                                  const historyRes = await historyApi.getByIssue(issue.id);
+                                                  setHistory(historyRes.data || []);
+                                                } catch (err) {
+                                                  message.error('Failed to delete comment');
+                                                }
                                               }
-                                            }
-                                          });
-                                        }}
-                                        style={{ padding: 4 }}
-                                      />
-                                    </Tooltip>
+                                            });
+                                          }}
+                                          style={{ padding: 4 }}
+                                        />
+                                      </Tooltip>
+                                    </div>
                                   )}
                                 </div>
-                                {/* Render comment content with inline attachments */}
-                                {(() => {
-                                  // Parse comment content for attachment references
-                                  const attachmentRegex = /\[attachment:\s*([^\]]+)\]/g;
-                                  const parts = c.content.split(attachmentRegex);
-                                  const hasAttachments = parts.length > 1;
+                                {/* Edit mode or Display mode */}
+                                {editingCommentId === c.id ? (
+                                  <div style={{ marginTop: 8 }}>
+                                    <TextArea
+                                      rows={3}
+                                      value={editingCommentText}
+                                      onChange={(e) => setEditingCommentText(e.target.value)}
+                                      style={{
+                                        borderRadius: 6,
+                                        padding: 12,
+                                        border: '1px solid #0EA5E9',
+                                        marginBottom: 8
+                                      }}
+                                    />
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                      <Button
+                                        type="primary"
+                                        size="small"
+                                        onClick={() => handleEditComment(c.id)}
+                                        style={{ background: '#0EA5E9', border: 'none' }}
+                                      >
+                                        Save
+                                      </Button>
+                                      <Button
+                                        size="small"
+                                        onClick={() => {
+                                          setEditingCommentId(null);
+                                          setEditingCommentText('');
+                                        }}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    {/* Render comment content with inline attachments */}
+                                    {(() => {
+                                      // Parse comment content for attachment references
+                                      const attachmentRegex = /\[attachment:\s*([^\]]+)\]/g;
+                                      const parts = c.content.split(attachmentRegex);
+                                      const hasAttachments = parts.length > 1;
 
-                                  // Get just the text content (before any attachments)
-                                  const textContent = c.content.replace(attachmentRegex, '').trim();
+                                      // Get just the text content (before any attachments)
+                                      const textContent = c.content.replace(attachmentRegex, '').trim();
 
-                                  // Extract attachment filenames
-                                  const attachmentMatches = [...c.content.matchAll(attachmentRegex)];
-                                  const attachmentFiles = attachmentMatches.map(m => m[1].trim());
+                                      // Extract attachment filenames
+                                      const attachmentMatches = [...c.content.matchAll(attachmentRegex)];
+                                      const attachmentFiles = attachmentMatches.map(m => m[1].trim());
 
-                                  const baseUrl = 'https://ayphen-pm-toll-latest.onrender.com/uploads/';
+                                      const baseUrl = 'https://ayphen-pm-toll-latest.onrender.com/uploads/';
 
-                                  return (
-                                    <>
-                                      {textContent && (
-                                        <div style={{
-                                          fontSize: 14,
-                                          color: '#333333',
-                                          lineHeight: 1.6,
-                                          marginBottom: hasAttachments ? 12 : 0,
-                                          wordBreak: 'break-word',
-                                          overflowWrap: 'break-word',
-                                          whiteSpace: 'pre-wrap'
-                                        }}>
-                                          {textContent}
-                                        </div>
-                                      )}
-                                      {attachmentFiles.length > 0 && (
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                                          {attachmentFiles.map((filename, idx) => {
-                                            const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filename);
-                                            const fileUrl = baseUrl + filename;
+                                      return (
+                                        <>
+                                          {textContent && (
+                                            <div style={{
+                                              fontSize: 14,
+                                              color: '#333333',
+                                              lineHeight: 1.6,
+                                              marginBottom: hasAttachments ? 12 : 0,
+                                              wordBreak: 'break-word',
+                                              overflowWrap: 'break-word',
+                                              whiteSpace: 'pre-wrap'
+                                            }}>
+                                              {textContent}
+                                            </div>
+                                          )}
+                                          {attachmentFiles.length > 0 && (
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                                              {attachmentFiles.map((filename, idx) => {
+                                                const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filename);
+                                                const fileUrl = baseUrl + filename;
 
-                                            if (isImage) {
-                                              return (
-                                                <div
-                                                  key={idx}
-                                                  style={{
-                                                    border: '1px solid #E5E7EB',
-                                                    borderRadius: 8,
-                                                    overflow: 'hidden',
-                                                    cursor: 'pointer',
-                                                    maxWidth: 300
-                                                  }}
-                                                  onClick={() => setPreviewImage(fileUrl)}
-                                                >
-                                                  <img
-                                                    src={fileUrl}
-                                                    alt={filename}
-                                                    style={{
-                                                      maxWidth: '100%',
-                                                      maxHeight: 200,
-                                                      objectFit: 'cover',
-                                                      display: 'block'
-                                                    }}
-                                                    onError={(e) => {
-                                                      (e.target as HTMLImageElement).style.display = 'none';
-                                                      (e.target as HTMLImageElement).parentElement!.innerHTML = `
+                                                if (isImage) {
+                                                  return (
+                                                    <div
+                                                      key={idx}
+                                                      style={{
+                                                        border: '1px solid #E5E7EB',
+                                                        borderRadius: 8,
+                                                        overflow: 'hidden',
+                                                        cursor: 'pointer',
+                                                        maxWidth: 300
+                                                      }}
+                                                      onClick={() => setPreviewImage(fileUrl)}
+                                                    >
+                                                      <img
+                                                        src={fileUrl}
+                                                        alt={filename}
+                                                        style={{
+                                                          maxWidth: '100%',
+                                                          maxHeight: 200,
+                                                          objectFit: 'cover',
+                                                          display: 'block'
+                                                        }}
+                                                        onError={(e) => {
+                                                          (e.target as HTMLImageElement).style.display = 'none';
+                                                          (e.target as HTMLImageElement).parentElement!.innerHTML = `
                                                         <div style="padding: 12px; display: flex; align-items: center; gap: 8px; color: #6B7280; font-size: 13px;">
                                                           📎 ${filename}
                                                         </div>
                                                       `;
-                                                    }}
-                                                  />
-                                                </div>
-                                              );
-                                            } else {
-                                              return (
-                                                <a
-                                                  key={idx}
-                                                  href={fileUrl}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: 8,
-                                                    padding: '8px 12px',
-                                                    border: '1px solid #E5E7EB',
-                                                    borderRadius: 6,
-                                                    color: '#0EA5E9',
-                                                    fontSize: 13,
-                                                    textDecoration: 'none',
-                                                    background: '#F9FAFB'
-                                                  }}
-                                                >
-                                                  📎 {filename}
-                                                </a>
-                                              );
-                                            }
-                                          })}
-                                        </div>
-                                      )}
-                                    </>
-                                  );
-                                })()}
+                                                        }}
+                                                      />
+                                                    </div>
+                                                  );
+                                                } else {
+                                                  return (
+                                                    <a
+                                                      key={idx}
+                                                      href={fileUrl}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 8,
+                                                        padding: '8px 12px',
+                                                        border: '1px solid #E5E7EB',
+                                                        borderRadius: 6,
+                                                        color: '#0EA5E9',
+                                                        fontSize: 13,
+                                                        textDecoration: 'none',
+                                                        background: '#F9FAFB'
+                                                      }}
+                                                    >
+                                                      📎 {filename}
+                                                    </a>
+                                                  );
+                                                }
+                                              })}
+                                            </div>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
+                                  </>
+                                )}
                               </div>
                             </div>
                           );
