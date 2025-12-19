@@ -116,7 +116,20 @@ export const StartSprintModal: React.FC<StartSprintModalProps> = ({
         <Form.Item
           label="End Date"
           name="endDate"
-          rules={[{ required: true, message: 'Please select end date' }]}
+          rules={[
+            { required: true, message: 'Please select end date' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || !getFieldValue('startDate')) {
+                  return Promise.resolve();
+                }
+                if (value.isBefore(getFieldValue('startDate'))) {
+                  return Promise.reject(new Error('End date must be after start date'));
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
         >
           <DatePicker style={{ width: '100%' }} />
         </Form.Item>

@@ -5,7 +5,7 @@ import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress 
 import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen, Star } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
-import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi, api } from '../../services/api';
+import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi, api, BASE_URL } from '../../services/api';
 import { useStore } from '../../store/useStore';
 import { colors } from '../../theme/colors';
 import { CreateIssueModal } from '../CreateIssueModal';
@@ -842,7 +842,11 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                 resize: 'none',
                                 boxShadow: 'none'
                               }}
+                              maxLength={5000}
                             />
+                            <div style={{ fontSize: 11, color: '#999', padding: '0 12px', textAlign: 'right' }}>
+                              {newComment.length}/5000
+                            </div>
 
                             {/* Attached files preview - show thumbnails */}
                             {commentAttachments.length > 0 && (
@@ -1069,7 +1073,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                       const attachmentMatches = [...c.content.matchAll(attachmentRegex)];
                                       const attachmentFiles = attachmentMatches.map(m => m[1].trim());
 
-                                      const baseUrl = 'https://ayphen-pm-toll-latest.onrender.com/uploads/';
+                                      const baseUrl = `${BASE_URL}/uploads/`;
 
                                       return (
                                         <>
@@ -1184,9 +1188,9 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                             <div key={att.id} style={{ border: `1px solid ${colors.border.light}`, borderRadius: 8, overflow: 'hidden', position: 'relative', background: 'white' }}>
                               <div
                                 style={{ height: 100, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: att.isImage ? 'zoom-in' : 'default' }}
-                                onClick={() => att.isImage && setPreviewImage(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`)}
+                                onClick={() => att.isImage && setPreviewImage(`${BASE_URL}/uploads/${att.fileName}`)}
                               >
-                                {att.isImage ? <img src={`https://ayphen-pm-toll-latest.onrender.com/uploads/thumbnails/${att.fileName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).src = `https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}` }} /> : <Paperclip color="#999" size={32} />}
+                                {att.isImage ? <img src={`${BASE_URL}/uploads/thumbnails/${att.fileName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLImageElement).src = `${BASE_URL}/uploads/${att.fileName}` }} /> : <Paperclip color="#999" size={32} />}
                               </div>
                               <div style={{ padding: '8px 12px' }}>
                                 <div style={{ fontSize: 12, marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.originalName}</div>

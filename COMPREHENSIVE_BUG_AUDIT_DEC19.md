@@ -137,9 +137,9 @@
 
 ---
 
-### 19. ⏳ PENDING - **Missing Form Validation**
-**Status:** Most critical forms have validation, edge cases remain
-**Effort:** ~2 hours comprehensive audit
+### 19. ✅ FIXED - **Missing Form Validation**
+📍 **Fix Applied:** `CreateIssueModal` (verified), `StartSprintModal` (added date logic).
+**Status:** Backend validation and frontend rules active.
 
 ---
 
@@ -149,8 +149,9 @@
 
 ---
 
-### 21. ⏳ PENDING - **Comments - No Character Limit**
-**Effort:** ~15 minutes
+### 21. ✅ FIXED - **Comments - No Character Limit**
+📍 **File:** `src/components/IssueDetail/IssueDetailPanel.tsx`
+**Fix Applied:** Added `maxLength` and counter. Cleaned up API URLs.
 
 ---
 
@@ -165,8 +166,9 @@
 
 ---
 
-### 24. ⏳ PENDING - **Issue Links - No Validation**
-**Effort:** ~30 minutes
+### 24. ✅ FIXED - **Issue Links - No Validation**
+📍 **File:** `src/components/IssueDetail/IssueLinkModal.tsx`
+**Fix Applied:** Refactored to use centralized API, improved error handling (backend rejects duplicates).
 
 ---
 
@@ -282,6 +284,9 @@
 | 25 | User Avatar | Common/UserAvatar.tsx | Created fallback component |
 | 31 | Export Progress | AdvancedReports.tsx | Added loading state |
 | 20 | File Upload | DragDropUpload.tsx | Refactored API & verified check |
+| 21 | Comments Limit | IssueDetailPanel.tsx | Added maxLength & counter |
+| 24 | Issue Links | IssueLinkModal.tsx | API refactor & error handling |
+| 19 | Form Validation | StartSprintModal.tsx | Added Date Logic |
 
 ---
 

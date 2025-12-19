@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+export const BASE_URL = 'https://ayphen-pm-toll-latest.onrender.com';
+export const API_BASE_URL = `${BASE_URL}/api`;
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Select, Button, message } from 'antd';
-import { issuesApi } from '../../services/api';
-import axios from 'axios';
+import { issuesApi, api } from '../../services/api';
 
 interface IssueLinkModalProps {
   open: boolean;
@@ -47,19 +46,20 @@ export const IssueLinkModal: React.FC<IssueLinkModalProps> = ({
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/issue-links', {
+      await api.post('/issue-links', {
         sourceIssueId,
         targetIssueId: values.targetIssueId,
         linkType: values.linkType,
         userId: localStorage.getItem('userId')
       });
-      
+
       message.success('Issue linked successfully');
       form.resetFields();
       onSuccess();
       onCancel();
     } catch (error: any) {
-      message.error(error.response?.data?.error || 'Failed to link issue');
+      console.error('Link failed:', error);
+      message.error(error.response?.data?.error || 'Failed to link issue. It might already be linked.');
     } finally {
       setLoading(false);
     }
