@@ -209,6 +209,7 @@ const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
 
 interface TeamMember {
   id: string;
+  membershipId: string;
   name: string;
   email: string;
   role: string;
@@ -241,15 +242,16 @@ export const PeoplePage: React.FC = () => {
     setLoading(true);
     try {
       const userId = localStorage.getItem('userId');
-      const usersResponse = await axios.get(`${API_URL}/users`, {
-        params: { projectId: currentProject?.id }
-      });
+      // Fetch members from the Project Members API safely
+      const membersResponse = await axios.get(`${API_URL}/project-members/project/${currentProject?.id}`);
       const issuesResponse = await axios.get(`${API_URL}/issues`, { params: { userId } });
 
-      const users = usersResponse.data;
+      const projectMembers = membersResponse.data;
       const issues = issuesResponse.data;
 
-      const teamMembers: TeamMember[] = users.map((user: any, index: number) => {
+      const teamMembers: TeamMember[] = projectMembers.map((pm: any, index: number) => {
+        const user = pm.user;
+        // Filter issues where assignee ID matches the user ID
         const userIssues = issues.filter((issue: any) => issue.assignee?.id === user.id);
         const doneIssues = userIssues.filter((issue: any) => issue.status === 'done');
         const activeIssues = userIssues.filter((issue: any) =>
@@ -260,9 +262,10 @@ export const PeoplePage: React.FC = () => {
 
         return {
           id: user.id,
+          membershipId: pm.id,
           name: user.name,
           email: user.email,
-          role: user.role || 'member',
+          role: pm.role, // Use role from project membership
           avatarColor: colors[index % colors.length],
           completionRate: userIssues.length > 0
             ? Math.round((doneIssues.length / userIssues.length) * 100)
@@ -304,9 +307,6 @@ export const PeoplePage: React.FC = () => {
       message.success('Invitation sent successfully');
       setIsAddModalOpen(false);
       form.resetFields();
-      // We don't reload members immediately because they are pending invitation
-      // But we could show a "Pending Invitations" list if implemented.
-      // For now, let's keep it simple.
     } catch (error: any) {
       console.error('Failed to invite member:', error);
       message.error(error.response?.data?.error || 'Failed to invite team member');
@@ -319,39 +319,35 @@ export const PeoplePage: React.FC = () => {
       return;
     }
 
-
     try {
+      // Only update the Role in the Project Context
       const payload = {
-        name: values.name,
-        email: values.email,
         role: values.role,
       };
 
-      const response = await axios.patch(`${API_URL}/users/${editingMember.id}`, payload);
+      await axios.patch(`${API_URL}/project-members/${editingMember.membershipId}`, payload);
 
-      message.success('Team member updated successfully');
+      message.success('Member role updated successfully');
       setIsEditModalOpen(false);
       setEditingMember(null);
       form.resetFields();
       loadTeamMembers();
     } catch (error: any) {
       console.error('Failed to update member:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      message.error(error.response?.data?.error || 'Failed to update team member');
+      message.error(error.response?.data?.error || 'Failed to update member role');
     }
   };
 
-  const handleDeleteMember = async (memberId: string) => {
+  const handleDeleteMember = async (membershipId: string) => {
     setLoading(true);
     try {
-      await axios.delete(`${API_URL}/users/${memberId}`);
-      message.success('Team member removed successfully');
+      // Delete the Project Membership, NOT the User
+      await axios.delete(`${API_URL}/project-members/${membershipId}`);
+      message.success('Member removed from project');
       loadTeamMembers();
     } catch (error: any) {
-      console.error('Failed to delete member:', error);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Failed to remove team member';
-      message.error(errorMessage);
+      console.error('Failed to remove member:', error);
+      message.error(error.response?.data?.error || 'Failed to remove team member');
     } finally {
       setLoading(false);
     }
@@ -459,9 +455,9 @@ export const PeoplePage: React.FC = () => {
                 <Popconfirm
                   title="Delete team member"
                   description="Are you sure you want to delete this team member?"
-                  onConfirm={() => handleDeleteMember(member.id)}
-                  okText="Yes"
-                  cancelText="No"
+                  onConfirm={() => handleDeleteMember(member.membershipId)}
+                  okText="Remove"
+                  cancelText="Cancel"
                 >
                   <ActionButton
                     type="text"
@@ -595,7 +591,7 @@ export const PeoplePage: React.FC = () => {
             name="name"
             rules={[{ required: true, message: 'Please enter name' }]}
           >
-            <Input placeholder="Enter member name" />
+            <Input placeholder="Enter member name" disabled />
           </Form.Item>
 
           <Form.Item
@@ -606,7 +602,7 @@ export const PeoplePage: React.FC = () => {
               { type: 'email', message: 'Please enter valid email' }
             ]}
           >
-            <Input placeholder="Enter email address" />
+            <Input placeholder="Enter email address" disabled />
           </Form.Item>
 
           <Form.Item
