@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Card, Input, Button, Progress, Avatar, Row, Col, Modal, Form, Select, message, Popconfirm, Empty, Tabs, Table, Tag, Tooltip } from 'antd';
-import { Search, UserPlus, Users, CheckCircle, Activity, Clock, Edit, Trash2, Mail, RefreshCw, XCircle } from 'lucide-react';
+import { Search, UserPlus, Users, CheckCircle, Activity, Clock, Edit, Trash2, Mail, RefreshCw, XCircle, LayoutGrid, List } from 'lucide-react';
 import axios from 'axios';
 import { useStore } from '../store/useStore';
 
@@ -214,6 +214,8 @@ interface TeamMember {
   email: string;
   role: string;
   avatarColor: string;
+  joinedAt: string;
+  addedBy?: string;
   completionRate: number;
   stats: {
     total: number;
@@ -228,6 +230,7 @@ export const PeoplePage: React.FC = () => {
   const [invitations, setInvitations] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
@@ -299,6 +302,8 @@ export const PeoplePage: React.FC = () => {
           email: user.email,
           role: pm.role, // Use role from project membership
           avatarColor: colors[index % colors.length],
+          joinedAt: pm.createdAt,
+          addedBy: pm.addedBy?.name,
           completionRate: userIssues.length > 0
             ? Math.round((doneIssues.length / userIssues.length) * 100)
             : 0,
@@ -420,16 +425,34 @@ export const PeoplePage: React.FC = () => {
             <Title>Team</Title>
             <Subtitle>Manage your team members and track their progress</Subtitle>
           </div>
-          {currentUserRole === 'admin' && (
-            <Button
-              type="primary"
-              icon={<UserPlus size={16} />}
-              size="large"
-              onClick={() => setIsAddModalOpen(true)}
-            >
-              Invite Member
-            </Button>
-          )}
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <div style={{ background: 'white', padding: 4, borderRadius: 6, display: 'flex', gap: 4 }}>
+              <Tooltip title="Grid View">
+                <Button
+                  type={viewMode === 'grid' ? 'primary' : 'text'}
+                  icon={<LayoutGrid size={16} />}
+                  onClick={() => setViewMode('grid')}
+                />
+              </Tooltip>
+              <Tooltip title="List View">
+                <Button
+                  type={viewMode === 'list' ? 'primary' : 'text'}
+                  icon={<List size={16} />}
+                  onClick={() => setViewMode('list')}
+                />
+              </Tooltip>
+            </div>
+            {currentUserRole === 'admin' && (
+              <Button
+                type="primary"
+                icon={<UserPlus size={16} />}
+                size="large"
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                Invite Member
+              </Button>
+            )}
+          </div>
         </HeaderTop>
       </Header>
 
@@ -485,89 +508,151 @@ export const PeoplePage: React.FC = () => {
 
       <Tabs defaultActiveKey="members" style={{ marginTop: 24 }}>
         <Tabs.TabPane tab="Team Members" key="members">
-          <Row gutter={[16, 16]}>
-            {filteredMembers.map((member) => (
-              <Col xs={24} sm={12} lg={8} key={member.id}>
-                <MemberCard>
-                  {currentUserRole === 'admin' && (
-                    <CardActions>
-                      <ActionButton
-                        type="text"
-                        icon={<Edit size={16} />}
-                        onClick={() => openEditModal(member)}
-                      />
-                      <Popconfirm
-                        title="Delete team member"
-                        description="Are you sure you want to delete this team member?"
-                        onConfirm={() => handleDeleteMember(member.membershipId)}
-                        okText="Remove"
-                        cancelText="Cancel"
-                      >
+          {viewMode === 'grid' ? (
+            <Row gutter={[16, 16]}>
+              {filteredMembers.map((member) => (
+                <Col xs={24} sm={12} lg={8} key={member.id}>
+                  <MemberCard>
+                    {currentUserRole === 'admin' && (
+                      <CardActions>
                         <ActionButton
                           type="text"
-                          danger
-                          icon={<Trash2 size={16} />}
+                          icon={<Edit size={16} />}
+                          onClick={() => openEditModal(member)}
                         />
-                      </Popconfirm>
-                    </CardActions>
-                  )}
+                        <Popconfirm
+                          title="Delete team member"
+                          description="Are you sure you want to delete this team member?"
+                          onConfirm={() => handleDeleteMember(member.membershipId)}
+                          okText="Remove"
+                          cancelText="Cancel"
+                        >
+                          <ActionButton
+                            type="text"
+                            danger
+                            icon={<Trash2 size={16} />}
+                          />
+                        </Popconfirm>
+                      </CardActions>
+                    )}
 
-                  <MemberHeader>
-                    <MemberAvatar size={80} bgColor={member.avatarColor}>
-                      {member.name.charAt(0)}
-                    </MemberAvatar>
-                    <MemberInfo>
-                      <MemberName>{member.name}</MemberName>
-                      <MemberRole>{member.role.charAt(0).toUpperCase() + member.role.slice(1)}</MemberRole>
-                    </MemberInfo>
-                  </MemberHeader>
+                    <MemberHeader>
+                      <MemberAvatar size={80} bgColor={member.avatarColor}>
+                        {member.name.charAt(0)}
+                      </MemberAvatar>
+                      <MemberInfo>
+                        <MemberName>{member.name}</MemberName>
+                        <MemberRole>{member.role.charAt(0).toUpperCase() + member.role.slice(1)}</MemberRole>
+                      </MemberInfo>
+                    </MemberHeader>
 
-                  <MemberEmail>
-                    <Mail size={14} />
-                    {member.email}
-                  </MemberEmail>
+                    <MemberEmail>
+                      <Mail size={14} />
+                      {member.email}
+                    </MemberEmail>
 
-                  <CompletionSection>
-                    <CompletionHeader>
-                      <CompletionLabel>Completion Rate</CompletionLabel>
-                      <CompletionRate>{member.completionRate}%</CompletionRate>
-                    </CompletionHeader>
-                    <Progress
-                      percent={member.completionRate}
-                      showInfo={false}
-                      strokeColor={
-                        member.completionRate === 100 ? '#52C41A' :
-                          member.completionRate >= 50 ? '#1890FF' :
-                            '#FA8C16'
-                      }
-                    />
-                  </CompletionSection>
+                    <CompletionSection>
+                      <CompletionHeader>
+                        <CompletionLabel>Completion Rate</CompletionLabel>
+                        <CompletionRate>{member.completionRate}%</CompletionRate>
+                      </CompletionHeader>
+                      <Progress
+                        percent={member.completionRate}
+                        showInfo={false}
+                        strokeColor={
+                          member.completionRate === 100 ? '#52C41A' :
+                            member.completionRate >= 50 ? '#1890FF' :
+                              '#FA8C16'
+                        }
+                      />
+                    </CompletionSection>
 
-                  <StatsGrid>
-                    <StatItem>
-                      <StatItemValue>{member.stats.total}</StatItemValue>
-                      <StatItemLabel>Total</StatItemLabel>
-                    </StatItem>
-                    <StatItem>
-                      <StatItemValue>{member.stats.done}</StatItemValue>
-                      <StatItemLabel>Done</StatItemLabel>
-                    </StatItem>
-                    <StatItem>
-                      <StatItemValue>{member.stats.active}</StatItemValue>
-                      <StatItemLabel>Active</StatItemLabel>
-                    </StatItem>
-                  </StatsGrid>
+                    <StatsGrid>
+                      <StatItem>
+                        <StatItemValue>{member.stats.total}</StatItemValue>
+                        <StatItemLabel>Total</StatItemLabel>
+                      </StatItem>
+                      <StatItem>
+                        <StatItemValue>{member.stats.done}</StatItemValue>
+                        <StatItemLabel>Done</StatItemLabel>
+                      </StatItem>
+                      <StatItem>
+                        <StatItemValue>{member.stats.active}</StatItemValue>
+                        <StatItemLabel>Active</StatItemLabel>
+                      </StatItem>
+                    </StatsGrid>
 
-                  <ViewProfileButton
-                    type="default"
-                    onClick={() => window.location.href = `/settings/profile?userId=${member.id}`}
-                  >
-                    View Profile
-                  </ViewProfileButton>
-                </MemberCard>
-              </Col>
-            ))}
-          </Row>
+                    <ViewProfileButton
+                      type="default"
+                      onClick={() => window.location.href = `/settings/profile?userId=${member.id}`}
+                    >
+                      View Profile
+                    </ViewProfileButton>
+                  </MemberCard>
+                </Col>
+              ))}
+            </Row>
+          ) : (
+            <Table
+              dataSource={filteredMembers}
+              rowKey="id"
+              pagination={false}
+              columns={[
+                {
+                  title: 'Name',
+                  dataIndex: 'name',
+                  key: 'name',
+                  render: (text: string, record: TeamMember) => (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Avatar style={{ backgroundColor: record.avatarColor }}>{text.charAt(0)}</Avatar>
+                      <span>{text}</span>
+                    </div>
+                  )
+                },
+                { title: 'Email', dataIndex: 'email', key: 'email' },
+                { title: 'Role', dataIndex: 'role', key: 'role', render: (role: string) => <Tag color="blue">{role.toUpperCase()}</Tag> },
+                {
+                  title: 'Joined',
+                  dataIndex: 'joinedAt',
+                  key: 'joinedAt',
+                  render: (date: string) => date ? new Date(date).toLocaleDateString() : '-'
+                },
+                {
+                  title: 'Added By',
+                  dataIndex: 'addedBy',
+                  key: 'addedBy',
+                  render: (val: string) => val || '-'
+                },
+                {
+                  title: 'Actions',
+                  key: 'actions',
+                  render: (_: any, record: TeamMember) => (
+                    currentUserRole === 'admin' ? (
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <Button
+                          icon={<Edit size={14} />}
+                          size="small"
+                          onClick={() => openEditModal(record)}
+                        />
+                        <Popconfirm
+                          title="Remove member?"
+                          onConfirm={() => handleDeleteMember(record.membershipId)}
+                          okText="Remove"
+                          cancelText="Cancel"
+                        >
+                          <Button
+                            icon={<Trash2 size={14} />}
+                            size="small"
+                            danger
+                          />
+                        </Popconfirm>
+                      </div>
+                    ) : null
+                  )
+                }
+              ]}
+            />
+          )}
         </Tabs.TabPane>
         <Tabs.TabPane tab={`Pending Invitations (${invitations.length})`} key="invitations">
           <Table
