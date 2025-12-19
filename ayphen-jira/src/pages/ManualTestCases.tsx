@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button, Table, Modal, Form, Input, Select, Space, message, Tag, Tooltip, Avatar } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined, BugOutlined, FileTextOutlined, CheckSquareOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { api } from '../services/api';
 import styled from 'styled-components';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
@@ -84,10 +84,8 @@ export default function ManualTestCases() {
   const loadTestCases = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await api.get('/manual-test-cases', {
         params: { userId, projectId: currentProject?.id }
       });
       setTestCases(res.data || []);
@@ -102,7 +100,7 @@ export default function ManualTestCases() {
   const loadIssues = async () => {
     try {
       const userId = localStorage.getItem('userId');
-      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/issues', {
+      const res = await api.get('/issues', {
         params: { userId, projectId: currentProject?.id }
       });
       setIssues(res.data || []);
@@ -113,7 +111,6 @@ export default function ManualTestCases() {
 
   const handleSave = async (values: any) => {
     try {
-      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
 
       // Find linked issue details
@@ -129,14 +126,10 @@ export default function ManualTestCases() {
       };
 
       if (editId) {
-        await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases/${editId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.put(`/manual-test-cases/${editId}`, payload);
         message.success('Test case updated successfully');
       } else {
-        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', payload, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.post('/manual-test-cases', payload);
         message.success('Test case created successfully');
       }
       setOpen(false);
@@ -159,10 +152,7 @@ export default function ManualTestCases() {
 
   const handleDelete = async (id: number) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/manual-test-cases/${id}`);
       message.success('Test case deleted successfully');
       loadTestCases();
     } catch (error) {
