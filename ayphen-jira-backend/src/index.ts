@@ -108,10 +108,10 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.indexOf(origin) !== -1 || 
-        origin.includes('127.0.0.1') || 
-        origin.includes('localhost') || 
-        origin.endsWith('.vercel.app')) {
+    if (allowedOrigins.indexOf(origin) !== -1 ||
+      origin.includes('127.0.0.1') ||
+      origin.includes('localhost') ||
+      origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -121,6 +121,45 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Simple rate limiting middleware
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX = 100; // 100 requests per window
+
+app.use((req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  const now = Date.now();
+
+  const record = rateLimitMap.get(ip);
+
+  if (!record || now > record.resetTime) {
+    // New window
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return next();
+  }
+
+  if (record.count >= RATE_LIMIT_MAX) {
+    return res.status(429).json({
+      error: 'Too many requests',
+      message: 'Please try again later',
+      retryAfter: Math.ceil((record.resetTime - now) / 1000)
+    });
+  }
+
+  record.count++;
+  next();
+});
+
+// Clean up old rate limit records every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of rateLimitMap.entries()) {
+    if (now > record.resetTime) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, 5 * 60 * 1000);
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static('uploads'));

@@ -85,4 +85,65 @@ router.get('/activity/:projectId', async (req, res) => {
     }
 });
 
+/**
+ * Get PMBot settings for a user/project
+ */
+router.get('/settings', async (req, res) => {
+    try {
+        const userId = req.query.userId as string;
+        const projectId = req.query.projectId as string;
+
+        // Default settings
+        const defaultSettings = {
+            autoAssignEnabled: true,
+            staleSweepEnabled: true,
+            staleDaysThreshold: 7,
+            autoTriageEnabled: true,
+            notifyOnAssign: true,
+            notifyOnStale: true,
+            excludedLabels: [],
+            workingHoursOnly: false,
+            workingHoursStart: 9,
+            workingHoursEnd: 17
+        };
+
+        // In a production app, fetch from database
+        // For now, return default settings
+        res.json({
+            success: true,
+            settings: defaultSettings,
+            userId,
+            projectId
+        });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * Save PMBot settings for a user/project
+ */
+router.put('/settings', async (req, res) => {
+    try {
+        const { userId, projectId, settings } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId is required' });
+        }
+
+        // In a production app, save to database
+        // For now, just acknowledge the save
+        console.log('Saving PMBot settings:', { userId, projectId, settings });
+
+        res.json({
+            success: true,
+            message: 'Settings saved successfully',
+            settings
+        });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
+

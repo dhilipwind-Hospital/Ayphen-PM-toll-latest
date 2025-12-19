@@ -48,6 +48,7 @@ import ManualTestCases from './pages/ManualTestCases';
 import TestSuites from './pages/TestSuites';
 import TestRuns from './pages/TestRuns';
 import ProjectDetailView from './pages/ProjectDetailView';
+import { OfflineIndicator } from './components/Network/OfflineIndicator';
 import HierarchyView from './pages/HierarchyView';
 import AutomationRules from './pages/AutomationRules';
 import TeamChatPage from './pages/TeamChatPage';
@@ -237,6 +238,7 @@ function App() {
             <BrowserRouter>
               <AuthProvider>
                 <NotificationProvider>
+                  <OfflineIndicator />
                   <Routes>
                     {/* Public routes */}
                     <Route path="/login" element={<LoginPage />} />
