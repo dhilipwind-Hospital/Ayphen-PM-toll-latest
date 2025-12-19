@@ -6,7 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { aiTestCasesApi } from '../services/ai-test-automation-api';
-import axios from 'axios';
+import { api } from '../services/api';
+import { TableSkeleton } from '../components/Loading/SkeletonLoaders';
 
 const Container = styled.div`
   padding: 0;
@@ -116,16 +117,16 @@ export const StoriesListView: React.FC = () => {
         setLoading(false);
         return;
       }
-      
+
       // FILTER by project AND type
       const userStories = issues.filter(
         issue => issue.type === 'story' && issue.projectId === currentProject.id
       );
       setStories(userStories);
-      
+
       // Load test cases count for each story
       await loadTestCasesCount(userStories);
-      
+
       // Load bugs count for each story
       loadBugsCount(userStories);
     } catch (error) {
@@ -135,17 +136,17 @@ export const StoriesListView: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
   const loadTestCasesCount = async (userStories: any[]) => {
     try {
       // Load AI stories to map issueId to AI story ID
-      const aiStoriesRes = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/ai-test-automation/stories');
-      const aiStories = aiStoriesRes.data;
-      
+      const aiStoriesRes = await api.get('/ai-test-automation/stories');
+      const aiStories = aiStoriesRes.data || [];
+
       // Load all test cases
       const testCasesRes = await aiTestCasesApi.getAll();
       const allTestCases = testCasesRes.data;
-      
+
       // Count test cases per story
       const countsMap: Record<string, number> = {};
       userStories.forEach(story => {
@@ -157,13 +158,13 @@ export const StoriesListView: React.FC = () => {
           countsMap[story.id] = 0;
         }
       });
-      
+
       setTestCasesMap(countsMap);
     } catch (error) {
       console.error('Failed to load test cases count:', error);
     }
   };
-  
+
   const loadBugsCount = (userStories: any[]) => {
     // Count bugs (child issues) for each story
     const countsMap: Record<string, number> = {};
@@ -296,8 +297,8 @@ export const StoriesListView: React.FC = () => {
       render: (_, record: any) => {
         const count = testCasesMap[record.id] || 0;
         return count > 0 ? (
-          <Badge 
-            count={count} 
+          <Badge
+            count={count}
             style={{ backgroundColor: '#52c41a', cursor: 'pointer' }}
             onClick={() => navigate('/ai-test-automation/test-cases')}
           >
@@ -316,8 +317,8 @@ export const StoriesListView: React.FC = () => {
       render: (_, record: any) => {
         const count = bugsMap[record.id] || 0;
         return count > 0 ? (
-          <Badge 
-            count={count} 
+          <Badge
+            count={count}
             style={{ backgroundColor: '#ff4d4f', cursor: 'pointer' }}
             onClick={() => navigate(`/bugs?parentId=${record.id}`)}
           >
@@ -341,8 +342,8 @@ export const StoriesListView: React.FC = () => {
           <Button icon={<Download size={16} />}>
             Export
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<Plus size={16} />}
             onClick={() => setCreateModalOpen(true)}
           >
@@ -390,14 +391,13 @@ export const StoriesListView: React.FC = () => {
 
       <TableContainer>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60 }}>
-            <Spin size="large" tip="Loading stories..." />
+          <div style={{ padding: 24 }}>
+            <TableSkeleton columns={6} rows={8} />
           </div>
         ) : (
           <Table
             columns={columns}
             dataSource={filteredStories}
-            loading={loading}
             rowKey="id"
             pagination={{
               pageSize: 20,

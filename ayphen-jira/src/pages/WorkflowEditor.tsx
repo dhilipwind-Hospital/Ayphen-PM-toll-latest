@@ -101,11 +101,11 @@ const ToolbarButton = styled(Button)`
 const StatusNode = styled.div<{ category: string; selected?: boolean }>`
   padding: 16px 24px;
   background: white;
-  border: 2px solid ${props => 
+  border: 2px solid ${props =>
     props.selected ? colors.primary[500] :
-    props.category === 'TODO' ? colors.status.todo :
-    props.category === 'IN_PROGRESS' ? colors.status.inProgress :
-    colors.status.done
+      props.category === 'TODO' ? colors.status.todo :
+        props.category === 'IN_PROGRESS' ? colors.status.inProgress :
+          colors.status.done
   };
   border-radius: 8px;
   min-width: 180px;
@@ -230,17 +230,17 @@ export const WorkflowEditor: React.FC = () => {
       const wf = response.data;
       setWorkflow(wf);
       setWorkflowName(wf.name);
-      
+
       // Convert workflow to nodes and edges
       const workflowNodes: Node[] = wf.statuses.map((status: any, index: number) => ({
         id: status.id,
         type: 'custom',
-        position: status.position || { 
-          x: (index % 3) * 250 + 100, 
-          y: Math.floor(index / 3) * 150 + 100 
+        position: status.position || {
+          x: (index % 3) * 250 + 100,
+          y: Math.floor(index / 3) * 150 + 100
         }, // Use saved position or generate default
-        data: { 
-          label: status.name, 
+        data: {
+          label: status.name,
           category: status.category,
           statusId: status.id,
           showActions: true, // Show actions by default in edit mode
@@ -291,7 +291,7 @@ export const WorkflowEditor: React.FC = () => {
   const onConnect = useCallback(
     (params: Connection) => {
       const targetNode = nodes.find(n => n.id === params.target);
-      
+
       const newEdge = {
         ...params,
         label: `Move to ${targetNode?.data.label}`,
@@ -317,7 +317,7 @@ export const WorkflowEditor: React.FC = () => {
           height: 20,
         },
       };
-      
+
       setEdges((eds) => addEdge(newEdge, eds));
     },
     [nodes, setEdges]
@@ -360,13 +360,13 @@ export const WorkflowEditor: React.FC = () => {
         nds.map((node) =>
           node.id === editingNode.id
             ? {
-                ...node,
-                data: {
-                  ...node.data,
-                  label: values.name,
-                  category: values.category,
-                },
-              }
+              ...node,
+              data: {
+                ...node.data,
+                label: values.name,
+                category: values.category,
+              },
+            }
             : node
         )
       );
@@ -391,7 +391,7 @@ export const WorkflowEditor: React.FC = () => {
       };
       setNodes((nds) => [...nds, newNode]);
     }
-    
+
     setAddStatusDrawer(false);
     form.resetFields();
   };
@@ -585,6 +585,7 @@ export const WorkflowEditor: React.FC = () => {
             label="Category"
             name="category"
             rules={[{ required: true }]}
+            tooltip="Categories help group statuses for reporting and board columns"
           >
             <Select>
               <Select.Option value="TODO">
@@ -592,6 +593,15 @@ export const WorkflowEditor: React.FC = () => {
               </Select.Option>
               <Select.Option value="IN_PROGRESS">
                 <Tag color="blue">In Progress</Tag>
+              </Select.Option>
+              <Select.Option value="REVIEW">
+                <Tag color="purple">In Review</Tag>
+              </Select.Option>
+              <Select.Option value="TESTING">
+                <Tag color="orange">Testing</Tag>
+              </Select.Option>
+              <Select.Option value="BLOCKED">
+                <Tag color="red">Blocked</Tag>
               </Select.Option>
               <Select.Option value="DONE">
                 <Tag color="green">Done</Tag>

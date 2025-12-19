@@ -104,18 +104,24 @@ export const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
                 <Form.Item
                     name="name"
                     label="Sprint Name"
-                    rules={[{ required: true, message: 'Please enter a sprint name' }]}
+                    rules={[
+                        { required: true, message: 'Please enter a sprint name' },
+                        { max: 100, message: 'Sprint name cannot exceed 100 characters' }
+                    ]}
                 >
-                    <Input placeholder={defaultSprintName} />
+                    <Input placeholder={defaultSprintName} maxLength={100} showCount />
                 </Form.Item>
 
                 <Form.Item
                     name="goal"
                     label="Sprint Goal (optional)"
+                    rules={[{ max: 500, message: 'Sprint goal cannot exceed 500 characters' }]}
                 >
                     <Input.TextArea
                         placeholder="What do you want to accomplish in this sprint?"
                         rows={3}
+                        maxLength={500}
+                        showCount
                     />
                 </Form.Item>
 

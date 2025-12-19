@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Card, DatePicker, Select, Input, Tag } from 'antd';
 import { Search, Filter } from 'lucide-react';
 import styled from 'styled-components';
-import axios from 'axios';
+import { api } from '../services/api';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -57,9 +57,9 @@ export const AuditLogsView: React.FC = () => {
       params.append('limit', pagination.pageSize.toString());
       params.append('offset', ((pagination.current - 1) * pagination.pageSize).toString());
 
-      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/audit?${params}`);
-      setLogs(response.data.logs);
-      setTotal(response.data.total);
+      const response = await api.get('/audit', { params: Object.fromEntries(params) });
+      setLogs(response.data.logs || []);
+      setTotal(response.data.total || 0);
     } catch (error) {
       console.error('Failed to load audit logs:', error);
     } finally {

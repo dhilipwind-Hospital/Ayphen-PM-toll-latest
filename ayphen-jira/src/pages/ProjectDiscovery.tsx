@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Tag, Button, Input, message, Spin } from 'antd';
 import { SearchOutlined, TeamOutlined, EyeOutlined, GlobalOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { api } from '../services/api';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -107,8 +107,8 @@ export const ProjectDiscoveryPage: React.FC = () => {
   const loadPublicProjects = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/projects/public');
-      setPublicProjects(response.data);
+      const response = await api.get('/projects/public');
+      setPublicProjects(response.data || []);
     } catch (error) {
       message.error('Failed to load public projects');
     } finally {
@@ -124,7 +124,7 @@ export const ProjectDiscoveryPage: React.FC = () => {
 
     setJoiningId(projectId);
     try {
-      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/projects/${projectId}/join`, {
+      await api.post(`/projects/${projectId}/join`, {
         userId,
       });
       message.success('Joined project successfully!');
@@ -188,7 +188,7 @@ export const ProjectDiscoveryPage: React.FC = () => {
                 <ProjectDescription>
                   {project.description || 'No description available'}
                 </ProjectDescription>
-                
+
                 <MetaInfo>
                   <span>
                     <EyeOutlined /> {project.type || 'scrum'}
