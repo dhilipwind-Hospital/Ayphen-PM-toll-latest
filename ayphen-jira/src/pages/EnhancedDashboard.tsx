@@ -9,6 +9,7 @@ import { OrphanedIssuesWidget } from '../components/Dashboard/OrphanedIssuesWidg
 import { AIAssistant, LiveCursors, PredictiveAnalytics, AchievementSystem, BlockchainAudit, VirtualWorkspace } from '../features';
 import { H1, BodyLarge } from '../components/Typography';
 import { StatsSkeleton } from '../components/Loading/SkeletonLoaders';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 const fadeIn = keyframes`
   from {
@@ -337,7 +338,9 @@ export const EnhancedDashboard: React.FC = () => {
 
       <Row gutter={[20, 20]} style={{ marginBottom: 32 }}>
         <Col xs={24} md={12}>
-          <OrphanedIssuesWidget />
+          <ErrorBoundary title="Orphaned Issues">
+            <OrphanedIssuesWidget />
+          </ErrorBoundary>
         </Col>
       </Row>
 
@@ -421,22 +424,32 @@ export const EnhancedDashboard: React.FC = () => {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={8}>
-          <AIAssistant />
+          <ErrorBoundary title="AI Assistant">
+            <AIAssistant />
+          </ErrorBoundary>
         </Col>
         <Col xs={24} md={8}>
-          <PredictiveAnalytics />
+          <ErrorBoundary title="Analytics">
+            <PredictiveAnalytics />
+          </ErrorBoundary>
         </Col>
         <Col xs={24} md={8}>
-          <AchievementSystem />
+          <ErrorBoundary title="Achievements">
+            <AchievementSystem />
+          </ErrorBoundary>
         </Col>
       </Row>
 
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} md={8}>
-          <BlockchainAudit />
+          <ErrorBoundary title="Blockchain Audit">
+            <BlockchainAudit />
+          </ErrorBoundary>
         </Col>
         <Col xs={24} md={8}>
-          <VirtualWorkspace />
+          <ErrorBoundary title="Virtual Workspace">
+            <VirtualWorkspace />
+          </ErrorBoundary>
         </Col>
         <Col xs={24} md={8}>
           {/* Future feature slot */}

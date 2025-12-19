@@ -7,14 +7,14 @@ import { ContextMenu } from '../components/ContextMenu';
 import { QuickFilters } from '../components/QuickFilters';
 import { BulkActionsToolbar } from '../components/BulkActionsToolbar';
 import { SavedViewsDropdown } from '../components/SavedViewsDropdown';
-import { bulkOperationsApi, boardViewsApi, sprintsApi } from '../services/api';
+import { bulkOperationsApi, boardViewsApi, sprintsApi, api } from '../services/api';
 import { DndContext, useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent, pointerWithin, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
-import axios from 'axios';
+
 import { FilterBar } from '../components/FilterBar';
 import { BoardSettings } from '../components/BoardSettings';
 import type { IssueStatus } from '../types';
@@ -307,7 +307,7 @@ const ListViewIssuesList = styled.div`
   gap: 8px;
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+
 
 interface SortableIssueProps {
   issue: any;
@@ -584,7 +584,7 @@ export const BoardView: React.FC = () => {
     }
 
     try {
-      const response = await axios.get(`${API_URL}/issues`, {
+      const response = await api.get('/issues', {
         params: {
           projectId: currentProject.id,
           userId: currentUser?.id || localStorage.getItem('userId')
@@ -618,7 +618,7 @@ export const BoardView: React.FC = () => {
     try {
       // Update on server with full issue data
       const userId = localStorage.getItem('userId');
-      await axios.put(`${API_URL}/issues/${issueId}`, {
+      await api.put(`/issues/${issueId}`, {
         ...issue,
         status: newStatus,
         userId,
@@ -671,7 +671,7 @@ export const BoardView: React.FC = () => {
   const handleContextAssignToMe = async () => {
     if (!contextMenu.issue || !currentUser) return;
     try {
-      await axios.put(`${API_URL}/issues/${contextMenu.issue.id}`, {
+      await api.put(`/issues/${contextMenu.issue.id}`, {
         ...contextMenu.issue,
         assigneeId: currentUser.id
       });
@@ -692,7 +692,7 @@ export const BoardView: React.FC = () => {
     if (!contextMenu.issue) return;
     try {
       const { id, key, ...issueData } = contextMenu.issue;
-      await axios.post(`${API_URL}/issues`, {
+      await api.post('/issues', {
         ...issueData,
         summary: `Copy of ${issueData.summary}`
       });
@@ -713,7 +713,7 @@ export const BoardView: React.FC = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          await axios.delete(`${API_URL}/issues/${contextMenu.issue.id}`);
+          await api.delete(`/issues/${contextMenu.issue.id}`);
           message.success('Issue deleted');
           loadIssues();
         } catch (error) {
@@ -727,7 +727,7 @@ export const BoardView: React.FC = () => {
   const handleContextChangePriority = async (priority: string) => {
     if (!contextMenu.issue) return;
     try {
-      await axios.put(`${API_URL}/issues/${contextMenu.issue.id}`, {
+      await api.put(`/issues/${contextMenu.issue.id}`, {
         ...contextMenu.issue,
         priority
       });
@@ -742,7 +742,7 @@ export const BoardView: React.FC = () => {
   const handleContextChangeStatus = async (status: string) => {
     if (!contextMenu.issue) return;
     try {
-      await axios.put(`${API_URL}/issues/${contextMenu.issue.id}`, {
+      await api.put(`/issues/${contextMenu.issue.id}`, {
         ...contextMenu.issue,
         status
       });
@@ -892,7 +892,7 @@ export const BoardView: React.FC = () => {
       onOk: async () => {
         try {
           // Implement bulk delete API
-          await Promise.all(selectedIssues.map(id => axios.delete(`${API_URL}/issues/${id}`)));
+          await Promise.all(selectedIssues.map(id => api.delete(`/issues/${id}`)));
           message.success('Issues deleted');
           setSelectedIssues([]);
           loadIssues();

@@ -14,6 +14,7 @@ import { sprintsApi, issuesApi } from '../services/api';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { StartSprintModal } from '../components/Sprint/StartSprintModal';
 import { CreateSprintModal } from '../components/Sprint/CreateSprintModal';
+import { CompleteSprintModal } from '../components/Sprint/CompleteSprintModal';
 import { IssueDetailPanel } from '../components/IssueDetail/IssueDetailPanel';
 
 
@@ -247,6 +248,7 @@ export const BacklogView: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState(false);
   const [isCreateSprintModalOpen, setIsCreateSprintModalOpen] = useState(false);
+  const [isCompleteSprintModalOpen, setIsCompleteSprintModalOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState<any>(null);
 
   const sensors = useSensors(
@@ -443,29 +445,8 @@ export const BacklogView: React.FC = () => {
   };
 
   const handleCompleteSprint = (sprint: any) => {
-    Modal.confirm({
-      title: `Complete ${sprint.name}`,
-      content: 'This will close the sprint. All incomplete issues will be moved to the backlog.',
-      okText: 'Complete Sprint',
-      okType: 'primary',
-      onOk: async () => {
-        try {
-          // Identify incomplete issues
-          const incompleteIssues = issues
-            .filter(i => i.sprintId === sprint.id && i.status !== 'done')
-            .map(i => ({ issueId: i.id, action: 'backlog' }));
-
-          await sprintsApi.complete(sprint.id, {
-            incompleteIssues, // Send explicit list
-            rolloverTo: 'backlog' // Fallback/Metadata
-          });
-          message.success(`${sprint.name} completed`);
-          loadData();
-        } catch (e) {
-          message.error('Failed to complete sprint');
-        }
-      }
-    });
+    setSelectedSprint(sprint);
+    setIsCompleteSprintModalOpen(true);
   };
 
   return (
@@ -556,6 +537,14 @@ export const BacklogView: React.FC = () => {
           onSuccess={loadData}
         />
       )}
+      <CompleteSprintModal
+        visible={isCompleteSprintModalOpen}
+        onClose={() => setIsCompleteSprintModalOpen(false)}
+        sprint={selectedSprint}
+        issues={issues}
+        sprints={localSprints}
+        onSuccess={loadData}
+      />
 
     </Container>
   );

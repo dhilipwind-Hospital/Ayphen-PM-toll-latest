@@ -239,6 +239,7 @@ export const TeamChatEnhanced: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
@@ -342,6 +343,7 @@ export const TeamChatEnhanced: React.FC = () => {
 
   const loadMessages = async (channelId: string) => {
     setLoading(true);
+    setError(null);
     try {
       const response = await api.get(`/chat-v2/channels/${channelId}/messages`);
       setMessages(response.data || []);
@@ -356,10 +358,13 @@ export const TeamChatEnhanced: React.FC = () => {
 
       // Handle specific error cases
       if (error.response?.status === 404) {
+        setError('Channel not found or you are not a member');
         antMessage.error('Channel not found or you are not a member');
       } else if (error.response?.status === 403) {
+        setError('You do not have permission to view this channel');
         antMessage.error('You do not have permission to view this channel');
       } else {
+        setError('Failed to load messages');
         antMessage.error('Failed to load messages. Please try again.');
       }
     } finally {
@@ -613,6 +618,11 @@ export const TeamChatEnhanced: React.FC = () => {
               {loading ? (
                 <div style={{ textAlign: 'center', padding: 40 }}>
                   <Spin />
+                </div>
+              ) : error ? (
+                <div style={{ textAlign: 'center', padding: 40, color: '#ff4d4f' }}>
+                  <Users size={32} style={{ marginBottom: 16, opacity: 0.5 }} />
+                  <div>{error}</div>
                 </div>
               ) : (
                 <>

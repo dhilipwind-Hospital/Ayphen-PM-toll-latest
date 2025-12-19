@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Slider, Switch, Button, message, Divider, Space, Alert, Spin } from 'antd';
 import { SettingOutlined, SaveOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { api } from '../../services/api';
 
 interface PMBotSettingsProps {
   projectId?: string;
@@ -18,7 +18,7 @@ export const PMBotSettings: React.FC<PMBotSettingsProps> = ({ projectId }) => {
 
       const userId = localStorage.getItem('userId');
 
-      await axios.put('https://ayphen-pm-toll-latest.onrender.com/api/pmbot/settings', {
+      await api.put('/pmbot/settings', {
         userId,
         projectId,
         settings: values
@@ -49,7 +49,7 @@ export const PMBotSettings: React.FC<PMBotSettingsProps> = ({ projectId }) => {
         setLoading(true);
         const userId = localStorage.getItem('userId');
 
-        const response = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/pmbot/settings', {
+        const response = await api.get('/pmbot/settings', {
           params: { userId, projectId }
         });
 

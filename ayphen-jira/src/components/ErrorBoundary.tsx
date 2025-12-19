@@ -1,18 +1,9 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Result, Button } from 'antd';
-import styled from 'styled-components';
-
-const ErrorContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 24px;
-  background: #f5f5f5;
-`;
+import React, { Component, type ErrorInfo, type ReactNode } from "react";
+import { Button, Result } from "antd";
 
 interface Props {
-  children: ReactNode;
+  children?: ReactNode;
+  title?: string;
 }
 
 interface State {
@@ -22,7 +13,7 @@ interface State {
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false,
+    hasError: false
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -30,31 +21,24 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("Uncaught error:", error, errorInfo);
   }
-
-  private handleReload = () => {
-    window.location.href = '/login';
-  };
 
   public render() {
     if (this.state.hasError) {
       return (
-        <ErrorContainer>
+        <div style={{ padding: 24, background: '#fff', borderRadius: 8, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Result
-            status="error"
-            title="Something went wrong"
-            subTitle="The application encountered an error. Please try logging in again."
-            extra={[
-              <Button type="primary" key="reload" onClick={this.handleReload}>
-                Go to Login
-              </Button>,
-              <Button key="refresh" onClick={() => window.location.reload()}>
-                Refresh Page
-              </Button>,
-            ]}
+            status="warning"
+            title={this.props.title || "Widget Error"}
+            subTitle="This component failed to load."
+            extra={
+              <Button type="primary" size="small" onClick={() => this.setState({ hasError: false })}>
+                Retry
+              </Button>
+            }
           />
-        </ErrorContainer>
+        </div>
       );
     }
 
