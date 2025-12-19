@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { Form, Input, Button, message, Progress } from 'antd';
 import { Lock, CheckCircle, AlertCircle } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../services/api';
 
 // Animations
 const fadeIn = keyframes`
@@ -290,7 +290,7 @@ export const ResetPasswordPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/auth/reset-password', {
+      await api.post('/auth/reset-password', {
         email,
         token,
         newPassword: values.newPassword,

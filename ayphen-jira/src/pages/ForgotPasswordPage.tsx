@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { Form, Input, Button, message } from 'antd';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../services/api';
 
 // Animations
 const fadeIn = keyframes`
@@ -257,7 +257,7 @@ export const ForgotPasswordPage: React.FC = () => {
   const handleSubmit = async (values: { email: string }) => {
     setLoading(true);
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/auth/forgot-password', {
+      await api.post('/auth/forgot-password', {
         email: values.email,
       });
       setEmailSent(true);
