@@ -65,6 +65,13 @@ const Column = styled.div<{ isOver?: boolean }>`
   max-height: calc(100vh - 240px);
   transition: all 0.3s ease;
   border: 2px solid ${props => props.isOver ? colors.primary[200] : 'transparent'};
+  
+  @media (max-width: 768px) {
+    min-width: 260px;
+    width: 260px;
+    padding: 8px;
+    max-height: calc(100vh - 200px);
+  }
 `;
 
 const ColumnHeader = styled.div`

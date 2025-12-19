@@ -32,6 +32,10 @@ const BacklogColumn = styled.div<{ isSplit?: boolean }>`
   border-right: ${props => props.isSplit ? `1px solid ${colors.border.light}` : 'none'};
   transition: width 0.3s;
   background: #f4f5f7;
+  
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
 `;
 
 const DetailColumn = styled.div`
@@ -63,6 +67,11 @@ const Controls = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
+  
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `;
 
 const SprintCard = styled(Card)`

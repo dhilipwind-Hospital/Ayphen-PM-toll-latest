@@ -54,6 +54,17 @@ const StyledHeader = styled(Header)`
   width: calc(100% - 32px);
   transition: all 0.3s ease;
   gap: 16px;
+  
+  @media (max-width: 768px) {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    width: calc(100% - 16px);
+    height: 56px;
+    padding: 0 12px;
+    gap: 8px;
+    border-radius: 12px;
+  }
 `;
 
 const LeftSection = styled.div`

@@ -46,6 +46,22 @@ const StyledSider = styled(Sider)`
     display: flex;
     flex-direction: column;
   }
+  
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 72px;
+    left: 0;
+    height: calc(100vh - 72px);
+    z-index: 999;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+    
+    &.ant-layout-sider-collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      max-width: 0 !important;
+      overflow: hidden;
+    }
+  }
 `;
 
 const ProjectHeader = styled.div`
