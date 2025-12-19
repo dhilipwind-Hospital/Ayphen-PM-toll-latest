@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Table, Tag } from 'antd';
-import axios from 'axios';
+import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 export default function TestRuns() {
@@ -13,10 +13,8 @@ export default function TestRuns() {
 
   const loadRuns = async () => {
     try {
-      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/test-runs', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await api.get('/test-runs', {
         params: { userId }
       });
       setRuns(res.data || []);

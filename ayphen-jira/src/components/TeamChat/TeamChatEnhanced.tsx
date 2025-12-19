@@ -344,14 +344,24 @@ export const TeamChatEnhanced: React.FC = () => {
     setLoading(true);
     try {
       const response = await api.get(`/chat-v2/channels/${channelId}/messages`);
-      setMessages(response.data);
+      setMessages(response.data || []);
 
       // Mark as read
       await api.post(`/chat-v2/channels/${channelId}/read`, {
         userId: user?.id
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load messages:', error);
+      setMessages([]);
+
+      // Handle specific error cases
+      if (error.response?.status === 404) {
+        antMessage.error('Channel not found or you are not a member');
+      } else if (error.response?.status === 403) {
+        antMessage.error('You do not have permission to view this channel');
+      } else {
+        antMessage.error('Failed to load messages. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

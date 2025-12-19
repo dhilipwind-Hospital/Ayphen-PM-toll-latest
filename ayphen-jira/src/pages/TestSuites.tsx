@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, Input, Modal, List, Typography } from 'antd';
 import { PlusOutlined, PlayCircleOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -47,10 +47,8 @@ export default function TestSuites() {
 
   const loadSuites = async () => {
     try {
-      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/test-suites', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await api.get('/test-suites', {
         params: { userId }
       });
       setSuites(res.data || []);
@@ -62,10 +60,8 @@ export default function TestSuites() {
 
   const loadTestCases = async () => {
     try {
-      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await api.get('/manual-test-cases', {
         params: { userId }
       });
       setTestCases(res.data || []);
@@ -77,11 +73,8 @@ export default function TestSuites() {
 
   const handleCreate = async () => {
     try {
-      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/test-suites', { ...form, userId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/test-suites', { ...form, userId });
       setOpen(false);
       setForm({ name: '', description: '' });
       loadSuites();
@@ -92,11 +85,7 @@ export default function TestSuites() {
 
   const handleAddTest = async (testCaseId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/test-suites/${selectedSuite}/test-cases`,
-        { testCaseId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/test-suites/${selectedSuite}/test-cases`, { testCaseId });
       setAddTestOpen(false);
       loadSuites();
     } catch (error) {
@@ -106,11 +95,8 @@ export default function TestSuites() {
 
   const handleRun = async (suiteId: number) => {
     try {
-      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      const res = await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/test-suites/${suiteId}/run`, { userId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post(`/test-suites/${suiteId}/run`, { userId });
       // Navigate to test runs list instead of specific run (route may not exist)
       navigate('/test-runs');
     } catch (error) {

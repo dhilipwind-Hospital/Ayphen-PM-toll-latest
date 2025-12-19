@@ -407,6 +407,19 @@ export const BacklogView: React.FC = () => {
       const nextNum = localSprints.length + 1;
       const name = `${currentProject.key} Sprint ${nextNum}`;
 
+      // Optimistic update - add sprint immediately to UI
+      const tempId = `temp-${Date.now()}`;
+      const optimisticSprint = {
+        id: tempId,
+        name,
+        projectId: currentProject.id,
+        status: 'future',
+        startDate: null,
+        endDate: null,
+        goal: '',
+        createdAt: new Date().toISOString()
+      };
+      setLocalSprints(prev => [...prev, optimisticSprint]);
 
       const createRes = await sprintsApi.create({
         name,
@@ -416,14 +429,15 @@ export const BacklogView: React.FC = () => {
 
       message.success('Sprint created successfully!');
 
-      // Reload sprints - handle both array and object responses
+      // Replace optimistic sprint with real data from server
       const sprintRes = await sprintsApi.getAll(currentProject.id);
-
       const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data.sprints || [];
       setLocalSprints(sprintData);
 
     } catch (e: any) {
       console.error('Failed to create sprint:', e);
+      // Remove optimistic sprint on error
+      setLocalSprints(prev => prev.filter(s => !s.id.startsWith('temp-')));
       message.error(e?.response?.data?.message || 'Failed to create sprint');
     }
   };
