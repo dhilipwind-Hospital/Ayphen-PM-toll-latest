@@ -286,23 +286,30 @@ export const PeoplePage: React.FC = () => {
 
   const handleAddMember = async (values: any) => {
     try {
+      const userId = localStorage.getItem('userId');
+      if (!currentProject?.id) {
+        message.error('No project selected');
+        return;
+      }
+
       const payload = {
-        name: values.name,
+        projectId: currentProject.id,
         email: values.email,
         role: values.role || 'member',
+        invitedById: userId,
       };
 
-      const response = await axios.post(`${API_URL}/users`, payload);
+      await axios.post(`${API_URL}/project-invitations`, payload);
 
-      message.success('Team member added successfully');
+      message.success('Invitation sent successfully');
       setIsAddModalOpen(false);
       form.resetFields();
-      loadTeamMembers();
+      // We don't reload members immediately because they are pending invitation
+      // But we could show a "Pending Invitations" list if implemented.
+      // For now, let's keep it simple.
     } catch (error: any) {
-      console.error('Failed to add member:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      message.error(error.response?.data?.error || 'Failed to add team member');
+      console.error('Failed to invite member:', error);
+      message.error(error.response?.data?.error || 'Failed to invite team member');
     }
   };
 
@@ -523,7 +530,7 @@ export const PeoplePage: React.FC = () => {
 
       {/* Add Member Modal */}
       <Modal
-        title="Add Team Member"
+        title="Invite Team Member"
         open={isAddModalOpen}
         onCancel={() => {
           setIsAddModalOpen(false);
@@ -537,14 +544,6 @@ export const PeoplePage: React.FC = () => {
           onFinish={handleAddMember}
         >
           <Form.Item
-            label="Name"
-            name="name"
-            rules={[{ required: true, message: 'Please enter name' }]}
-          >
-            <Input placeholder="Enter member name" />
-          </Form.Item>
-
-          <Form.Item
             label="Email"
             name="email"
             rules={[
@@ -552,7 +551,7 @@ export const PeoplePage: React.FC = () => {
               { type: 'email', message: 'Please enter valid email' }
             ]}
           >
-            <Input placeholder="Enter email address" />
+            <Input placeholder="Enter email address to invite" />
           </Form.Item>
 
           <Form.Item
@@ -568,8 +567,8 @@ export const PeoplePage: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Add Member
+            <Button type="primary" htmlType="submit" block icon={<Mail size={16} />}>
+              Invite Member
             </Button>
           </Form.Item>
         </Form>
