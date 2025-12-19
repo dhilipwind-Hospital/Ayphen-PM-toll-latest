@@ -233,6 +233,8 @@ export const PeoplePage: React.FC = () => {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [form] = Form.useForm();
 
+  const [currentUserRole, setCurrentUserRole] = useState<string>('member'); // Default to member
+
   useEffect(() => {
     if (currentProject) {
       loadTeamMembers();
@@ -307,6 +309,12 @@ export const PeoplePage: React.FC = () => {
           },
         };
       });
+
+      // Find current user's role
+      const currentUserMember = teamMembers.find(m => m.id === userId);
+      if (currentUserMember) {
+        setCurrentUserRole(currentUserMember.role);
+      }
 
       setMembers(teamMembers);
     } catch (error) {
@@ -412,14 +420,16 @@ export const PeoplePage: React.FC = () => {
             <Title>Team</Title>
             <Subtitle>Manage your team members and track their progress</Subtitle>
           </div>
-          <Button
-            type="primary"
-            icon={<UserPlus size={16} />}
-            size="large"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            Add Member
-          </Button>
+          {currentUserRole === 'admin' && (
+            <Button
+              type="primary"
+              icon={<UserPlus size={16} />}
+              size="large"
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              Invite Member
+            </Button>
+          )}
         </HeaderTop>
       </Header>
 
@@ -479,26 +489,28 @@ export const PeoplePage: React.FC = () => {
             {filteredMembers.map((member) => (
               <Col xs={24} sm={12} lg={8} key={member.id}>
                 <MemberCard>
-                  <CardActions>
-                    <ActionButton
-                      type="text"
-                      icon={<Edit size={16} />}
-                      onClick={() => openEditModal(member)}
-                    />
-                    <Popconfirm
-                      title="Delete team member"
-                      description="Are you sure you want to delete this team member?"
-                      onConfirm={() => handleDeleteMember(member.membershipId)}
-                      okText="Remove"
-                      cancelText="Cancel"
-                    >
+                  {currentUserRole === 'admin' && (
+                    <CardActions>
                       <ActionButton
                         type="text"
-                        danger
-                        icon={<Trash2 size={16} />}
+                        icon={<Edit size={16} />}
+                        onClick={() => openEditModal(member)}
                       />
-                    </Popconfirm>
-                  </CardActions>
+                      <Popconfirm
+                        title="Delete team member"
+                        description="Are you sure you want to delete this team member?"
+                        onConfirm={() => handleDeleteMember(member.membershipId)}
+                        okText="Remove"
+                        cancelText="Cancel"
+                      >
+                        <ActionButton
+                          type="text"
+                          danger
+                          icon={<Trash2 size={16} />}
+                        />
+                      </Popconfirm>
+                    </CardActions>
+                  )}
 
                   <MemberHeader>
                     <MemberAvatar size={80} bgColor={member.avatarColor}>
@@ -571,29 +583,31 @@ export const PeoplePage: React.FC = () => {
                 title: 'Actions',
                 key: 'actions',
                 render: (_: any, record: any) => (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <Tooltip title="Resend Invitation">
-                      <Button
-                        icon={<RefreshCw size={14} />}
-                        size="small"
-                        onClick={() => handleResendInvitation(record.id)}
-                      />
-                    </Tooltip>
-                    <Tooltip title="Revoke Invitation">
-                      <Popconfirm
-                        title="Revoke invitation?"
-                        onConfirm={() => handleRevokeInvitation(record.id)}
-                        okText="Revoke"
-                        cancelText="Cancel"
-                      >
+                  currentUserRole === 'admin' ? (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Tooltip title="Resend Invitation">
                         <Button
-                          icon={<XCircle size={14} />}
+                          icon={<RefreshCw size={14} />}
                           size="small"
-                          danger
+                          onClick={() => handleResendInvitation(record.id)}
                         />
-                      </Popconfirm>
-                    </Tooltip>
-                  </div>
+                      </Tooltip>
+                      <Tooltip title="Revoke Invitation">
+                        <Popconfirm
+                          title="Revoke invitation?"
+                          onConfirm={() => handleRevokeInvitation(record.id)}
+                          okText="Revoke"
+                          cancelText="Cancel"
+                        >
+                          <Button
+                            icon={<XCircle size={14} />}
+                            size="small"
+                            danger
+                          />
+                        </Popconfirm>
+                      </Tooltip>
+                    </div>
+                  ) : null
                 )
               }
             ]}
