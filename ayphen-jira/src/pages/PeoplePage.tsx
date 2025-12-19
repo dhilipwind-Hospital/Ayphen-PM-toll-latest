@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Card, Input, Button, Progress, Avatar, Row, Col, Modal, Form, Select, message, Popconfirm, Empty } from 'antd';
-import { Search, UserPlus, Users, CheckCircle, Activity, Clock, Edit, Trash2, Mail } from 'lucide-react';
+import { Card, Input, Button, Progress, Avatar, Row, Col, Modal, Form, Select, message, Popconfirm, Empty, Tabs, Table, Tag, Tooltip } from 'antd';
+import { Search, UserPlus, Users, CheckCircle, Activity, Clock, Edit, Trash2, Mail, RefreshCw, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { useStore } from '../store/useStore';
 
@@ -225,6 +225,7 @@ interface TeamMember {
 export const PeoplePage: React.FC = () => {
   const { currentProject } = useStore();
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [invitations, setInvitations] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -235,8 +236,37 @@ export const PeoplePage: React.FC = () => {
   useEffect(() => {
     if (currentProject) {
       loadTeamMembers();
+      loadInvitations();
     }
   }, [currentProject]);
+
+  const loadInvitations = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/project-invitations/project/${currentProject?.id}`);
+      setInvitations(response.data.filter((i: any) => i.status === 'pending'));
+    } catch (error) {
+      console.error('Failed to load invitations', error);
+    }
+  };
+
+  const handleResendInvitation = async (id: string) => {
+    try {
+      await axios.post(`${API_URL}/project-invitations/resend/${id}`);
+      message.success('Invitation resent successfully');
+    } catch (error) {
+      message.error('Failed to resend invitation');
+    }
+  };
+
+  const handleRevokeInvitation = async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/project-invitations/${id}`);
+      message.success('Invitation revoked successfully');
+      loadInvitations();
+    } catch (error) {
+      message.error('Failed to revoke invitation');
+    }
+  };
 
   const loadTeamMembers = async () => {
     setLoading(true);
@@ -307,6 +337,7 @@ export const PeoplePage: React.FC = () => {
       message.success('Invitation sent successfully');
       setIsAddModalOpen(false);
       form.resetFields();
+      loadInvitations();
     } catch (error: any) {
       console.error('Failed to invite member:', error);
       message.error(error.response?.data?.error || 'Failed to invite team member');
@@ -442,87 +473,133 @@ export const PeoplePage: React.FC = () => {
         </Col>
       </StatsRow>
 
-      <Row gutter={[16, 16]}>
-        {filteredMembers.map((member) => (
-          <Col xs={24} sm={12} lg={8} key={member.id}>
-            <MemberCard>
-              <CardActions>
-                <ActionButton
-                  type="text"
-                  icon={<Edit size={16} />}
-                  onClick={() => openEditModal(member)}
-                />
-                <Popconfirm
-                  title="Delete team member"
-                  description="Are you sure you want to delete this team member?"
-                  onConfirm={() => handleDeleteMember(member.membershipId)}
-                  okText="Remove"
-                  cancelText="Cancel"
-                >
-                  <ActionButton
-                    type="text"
-                    danger
-                    icon={<Trash2 size={16} />}
-                  />
-                </Popconfirm>
-              </CardActions>
+      <Tabs defaultActiveKey="members" style={{ marginTop: 24 }}>
+        <Tabs.TabPane tab="Team Members" key="members">
+          <Row gutter={[16, 16]}>
+            {filteredMembers.map((member) => (
+              <Col xs={24} sm={12} lg={8} key={member.id}>
+                <MemberCard>
+                  <CardActions>
+                    <ActionButton
+                      type="text"
+                      icon={<Edit size={16} />}
+                      onClick={() => openEditModal(member)}
+                    />
+                    <Popconfirm
+                      title="Delete team member"
+                      description="Are you sure you want to delete this team member?"
+                      onConfirm={() => handleDeleteMember(member.membershipId)}
+                      okText="Remove"
+                      cancelText="Cancel"
+                    >
+                      <ActionButton
+                        type="text"
+                        danger
+                        icon={<Trash2 size={16} />}
+                      />
+                    </Popconfirm>
+                  </CardActions>
 
-              <MemberHeader>
-                <MemberAvatar size={80} bgColor={member.avatarColor}>
-                  {member.name.charAt(0)}
-                </MemberAvatar>
-                <MemberInfo>
-                  <MemberName>{member.name}</MemberName>
-                  <MemberRole>{member.role.charAt(0).toUpperCase() + member.role.slice(1)}</MemberRole>
-                </MemberInfo>
-              </MemberHeader>
+                  <MemberHeader>
+                    <MemberAvatar size={80} bgColor={member.avatarColor}>
+                      {member.name.charAt(0)}
+                    </MemberAvatar>
+                    <MemberInfo>
+                      <MemberName>{member.name}</MemberName>
+                      <MemberRole>{member.role.charAt(0).toUpperCase() + member.role.slice(1)}</MemberRole>
+                    </MemberInfo>
+                  </MemberHeader>
 
-              <MemberEmail>
-                <Mail size={14} />
-                {member.email}
-              </MemberEmail>
+                  <MemberEmail>
+                    <Mail size={14} />
+                    {member.email}
+                  </MemberEmail>
 
-              <CompletionSection>
-                <CompletionHeader>
-                  <CompletionLabel>Completion Rate</CompletionLabel>
-                  <CompletionRate>{member.completionRate}%</CompletionRate>
-                </CompletionHeader>
-                <Progress
-                  percent={member.completionRate}
-                  showInfo={false}
-                  strokeColor={
-                    member.completionRate === 100 ? '#52C41A' :
-                      member.completionRate >= 50 ? '#1890FF' :
-                        '#FA8C16'
-                  }
-                />
-              </CompletionSection>
+                  <CompletionSection>
+                    <CompletionHeader>
+                      <CompletionLabel>Completion Rate</CompletionLabel>
+                      <CompletionRate>{member.completionRate}%</CompletionRate>
+                    </CompletionHeader>
+                    <Progress
+                      percent={member.completionRate}
+                      showInfo={false}
+                      strokeColor={
+                        member.completionRate === 100 ? '#52C41A' :
+                          member.completionRate >= 50 ? '#1890FF' :
+                            '#FA8C16'
+                      }
+                    />
+                  </CompletionSection>
 
-              <StatsGrid>
-                <StatItem>
-                  <StatItemValue>{member.stats.total}</StatItemValue>
-                  <StatItemLabel>Total</StatItemLabel>
-                </StatItem>
-                <StatItem>
-                  <StatItemValue>{member.stats.done}</StatItemValue>
-                  <StatItemLabel>Done</StatItemLabel>
-                </StatItem>
-                <StatItem>
-                  <StatItemValue>{member.stats.active}</StatItemValue>
-                  <StatItemLabel>Active</StatItemLabel>
-                </StatItem>
-              </StatsGrid>
+                  <StatsGrid>
+                    <StatItem>
+                      <StatItemValue>{member.stats.total}</StatItemValue>
+                      <StatItemLabel>Total</StatItemLabel>
+                    </StatItem>
+                    <StatItem>
+                      <StatItemValue>{member.stats.done}</StatItemValue>
+                      <StatItemLabel>Done</StatItemLabel>
+                    </StatItem>
+                    <StatItem>
+                      <StatItemValue>{member.stats.active}</StatItemValue>
+                      <StatItemLabel>Active</StatItemLabel>
+                    </StatItem>
+                  </StatsGrid>
 
-              <ViewProfileButton
-                type="default"
-                onClick={() => window.location.href = `/settings/profile?userId=${member.id}`}
-              >
-                View Profile
-              </ViewProfileButton>
-            </MemberCard>
-          </Col>
-        ))}
-      </Row>
+                  <ViewProfileButton
+                    type="default"
+                    onClick={() => window.location.href = `/settings/profile?userId=${member.id}`}
+                  >
+                    View Profile
+                  </ViewProfileButton>
+                </MemberCard>
+              </Col>
+            ))}
+          </Row>
+        </Tabs.TabPane>
+        <Tabs.TabPane tab={`Pending Invitations (${invitations.length})`} key="invitations">
+          <Table
+            dataSource={invitations}
+            rowKey="id"
+            pagination={false}
+            columns={[
+              { title: 'Email', dataIndex: 'email', key: 'email' },
+              { title: 'Role', dataIndex: 'role', key: 'role', render: (role: string) => <Tag color="blue">{role.toUpperCase()}</Tag> },
+              { title: 'Sent By', dataIndex: ['invitedBy', 'name'], key: 'invitedBy' },
+              { title: 'Sent At', dataIndex: 'createdAt', key: 'createdAt', render: (date: string) => new Date(date).toLocaleDateString() },
+              {
+                title: 'Actions',
+                key: 'actions',
+                render: (_: any, record: any) => (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Tooltip title="Resend Invitation">
+                      <Button
+                        icon={<RefreshCw size={14} />}
+                        size="small"
+                        onClick={() => handleResendInvitation(record.id)}
+                      />
+                    </Tooltip>
+                    <Tooltip title="Revoke Invitation">
+                      <Popconfirm
+                        title="Revoke invitation?"
+                        onConfirm={() => handleRevokeInvitation(record.id)}
+                        okText="Revoke"
+                        cancelText="Cancel"
+                      >
+                        <Button
+                          icon={<XCircle size={14} />}
+                          size="small"
+                          danger
+                        />
+                      </Popconfirm>
+                    </Tooltip>
+                  </div>
+                )
+              }
+            ]}
+          />
+        </Tabs.TabPane>
+      </Tabs>
 
       {/* Add Member Modal */}
       <Modal
