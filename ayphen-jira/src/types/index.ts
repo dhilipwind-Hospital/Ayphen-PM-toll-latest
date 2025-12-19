@@ -120,6 +120,7 @@ export interface Issue {
     aiPrompt?: string;
   };
   listPosition?: number;
+  severity?: string;
 }
 
 export interface Board {

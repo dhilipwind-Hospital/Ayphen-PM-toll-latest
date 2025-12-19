@@ -92,50 +92,72 @@ export const StoriesListView: React.FC = () => {
   const navigate = useNavigate();
   const { issues, currentProject } = useStore();
   const [loading, setLoading] = useState(false);
-  const [stories, setStories] = useState<any[]>([]);
-  const [filteredStories, setFilteredStories] = useState<any[]>([]);
+  // const [stories, setStories] = useState<any[]>([]); // REPLACED by useMemo
+  // const [filteredStories, setFilteredStories] = useState<any[]>([]); // REPLACED by useMemo
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [testCasesMap, setTestCasesMap] = useState<Record<string, number>>({});
   const [bugsMap, setBugsMap] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    loadStories();
-  }, [currentProject, issues]);
+  // Derive stories from store issues
+  const stories = React.useMemo(() => {
+    if (!currentProject) return [];
+    return issues.filter(
+      issue => issue.type === 'story' && issue.projectId === currentProject.id
+    );
+  }, [issues, currentProject]);
 
-  useEffect(() => {
-    filterStories();
+  // Derived filtered stories
+  const filteredStories = React.useMemo(() => {
+    let filtered = [...stories];
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(story => story.status === statusFilter);
+    }
+
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter(story => story.priority === priorityFilter);
+    }
+
+    return filtered;
   }, [stories, statusFilter, priorityFilter]);
 
-  const loadStories = async () => {
-    setLoading(true);
+  // Load test cases ONLY when project changes
+  useEffect(() => {
+    if (Date.now() - (window as any)._lastTestCaseFetch < 5000) return; // Simple throttle
+    if (stories.length > 0) {
+      loadTestCasesCount(stories);
+      (window as any)._lastTestCaseFetch = Date.now();
+    }
+  }, [currentProject?.id]); // Only re-fetch if project changes
+
+  // Update bugs count when issues change (cheap in-memory operation)
+  useEffect(() => {
+    if (stories.length > 0) {
+      loadBugsCount(stories);
+    }
+  }, [stories, issues]); // Recalculate if issues change
+
+  // Refresh issues from server
+  const refreshIssues = async () => {
+    if (!currentProject) return;
     try {
-      // CHECK if project exists
-      if (!currentProject) {
-        setStories([]);
-        setLoading(false);
-        return;
-      }
-
-      // FILTER by project AND type
-      const userStories = issues.filter(
-        issue => issue.type === 'story' && issue.projectId === currentProject.id
-      );
-      setStories(userStories);
-
-      // Load test cases count for each story
-      await loadTestCasesCount(userStories);
-
-      // Load bugs count for each story
-      loadBugsCount(userStories);
-    } catch (error) {
-      console.error('Failed to load stories:', error);
-      message.error('Failed to load stories');
-    } finally {
-      setLoading(false);
+      // Use issuesApi which is likely imported or api directly
+      const res = await api.get('/issues', { params: { projectId: currentProject.id } });
+      const { setIssues } = useStore.getState();
+      setIssues(res.data);
+    } catch (e) {
+      console.error('Failed to refresh issues', e);
     }
   };
+
+  // Initial load if issues are empty
+  useEffect(() => {
+    if (currentProject && issues.length === 0) {
+      refreshIssues();
+    }
+  }, [currentProject]); // Run once when project loads
 
   const loadTestCasesCount = async (userStories: any[]) => {
     try {
@@ -177,19 +199,7 @@ export const StoriesListView: React.FC = () => {
     setBugsMap(countsMap);
   };
 
-  const filterStories = () => {
-    let filtered = [...stories];
 
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(story => story.status === statusFilter);
-    }
-
-    if (priorityFilter !== 'all') {
-      filtered = filtered.filter(story => story.priority === priorityFilter);
-    }
-
-    setFilteredStories(filtered);
-  };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -435,7 +445,7 @@ export const StoriesListView: React.FC = () => {
         onClose={() => setCreateModalOpen(false)}
         onSuccess={() => {
           setCreateModalOpen(false);
-          loadStories();
+          refreshIssues();
         }}
         defaultType="story"
       />

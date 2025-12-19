@@ -5,7 +5,7 @@ import { Table, Tag, Button, Select, message, Spin, Progress, Tooltip, Space, Ba
 import { Plus, TrendingUp, Eye, FileText, Bug, List, LayoutGrid, Calendar } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { CreateIssueModal } from '../components/CreateIssueModal';
-import axios from 'axios';
+import { api } from '../services/api';
 
 const Container = styled.div`
   padding: 0;
@@ -85,7 +85,7 @@ const StatsRow = styled.div`
   color: #5E6C84;
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+
 
 export const EpicsListView: React.FC = () => {
   const navigate = useNavigate();
@@ -125,7 +125,7 @@ export const EpicsListView: React.FC = () => {
     setLoading(true);
     try {
       const userId = localStorage.getItem('userId');
-      const response = await axios.get(`${API_URL}/epics?projectId=${projectId}&userId=${userId}`);
+      const response = await api.get('/epics', { params: { projectId, userId } });
       setEpics(response.data);
     } catch (error) {
       console.error('Failed to load epics:', error);

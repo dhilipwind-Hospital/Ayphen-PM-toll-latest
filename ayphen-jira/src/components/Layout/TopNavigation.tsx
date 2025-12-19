@@ -32,6 +32,7 @@ import { CreateIssueModal } from '../CreateIssueModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { TeamNotificationPanel } from '../TeamNotifications/TeamNotificationPanel';
 import { NotificationSystem } from '../Notifications/NotificationSystem';
+import { UserAvatar } from '../common/UserAvatar';
 
 const { Header } = Layout;
 
@@ -660,12 +661,11 @@ export const TopNavigation: React.FC = () => {
           </Dropdown>
 
           <Dropdown menu={profileMenu} trigger={['click']}>
-            <Avatar
-              src={currentUser?.avatar}
+            <UserAvatar
+              user={currentUser}
               style={{ cursor: 'pointer', background: colors.primary[500] }}
-            >
-              {currentUser?.name?.charAt(0) || 'U'}
-            </Avatar>
+              showTooltip={false}
+            />
           </Dropdown>
         </RightSection>
       </StyledHeader>

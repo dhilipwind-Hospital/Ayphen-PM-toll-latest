@@ -5,6 +5,7 @@ import { Plus, Download, Bug } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { CreateIssueModal } from '../components/CreateIssueModal';
+import { api } from '../services/api';
 
 const Container = styled.div`
   padding: 0;
@@ -93,44 +94,22 @@ export const BugsListView: React.FC = () => {
   const navigate = useNavigate();
   const { issues, currentProject } = useStore();
   const [loading, setLoading] = useState(false);
-  const [bugs, setBugs] = useState<any[]>([]);
-  const [filteredBugs, setFilteredBugs] = useState<any[]>([]);
+  // const [bugs, setBugs] = useState<any[]>([]); // REPLACED by useMemo
+  // const [filteredBugs, setFilteredBugs] = useState<any[]>([]); // REPLACED by useMemo
   const [statusFilter, setStatusFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
-  useEffect(() => {
-    loadBugs();
-  }, [currentProject, issues]);
+  // Derive bugs from store issues
+  const bugs = React.useMemo(() => {
+    if (!currentProject) return [];
+    return issues.filter(
+      issue => issue.type === 'bug' && issue.projectId === currentProject.id
+    );
+  }, [issues, currentProject]);
 
-  useEffect(() => {
-    filterBugs();
-  }, [bugs, statusFilter, severityFilter]);
-
-  const loadBugs = async () => {
-    setLoading(true);
-    try {
-      // CHECK if project exists
-      if (!currentProject) {
-        setBugs([]);
-        setLoading(false);
-        return;
-      }
-
-      // FILTER by project AND type
-      const bugIssues = issues.filter(
-        issue => issue.type === 'bug' && issue.projectId === currentProject.id
-      );
-      setBugs(bugIssues);
-    } catch (error) {
-      console.error('Failed to load bugs:', error);
-      message.error('Failed to load bugs');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterBugs = () => {
+  // Derived filtered bugs
+  const filteredBugs = React.useMemo(() => {
     let filtered = [...bugs];
 
     if (statusFilter !== 'all') {
@@ -141,8 +120,27 @@ export const BugsListView: React.FC = () => {
       filtered = filtered.filter(bug => bug.severity === severityFilter);
     }
 
-    setFilteredBugs(filtered);
+    return filtered;
+  }, [bugs, statusFilter, severityFilter]);
+
+  // Refresh issues from server
+  const refreshIssues = async () => {
+    if (!currentProject) return;
+    try {
+      const res = await api.get('/issues', { params: { projectId: currentProject.id } });
+      const { setIssues } = useStore.getState();
+      setIssues(res.data);
+    } catch (e) {
+      console.error('Failed to refresh issues', e);
+    }
   };
+
+  // Initial load if issues are empty
+  useEffect(() => {
+    if (currentProject && issues.length === 0) {
+      refreshIssues();
+    }
+  }, [currentProject]);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -357,7 +355,7 @@ export const BugsListView: React.FC = () => {
         onClose={() => setCreateModalOpen(false)}
         onSuccess={() => {
           setCreateModalOpen(false);
-          loadBugs();
+          refreshIssues();
         }}
         defaultType="bug"
       />

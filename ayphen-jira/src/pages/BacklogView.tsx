@@ -432,9 +432,8 @@ export const BacklogView: React.FC = () => {
       message.success('Sprint created successfully!');
 
       // Replace optimistic sprint with real data from server
-      const sprintRes = await sprintsApi.getAll(currentProject.id);
-      const sprintData = Array.isArray(sprintRes.data) ? sprintRes.data : sprintRes.data.sprints || [];
-      setLocalSprints(sprintData);
+      const createdSprint = createRes.data;
+      setLocalSprints(prev => prev.map(s => s.id === tempId ? createdSprint : s));
 
     } catch (e: any) {
       console.error('Failed to create sprint:', e);

@@ -22,6 +22,7 @@ export const AdvancedReports: React.FC = () => {
   const [reportType, setReportType] = useState('velocity');
   const [dateRange, setDateRange] = useState<[any, any]>([dayjs().subtract(30, 'days'), dayjs()]);
   const [data, setData] = useState<any>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (currentProject) {
@@ -69,12 +70,15 @@ export const AdvancedReports: React.FC = () => {
   };
 
   const exportReport = async (format: 'pdf' | 'csv') => {
+    setExporting(true);
     try {
       await reportsApi.export(format, reportType);
       message.success(`Report exported as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Export error:', error);
       message.error('Export failed');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -85,10 +89,10 @@ export const AdvancedReports: React.FC = () => {
           <h1>Advanced Reports</h1>
         </Col>
         <Col span={12} style={{ textAlign: 'right' }}>
-          <Button icon={<Download size={16} />} onClick={() => exportReport('pdf')} style={{ marginRight: 8 }}>
+          <Button icon={<Download size={16} />} onClick={() => exportReport('pdf')} loading={exporting} style={{ marginRight: 8 }}>
             Export PDF
           </Button>
-          <Button icon={<Download size={16} />} onClick={() => exportReport('csv')}>
+          <Button icon={<Download size={16} />} onClick={() => exportReport('csv')} loading={exporting}>
             Export CSV
           </Button>
         </Col>

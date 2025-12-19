@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, message, Progress } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { api } from '../../services/api';
 import styled from 'styled-components';
 
 const { Dragger } = Upload;
@@ -55,8 +55,8 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
 
     try {
       setUploading(true);
-      const response = await axios.post(
-        'https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload',
+      const response = await api.post(
+        '/attachments-v2/upload',
         formData,
         {
           headers: {
@@ -110,8 +110,8 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
 
     try {
       setUploading(true);
-      const response = await axios.post(
-        'https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple',
+      const response = await api.post(
+        '/attachments-v2/upload-multiple',
         formData,
         {
           headers: {
