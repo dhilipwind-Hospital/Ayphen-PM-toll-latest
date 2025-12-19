@@ -8,6 +8,7 @@ import { issuesApi, sprintsApi } from '../services/api';
 import { OrphanedIssuesWidget } from '../components/Dashboard/OrphanedIssuesWidget';
 import { AIAssistant, LiveCursors, PredictiveAnalytics, AchievementSystem, BlockchainAudit, VirtualWorkspace } from '../features';
 import { H1, BodyLarge } from '../components/Typography';
+import { StatsSkeleton } from '../components/Loading/SkeletonLoaders';
 
 const fadeIn = keyframes`
   from {

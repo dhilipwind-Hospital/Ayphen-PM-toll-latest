@@ -3,7 +3,7 @@ import { Form, Input, Button, Checkbox, message, Progress } from 'antd';
 import { User, Mail, Lock, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import axios from 'axios';
+import { api } from '../services/api';
 import { BodyLarge } from '../components/Typography';
 
 const float = keyframes`
@@ -209,7 +209,7 @@ export const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/auth/register', {
+      await api.post('/auth/register', {
         name: values.name,
         email: values.email,
         password: values.password,

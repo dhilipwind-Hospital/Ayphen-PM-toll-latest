@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Filter, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { CreateIssueModal } from '../components/CreateIssueModal';
+import { api } from '../services/api';
 
 const Container = styled.div`
   padding: 24px;
@@ -153,19 +154,14 @@ export const CalendarView: React.FC = () => {
 
         // Fetch issues and sprints in parallel
         const [issuesRes, sprintsRes] = await Promise.all([
-          fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issues?projectId=${currentProject.id}&userId=${userId}`),
-          fetch(`https://ayphen-pm-toll-latest.onrender.com/api/sprints?projectId=${currentProject.id}`)
+          api.get('/issues', { params: { projectId: currentProject.id, userId } }),
+          api.get('/sprints', { params: { projectId: currentProject.id } })
         ]);
 
-        if (issuesRes.ok) {
-          const issuesData = await issuesRes.json();
-          setIssues(issuesData || []);
-        }
+        setIssues(issuesRes.data || []);
 
-        if (sprintsRes.ok) {
-          const sprintsData = await sprintsRes.json();
-          setSprints(sprintsData || []);
-        }
+        const sprintData = Array.isArray(sprintsRes.data) ? sprintsRes.data : (sprintsRes.data?.sprints || []);
+        setSprints(sprintData);
       } catch (error) {
         console.error('Failed to load calendar data:', error);
       } finally {

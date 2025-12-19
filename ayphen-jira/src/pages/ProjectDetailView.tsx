@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Tabs, Tag, Button, Progress } from 'antd';
 import { ArrowLeftOutlined, BugOutlined, FileTextOutlined, CheckSquareOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { api } from '../services/api';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -22,19 +22,21 @@ export default function ProjectDetailView() {
   }, [projectId]);
 
   const loadProject = async () => {
-    const token = localStorage.getItem('token');
-    const res = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/projects/${projectId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setProject(res.data);
+    try {
+      const res = await api.get(`/projects/${projectId}`);
+      setProject(res.data);
+    } catch (error) {
+      console.error('Failed to load project:', error);
+    }
   };
 
   const loadEpics = async () => {
-    const token = localStorage.getItem('token');
-    const res = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/epics?projectId=${projectId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setEpics(res.data);
+    try {
+      const res = await api.get('/epics', { params: { projectId } });
+      setEpics(res.data || []);
+    } catch (error) {
+      console.error('Failed to load epics:', error);
+    }
   };
 
   const getEpicProgress = (epic: any) => {
