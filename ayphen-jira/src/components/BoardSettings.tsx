@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Select, InputNumber, Switch, Space, message } from 'antd';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import styled from 'styled-components';
@@ -67,7 +67,9 @@ interface BoardSettingsProps {
   visible: boolean;
   onClose: () => void;
   columns: Column[];
-  onSave: (columns: Column[]) => void;
+  boardName: string;
+  showEmptyColumns: boolean;
+  onSave: (settings: { columns: Column[]; boardName: string; showEmptyColumns: boolean }) => void;
 }
 
 interface SortableColumnItemProps {
@@ -148,10 +150,30 @@ const SortableColumnItem: React.FC<SortableColumnItemProps> = ({ column, onUpdat
   );
 };
 
-export const BoardSettings: React.FC<BoardSettingsProps> = ({ visible, onClose, columns: initialColumns, onSave }) => {
+export const BoardSettings: React.FC<BoardSettingsProps> = ({
+  visible,
+  onClose,
+  columns: initialColumns,
+  boardName: initialBoardName,
+  showEmptyColumns: initialShowEmptyColumns,
+  onSave
+}) => {
   const [columns, setColumns] = useState<Column[]>(initialColumns);
-  const [boardName, setBoardName] = useState('Board');
-  const [showEmptyColumns, setShowEmptyColumns] = useState(true);
+  const [boardName, setBoardName] = useState(initialBoardName);
+  const [showEmptyColumns, setShowEmptyColumns] = useState(initialShowEmptyColumns);
+
+  // Update local state when props change
+  useEffect(() => {
+    setColumns(initialColumns);
+  }, [initialColumns]);
+
+  useEffect(() => {
+    setBoardName(initialBoardName);
+  }, [initialBoardName]);
+
+  useEffect(() => {
+    setShowEmptyColumns(initialShowEmptyColumns);
+  }, [initialShowEmptyColumns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -203,8 +225,7 @@ export const BoardSettings: React.FC<BoardSettingsProps> = ({ visible, onClose, 
       return;
     }
 
-    onSave(columns);
-    message.success('Board settings saved!');
+    onSave({ columns, boardName, showEmptyColumns });
     onClose();
   };
 

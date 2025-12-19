@@ -144,6 +144,13 @@ const IssueCount = styled.span<{ isNearLimit?: boolean; isOverLimit?: boolean }>
   font-weight: 600;
 `;
 
+const BoardTitle = styled.h1`
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: ${colors.text.primary};
+`;
+
 const IssueList = styled.div`
   flex: 1;
   overflow-y: auto;
@@ -533,6 +540,27 @@ export const BoardView: React.FC = () => {
     { id: 'in-review', title: 'In Review', statuses: ['in-review'], wipLimit: 2, color: '#722ed1' },
     { id: 'done', title: 'Done', statuses: ['done'], wipLimit: undefined, color: '#52c41a' },
   ]);
+  const [boardName, setBoardName] = useState('Board');
+  const [showEmptyColumns, setShowEmptyColumns] = useState(true);
+
+  // Load persistence settings (Board name, empty columns, and columns order)
+  useEffect(() => {
+    if (currentProject) {
+      const savedName = localStorage.getItem(`boardName_${currentProject.id}`);
+      const savedEmptyCols = localStorage.getItem(`boardShowEmpty_${currentProject.id}`);
+      const savedCols = localStorage.getItem(`boardColumns_${currentProject.id}`);
+
+      if (savedName) setBoardName(savedName);
+      if (savedEmptyCols) setShowEmptyColumns(savedEmptyCols === 'true');
+      if (savedCols) {
+        try {
+          setColumns(JSON.parse(savedCols));
+        } catch (e) {
+          console.error('Failed to parse board columns', e);
+        }
+      }
+    }
+  }, [currentProject]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -842,8 +870,17 @@ export const BoardView: React.FC = () => {
     );
   };
 
-  const handleSaveSettings = (newColumns: any[]) => {
-    setColumns(newColumns);
+  const handleSaveSettings = (settings: { columns: any[]; boardName: string; showEmptyColumns: boolean }) => {
+    setColumns(settings.columns);
+    setBoardName(settings.boardName);
+    setShowEmptyColumns(settings.showEmptyColumns);
+
+    if (currentProject) {
+      localStorage.setItem(`boardName_${currentProject.id}`, settings.boardName);
+      localStorage.setItem(`boardShowEmpty_${currentProject.id}`, String(settings.showEmptyColumns));
+      localStorage.setItem(`boardColumns_${currentProject.id}`, JSON.stringify(settings.columns));
+    }
+
     message.success('Board settings saved!');
   };
 
@@ -1002,46 +1039,57 @@ export const BoardView: React.FC = () => {
     <Container>
       <div style={{
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-        flexWrap: 'wrap',
-        gap: '12px'
+        flexDirection: 'column',
+        gap: '16px',
+        marginBottom: 24
       }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <BoardTitle>{boardName}</BoardTitle>
+          <Tag color="blue" style={{ borderRadius: '12px', padding: '0 12px' }}>Board</Tag>
+        </div>
+
         <div style={{
           display: 'flex',
-          gap: 16,
+          justifyContent: 'space-between',
           alignItems: 'center',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          gap: '12px'
         }}>
-          <SavedViewsDropdown
-            views={savedViews}
-            currentView={currentView}
-            onLoadView={handleLoadView}
-            onSaveView={handleSaveView}
-            onDeleteView={handleDeleteView}
-            onSetDefault={handleSetDefaultView}
-          />
-          <FilterBar
-            project={currentProject}
-            selectedPriority={filterPriority}
-            selectedType={filterType}
-            selectedAssignee={filterAssignee}
-            onPriorityChange={(value) => setFilterPriority(value as string[])}
-            onTypeChange={(value) => setFilterType(value as string[])}
-            onAssigneeChange={(value) => setFilterAssignee(value as string[])}
-            assignees={uniqueAssignees}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
+          <div style={{
+            display: 'flex',
+            gap: 16,
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}>
+            <SavedViewsDropdown
+              views={savedViews}
+              currentView={currentView}
+              onLoadView={handleLoadView}
+              onSaveView={handleSaveView}
+              onDeleteView={handleDeleteView}
+              onSetDefault={handleSetDefaultView}
+            />
+            <FilterBar
+              project={currentProject}
+              selectedPriority={filterPriority}
+              selectedType={filterType}
+              selectedAssignee={filterAssignee}
+              onPriorityChange={(value) => setFilterPriority(value as string[])}
+              onTypeChange={(value) => setFilterType(value as string[])}
+              onAssigneeChange={(value) => setFilterAssignee(value as string[])}
+              assignees={uniqueAssignees}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
+          </div>
+          <Button
+            icon={<Settings size={16} />}
+            onClick={() => setSettingsVisible(true)}
+            style={{ marginLeft: 'auto' }}
+          >
+            Board Settings
+          </Button>
         </div>
-        <Button
-          icon={<Settings size={16} />}
-          onClick={() => setSettingsVisible(true)}
-          style={{ marginLeft: 'auto' }}
-        >
-          Board Settings
-        </Button>
       </div>
 
       <QuickFilters
@@ -1075,26 +1123,31 @@ export const BoardView: React.FC = () => {
         >
           {viewMode === 'grid' ? (
             <BoardContainer $viewMode="grid">
-              {columns.map(col => (
-                <DroppableColumn
-                  key={col.id}
-                  status={col.id}
-                  title={col.title}
-                  issues={getIssuesByStatus(col.statuses)}
-                  onIssueClick={handleIssueClick}
-                  onCardSelect={handleCardSelect}
-                  selectedIssues={selectedIssues}
-                  onContextMenu={handleContextMenu}
-                  wipLimit={col.wipLimit}
-                />
-              ))}
+              {columns.map(col => {
+                const colIssues = getIssuesByStatus(col.statuses);
+                if (!showEmptyColumns && colIssues.length === 0) return null;
+
+                return (
+                  <DroppableColumn
+                    key={col.id}
+                    status={col.id}
+                    title={col.title}
+                    issues={colIssues}
+                    onIssueClick={handleIssueClick}
+                    onCardSelect={handleCardSelect}
+                    selectedIssues={selectedIssues}
+                    onContextMenu={handleContextMenu}
+                    wipLimit={col.wipLimit}
+                  />
+                );
+              })}
             </BoardContainer>
           ) : (
             <BoardContainer $viewMode="list">
               <ListViewContainer>
                 {columns.map(col => {
                   const colIssues = getIssuesByStatus(col.statuses);
-                  if (colIssues.length === 0) return null;
+                  if (!showEmptyColumns && colIssues.length === 0) return null;
 
                   return (
                     <ListViewStatusSection key={col.id}>
@@ -1140,6 +1193,8 @@ export const BoardView: React.FC = () => {
         visible={settingsVisible}
         onClose={() => setSettingsVisible(false)}
         columns={columns}
+        boardName={boardName}
+        showEmptyColumns={showEmptyColumns}
         onSave={handleSaveSettings}
       />
 
