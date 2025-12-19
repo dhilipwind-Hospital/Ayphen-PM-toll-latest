@@ -86,9 +86,10 @@ export const AdvancedSearchView: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [savedFilters, setSavedFilters] = useState<any[]>([]);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
-  
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
+
   const projectId = currentProject?.id || 'default-project';
-  
+
   const fieldOptions = [
     { label: 'Status', value: 'status' },
     { label: 'Type', value: 'type' },
@@ -102,7 +103,7 @@ export const AdvancedSearchView: React.FC = () => {
     { label: 'Labels', value: 'labels' },
     { label: 'Story Points', value: 'storyPoints' },
   ];
-  
+
   const operatorOptions = [
     { label: '=', value: '=' },
     { label: '!=', value: '!=' },
@@ -112,11 +113,11 @@ export const AdvancedSearchView: React.FC = () => {
     { label: 'IS EMPTY', value: 'IS EMPTY' },
     { label: 'IS NOT EMPTY', value: 'IS NOT EMPTY' },
   ];
-  
-  const statusOptions = ['todo', 'in-progress', 'in-review', 'done', 'backlog'];
+
+  const [statusOptions, setStatusOptions] = useState<string[]>(['todo', 'in-progress', 'in-review', 'done', 'backlog']);
   const typeOptions = ['epic', 'story', 'task', 'bug', 'subtask'];
   const priorityOptions = ['highest', 'high', 'medium', 'low', 'lowest'];
-  
+
   const buildJQLFromFilters = () => {
     const conditions = filters
       .filter(f => f.value)
@@ -133,20 +134,20 @@ export const AdvancedSearchView: React.FC = () => {
         }
         return `${f.field} ${f.operator} "${f.value}"`;
       });
-    
+
     return conditions.join(' AND ');
   };
-  
+
   const handleSearch = async () => {
     setLoading(true);
     try {
       const searchJQL = mode === 'jql' ? jql : buildJQLFromFilters();
-      
+
       const response = await axios.post(`${API_URL}/search`, {
         jql: searchJQL,
         limit: 100,
       });
-      
+
       setResults(response.data.issues);
       setTotal(response.data.total);
       message.success(`Found ${response.data.total} issues`);
@@ -157,10 +158,10 @@ export const AdvancedSearchView: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
   const handleQuickSearch = async (text: string) => {
     if (!text) return;
-    
+
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/search/quick?q=${text}`);
@@ -172,25 +173,25 @@ export const AdvancedSearchView: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
   const addFilter = () => {
     setFilters([...filters, { field: 'status', operator: '=', value: '' }]);
   };
-  
+
   const removeFilter = (index: number) => {
     setFilters(filters.filter((_, i) => i !== index));
   };
-  
+
   const updateFilter = (index: number, key: keyof SearchFilter, value: any) => {
     const newFilters = [...filters];
     newFilters[index] = { ...newFilters[index], [key]: value };
     setFilters(newFilters);
   };
-  
+
   const handleSaveFilter = () => {
     setSaveModalVisible(true);
   };
-  
+
   const saveFilter = (name: string) => {
     const filter = {
       id: Date.now().toString(),
@@ -198,21 +199,35 @@ export const AdvancedSearchView: React.FC = () => {
       jql: mode === 'jql' ? jql : buildJQLFromFilters(),
       createdAt: new Date().toISOString(),
     };
-    
+
     const saved = [...savedFilters, filter];
     setSavedFilters(saved);
     localStorage.setItem('savedFilters', JSON.stringify(saved));
     message.success('Filter saved successfully');
     setSaveModalVisible(false);
   };
-  
+
   useEffect(() => {
     const saved = localStorage.getItem('savedFilters');
     if (saved) {
       setSavedFilters(JSON.parse(saved));
     }
-  }, []);
-  
+
+    const loadWorkflow = async () => {
+      if (!currentProject) return;
+      try {
+        const wfId = currentProject.workflowId || 'workflow-1';
+        const res = await axios.get(`${API_URL}/workflows/${wfId}`);
+        const statuses = res.data.statuses || [];
+        setWorkflowStatuses(statuses);
+        setStatusOptions(statuses.map((s: any) => s.id));
+      } catch (e) {
+        console.error('Failed to load workflow', e);
+      }
+    };
+    loadWorkflow();
+  }, [currentProject]);
+
   const columns = [
     {
       title: 'Key',
@@ -238,11 +253,16 @@ export const AdvancedSearchView: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       width: 120,
-      render: (status: string) => (
-        <Tag color={status === 'done' ? 'green' : status === 'in-progress' ? 'blue' : 'default'}>
-          {status}
-        </Tag>
-      ),
+      render: (status: string) => {
+        const ws = workflowStatuses.find(s => s.id === status);
+        const color = ws ? (ws.category === 'DONE' ? 'green' : ws.category === 'IN_PROGRESS' ? 'blue' : 'default') :
+          (status === 'done' ? 'green' : status === 'in-progress' ? 'blue' : 'default');
+        return (
+          <Tag color={color}>
+            {status}
+          </Tag>
+        );
+      },
     },
     {
       title: 'Priority',
@@ -263,7 +283,7 @@ export const AdvancedSearchView: React.FC = () => {
       render: (assignee: any) => assignee?.name || 'Unassigned',
     },
   ];
-  
+
   return (
     <Container>
       <Header>
@@ -280,7 +300,7 @@ export const AdvancedSearchView: React.FC = () => {
           </Button>
         </Space>
       </Header>
-      
+
       <SearchCard>
         <Tabs
           activeKey={mode}
@@ -304,7 +324,7 @@ export const AdvancedSearchView: React.FC = () => {
                       style={{ marginBottom: 16 }}
                     />
                   </div>
-                  
+
                   <div style={{ marginBottom: 16 }}>
                     <h4>Filters</h4>
                     {filters.map((filter, index) => (
@@ -375,7 +395,7 @@ export const AdvancedSearchView: React.FC = () => {
                       Add Filter
                     </Button>
                   </div>
-                  
+
                   <Button type="primary" size="large" icon={<Search size={16} />} onClick={handleSearch}>
                     Search
                   </Button>
@@ -412,7 +432,7 @@ export const AdvancedSearchView: React.FC = () => {
                       </ul>
                     </div>
                   </div>
-                  
+
                   <Button type="primary" size="large" icon={<Search size={16} />} onClick={handleSearch}>
                     Run Query
                   </Button>
@@ -422,7 +442,7 @@ export const AdvancedSearchView: React.FC = () => {
           ]}
         />
       </SearchCard>
-      
+
       {savedFilters.length > 0 && (
         <Card title="Saved Filters" style={{ marginBottom: 24 }}>
           <Space wrap>
@@ -440,7 +460,7 @@ export const AdvancedSearchView: React.FC = () => {
           </Space>
         </Card>
       )}
-      
+
       <ResultsCard
         title={`Search Results (${total})`}
         extra={
@@ -466,7 +486,7 @@ export const AdvancedSearchView: React.FC = () => {
           <Empty description="No results found. Try adjusting your search criteria." />
         )}
       </ResultsCard>
-      
+
       <Modal
         title="Save Filter"
         open={saveModalVisible}

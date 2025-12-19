@@ -130,7 +130,7 @@ const SortableColumnItem: React.FC<SortableColumnItemProps> = ({ column, onUpdat
         </ColumnHeaderRow>
         <div style={{ marginTop: 4 }}>
           <Select
-            mode="multiple"
+            mode="tags"
             placeholder="Map Statuses (e.g. To Do)"
             value={column.statuses}
             onChange={(values) => onUpdate(column.id, { statuses: values })}

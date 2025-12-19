@@ -267,6 +267,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const isFavorited = issue ? isFavorite('issue', issue.id) : false;
   const [loading, setLoading] = useState(true);
   const [projectMembers, setProjectMembers] = useState<any[]>([]);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   // Data States
   const [comments, setComments] = useState<any[]>([]);
@@ -346,6 +347,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       loadAttachments(res.data.id);
       loadSubtasks(res.data.id);
       loadEpics(res.data.projectId);
+      loadWorkflow(res.data.projectId, res.data.workflowId);
       // loadLinkedIssues(res.data.id); // Handled by React Query
 
     } catch (error) {
@@ -384,6 +386,16 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       setSubtasks(subRes.data || []);
     } catch (e) {
       setSubtasks([]);
+    }
+  };
+
+  const loadWorkflow = async (projectId: string, workflowId?: string) => {
+    try {
+      const wfId = workflowId || 'workflow-1';
+      const res = await api.get(`/workflows/${wfId}`);
+      setWorkflowStatuses(res.data.statuses || []);
+    } catch (e) {
+      console.error('Failed to load workflow:', e);
     }
   };
 
@@ -764,8 +776,16 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                       fontSize: 11,
                       padding: '2px 8px',
                       borderRadius: 4,
-                      background: sub.status === 'done' ? '#D1FAE5' : sub.status === 'in-progress' ? '#DBEAFE' : '#F3F4F6',
-                      color: sub.status === 'done' ? '#059669' : sub.status === 'in-progress' ? '#2563EB' : '#6B7280'
+                      background: (() => {
+                        const ws = workflowStatuses.find(s => s.id === sub.status);
+                        if (ws) return ws.category === 'DONE' ? '#D1FAE5' : ws.category === 'IN_PROGRESS' ? '#DBEAFE' : '#F3F4F6';
+                        return sub.status === 'done' ? '#D1FAE5' : sub.status === 'in-progress' ? '#DBEAFE' : '#F3F4F6';
+                      })(),
+                      color: (() => {
+                        const ws = workflowStatuses.find(s => s.id === sub.status);
+                        if (ws) return ws.category === 'DONE' ? '#059669' : ws.category === 'IN_PROGRESS' ? '#2563EB' : '#6B7280';
+                        return sub.status === 'done' ? '#059669' : sub.status === 'in-progress' ? '#2563EB' : '#6B7280';
+                      })()
                     }}>
                       {sub.status?.replace('-', ' ')}
                     </span>

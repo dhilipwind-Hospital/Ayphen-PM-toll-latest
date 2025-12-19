@@ -7,7 +7,7 @@ import { ContextMenu } from '../components/ContextMenu';
 import { QuickFilters } from '../components/QuickFilters';
 import { BulkActionsToolbar } from '../components/BulkActionsToolbar';
 import { SavedViewsDropdown } from '../components/SavedViewsDropdown';
-import { bulkOperationsApi, boardViewsApi, sprintsApi, api } from '../services/api';
+import { bulkOperationsApi, boardViewsApi, sprintsApi, api, workflowsApi } from '../services/api';
 import { DndContext, useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent, pointerWithin, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -92,16 +92,14 @@ const ColumnHeaderLeft = styled.div`
   gap: 8px;
 `;
 
-const StatusDot = styled.div<{ status: string }>`
+const StatusDot = styled.div<{ status: string; category?: string }>`
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: ${props => {
-    if (props.status === 'backlog') return '#8993A4';
-    if (props.status === 'todo') return '#42526E';
-    if (props.status === 'in-progress') return '#0052CC';
-    if (props.status === 'in-review') return '#FF991F';
-    if (props.status === 'done') return '#00875A';
+    if (props.category === 'DONE' || props.status === 'done') return '#00875A';
+    if (props.category === 'IN_PROGRESS' || props.status === 'in-progress' || props.status === 'in-review') return '#0052CC';
+    if (props.category === 'TODO' || props.status === 'todo' || props.status === 'backlog') return '#42526E';
     return '#8993A4';
   }};
 `;
@@ -443,6 +441,7 @@ const SortableIssue = React.memo<SortableIssueProps>(({ issue, onClick, onContex
 interface DroppableColumnProps {
   status: string;
   title: string;
+  category?: string;
   issues: any[];
   onIssueClick: (issue: any) => void;
   onCardSelect: (e: React.MouseEvent, issueId: string) => void;
@@ -451,7 +450,7 @@ interface DroppableColumnProps {
   wipLimit?: number;
 }
 
-const DroppableColumn = React.memo<DroppableColumnProps>(({ status, title, issues, onIssueClick, onCardSelect, selectedIssues, onContextMenu, wipLimit }) => {
+const DroppableColumn = React.memo<DroppableColumnProps>(({ status, title, category, issues, onIssueClick, onCardSelect, selectedIssues, onContextMenu, wipLimit }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
@@ -464,7 +463,7 @@ const DroppableColumn = React.memo<DroppableColumnProps>(({ status, title, issue
     <Column ref={setNodeRef} isOver={isOver}>
       <ColumnHeader>
         <ColumnHeaderLeft>
-          <StatusDot status={status} />
+          <StatusDot status={status} category={category} />
           <ColumnTitle>{title}</ColumnTitle>
           <IssueCount
             isNearLimit={isNearLimit}
@@ -542,6 +541,7 @@ export const BoardView: React.FC = () => {
   ]);
   const [boardName, setBoardName] = useState('Board');
   const [showEmptyColumns, setShowEmptyColumns] = useState(true);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   // Load persistence settings (Board name, empty columns, and columns order)
   useEffect(() => {
@@ -575,8 +575,20 @@ export const BoardView: React.FC = () => {
     if (currentProject) {
       loadIssues();
       loadActiveSprint();
+      loadWorkflow();
     }
   }, [currentProject]);
+
+  const loadWorkflow = async () => {
+    if (!currentProject) return;
+    try {
+      const workflowId = currentProject.workflowId || 'workflow-1';
+      const res = await workflowsApi.getById(workflowId);
+      setWorkflowStatuses(res.data.statuses || []);
+    } catch (e) {
+      console.error('Failed to load workflow', e);
+    }
+  };
 
   // Refresh active sprint when component mounts or page becomes visible
   // This ensures board updates when sprint is started from backlog
@@ -870,7 +882,7 @@ export const BoardView: React.FC = () => {
     );
   };
 
-  const handleSaveSettings = (settings: { columns: any[]; boardName: string; showEmptyColumns: boolean }) => {
+  const handleSaveSettings = async (settings: { columns: any[]; boardName: string; showEmptyColumns: boolean }) => {
     setColumns(settings.columns);
     setBoardName(settings.boardName);
     setShowEmptyColumns(settings.showEmptyColumns);
@@ -879,6 +891,33 @@ export const BoardView: React.FC = () => {
       localStorage.setItem(`boardName_${currentProject.id}`, settings.boardName);
       localStorage.setItem(`boardShowEmpty_${currentProject.id}`, String(settings.showEmptyColumns));
       localStorage.setItem(`boardColumns_${currentProject.id}`, JSON.stringify(settings.columns));
+
+      // Sync custom statuses with project workflow
+      try {
+        const workflowId = currentProject.workflowId || 'workflow-1';
+        const workflowRes = await workflowsApi.getById(workflowId);
+        const existingStatusIds = workflowRes.data.statuses.map((s: any) => s.id.toLowerCase());
+        const existingStatusNames = workflowRes.data.statuses.map((s: any) => s.name.toLowerCase());
+
+        const allBoardStatuses = settings.columns.flatMap(c => c.statuses);
+        const newStatuses = allBoardStatuses.filter(s =>
+          !existingStatusIds.includes(s.toLowerCase()) &&
+          !existingStatusNames.includes(s.toLowerCase())
+        );
+
+        if (newStatuses.length > 0) {
+          for (const statusName of newStatuses) {
+            await api.post(`/workflows/${workflowId}/status`, {
+              name: statusName,
+              statusId: statusName.toLowerCase().replace(/\s+/g, '-'),
+              category: 'IN_PROGRESS'
+            });
+          }
+          console.log(`Synced ${newStatuses.length} new statuses to workflow`);
+        }
+      } catch (e) {
+        console.error('Failed to sync workflow statuses:', e);
+      }
     }
 
     message.success('Board settings saved!');
@@ -1127,11 +1166,19 @@ export const BoardView: React.FC = () => {
                 const colIssues = getIssuesByStatus(col.statuses);
                 if (!showEmptyColumns && colIssues.length === 0) return null;
 
+                // Find category for this column (using first status as representative)
+                const firstStatusId = col.statuses[0]?.toLowerCase();
+                const matchedStatus = workflowStatuses.find(s =>
+                  s.id.toLowerCase() === firstStatusId || s.name.toLowerCase() === firstStatusId
+                );
+                const category = matchedStatus?.category;
+
                 return (
                   <DroppableColumn
                     key={col.id}
                     status={col.id}
                     title={col.title}
+                    category={category}
                     issues={colIssues}
                     onIssueClick={handleIssueClick}
                     onCardSelect={handleCardSelect}
@@ -1149,10 +1196,16 @@ export const BoardView: React.FC = () => {
                   const colIssues = getIssuesByStatus(col.statuses);
                   if (!showEmptyColumns && colIssues.length === 0) return null;
 
+                  const firstStatusId = col.statuses[0]?.toLowerCase();
+                  const matchedStatus = workflowStatuses.find(s =>
+                    s.id.toLowerCase() === firstStatusId || s.name.toLowerCase() === firstStatusId
+                  );
+                  const category = matchedStatus?.category;
+
                   return (
                     <ListViewStatusSection key={col.id}>
                       <ListViewHeader>
-                        <StatusDot status={col.id} />
+                        <StatusDot status={col.id} category={category} />
                         <ColumnTitle>{col.title}</ColumnTitle>
                         <IssueCount>{colIssues.length}</IssueCount>
                       </ListViewHeader>

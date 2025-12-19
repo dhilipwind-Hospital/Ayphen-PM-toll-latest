@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AppDataSource } from '../config/database';
 import { Issue } from '../entities/Issue';
 import { Sprint } from '../entities/Sprint';
+import { workflowService } from '../services/workflow.service';
 
 const router = Router();
 const issueRepo = AppDataSource.getRepository(Issue);
@@ -116,6 +117,8 @@ router.get('/burndown-chart', async (req, res) => {
     const chartData = [];
     const now = new Date();
 
+    const doneStatuses = await workflowService.getDoneStatuses(sprint.projectId);
+
     for (let i = 0; i <= durationDays; i++) {
       const dayDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
       const dayLabel = dayDate.toISOString().split('T')[0].slice(5); // MM-DD
@@ -129,7 +132,7 @@ router.get('/burndown-chart', async (req, res) => {
       // Calculate actual only if day is in past/present
       if (dayDate <= new Date(now.getTime() + 24 * 60 * 60 * 1000)) {
         const resolvedIssues = issues.filter(issue =>
-          issue.status === 'done' &&
+          doneStatuses.includes(issue.status.toLowerCase()) &&
           issue.resolvedAt &&
           new Date(issue.resolvedAt) <= dayDate
         );

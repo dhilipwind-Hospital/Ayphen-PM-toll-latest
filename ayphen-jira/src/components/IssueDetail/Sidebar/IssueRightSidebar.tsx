@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { colors } from '../../../theme/colors';
 import { DetailsSection } from './DetailsSection';
@@ -8,6 +8,7 @@ import { TimeTrackingSection } from './TimeTrackingSection';
 import { Button, Modal, message, Spin, Card, Tag } from 'antd';
 import { Sparkles, Wand2, Target, Clock, FileText, CheckCircle, AlertTriangle } from 'lucide-react';
 import { aiActionsApi } from '../../../services/ai-actions-api';
+import { api, workflowsApi } from '../../../services/api';
 
 const Container = styled.div`
   display: flex;
@@ -91,6 +92,23 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
     const [loading, setLoading] = useState(false);
     const [aiResult, setAiResult] = useState<any>(null);
     const [activeAction, setActiveAction] = useState<string | null>(null);
+    const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchWorkflow = async () => {
+            if (issue?.projectId) {
+                try {
+                    const projectRes = await api.get(`/projects/${issue.projectId}`);
+                    const workflowId = projectRes.data.workflowId || 'workflow-1';
+                    const workflowRes = await workflowsApi.getById(workflowId);
+                    setWorkflowStatuses(workflowRes.data.statuses || []);
+                } catch (e) {
+                    console.error('Failed to fetch workflow:', e);
+                }
+            }
+        };
+        fetchWorkflow();
+    }, [issue?.projectId]);
 
     const handleAIAction = async (action: string) => {
         setLoading(true);
@@ -317,7 +335,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                 setAiModalVisible(true);
                 handleAIAction(action);
             }} />
-            <DetailsSection issue={issue} epics={epics} onUpdate={onUpdate} onAIAction={(action) => {
+            <DetailsSection issue={issue} epics={epics} statuses={workflowStatuses} onUpdate={onUpdate} onAIAction={(action) => {
                 setAiModalVisible(true);
                 handleAIAction(action);
             }} />

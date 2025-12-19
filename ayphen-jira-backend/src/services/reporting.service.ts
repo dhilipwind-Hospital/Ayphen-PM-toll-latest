@@ -1,6 +1,8 @@
 import { AppDataSource } from '../config/database';
 import { Issue } from '../entities/Issue';
+import { Project } from '../entities/Project';
 import { Between, LessThan, MoreThan } from 'typeorm';
+import { workflowService } from './workflow.service';
 
 export class ReportingService {
   /**
@@ -8,14 +10,21 @@ export class ReportingService {
    */
   public async getSprintBurndown(sprintId: string): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     const sprintIssues = await issueRepo.find({
       where: { sprintId },
     });
 
+    if (sprintIssues.length === 0) {
+      return { totalPoints: 0, completedPoints: 0, remainingPoints: 0, data: [] };
+    }
+
+    const projectId = sprintIssues[0].projectId;
+    const doneStatuses = await workflowService.getDoneStatuses(projectId);
+
     const totalPoints = sprintIssues.reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
     const completedPoints = sprintIssues
-      .filter(i => i.status === 'Done')
+      .filter(i => doneStatuses.includes(i.status.toLowerCase()))
       .reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
 
     // Generate daily data points
@@ -39,7 +48,7 @@ export class ReportingService {
    */
   public async getVelocityChart(projectId: string, sprintCount: number = 6): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     // Get last N sprints
     const sprints = await issueRepo
       .createQueryBuilder('issue')
@@ -49,15 +58,19 @@ export class ReportingService {
       .limit(sprintCount)
       .getRawMany();
 
+    const doneStatuses = await workflowService.getDoneStatuses(projectId);
+
     const velocityData = await Promise.all(
       sprints.map(async (sprint) => {
         const sprintIssues = await issueRepo.find({
-          where: { sprintId: sprint.sprintId, status: 'Done' },
+          where: { sprintId: sprint.sprintId },
         });
-        
-        const completed = sprintIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
+
+        const completed = sprintIssues
+          .filter(i => doneStatuses.includes(i.status.toLowerCase()))
+          .reduce((sum, i) => sum + (i.storyPoints || 0), 0);
         const committed = sprintIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
-        
+
         return {
           sprint: sprint.sprintId,
           completed,
@@ -74,7 +87,7 @@ export class ReportingService {
    */
   public async getCumulativeFlow(projectId: string, days: number = 30): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
@@ -83,7 +96,7 @@ export class ReportingService {
     for (let i = 0; i <= days; i++) {
       const date = new Date(startDate);
       date.setDate(date.getDate() + i);
-      
+
       const issues = await issueRepo.find({
         where: {
           projectId,
@@ -110,7 +123,7 @@ export class ReportingService {
    */
   public async getCreatedVsResolved(projectId: string, days: number = 30): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
@@ -119,7 +132,7 @@ export class ReportingService {
     for (let i = 0; i <= days; i++) {
       const date = new Date(startDate);
       date.setDate(date.getDate() + i);
-      
+
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
 
@@ -152,9 +165,9 @@ export class ReportingService {
    */
   public async getPieChartData(projectId: string, groupBy: string): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     const issues = await issueRepo.find({ where: { projectId } });
-    
+
     const distribution = issues.reduce((acc: any, issue: any) => {
       const key = issue[groupBy] || 'Unassigned';
       acc[key] = (acc[key] || 0) + 1;
@@ -172,15 +185,15 @@ export class ReportingService {
    */
   private parseTimeToHours(timeStr: string | null | undefined): number {
     if (!timeStr) return 0;
-    
+
     // Parse Jira-style time format (e.g., '1w 2d 3h 30m')
     const timeRegex = /(?:\d+\s*(?:w|d|h|m|s)(?:\s|$))+/g;
     const matches = timeStr.match(timeRegex);
-    
+
     if (!matches) return 0;
-    
+
     let totalMinutes = 0;
-    
+
     for (const match of matches) {
       const value = parseInt(match);
       if (match.includes('w')) totalMinutes += value * 5 * 8 * 60; // 5 working days * 8 hours
@@ -189,23 +202,23 @@ export class ReportingService {
       else if (match.includes('m')) totalMinutes += value;
       else if (match.includes('s')) totalMinutes += value / 60;
     }
-    
+
     // Convert minutes to hours
     return parseFloat((totalMinutes / 60).toFixed(2));
   }
 
   public async getTimeTrackingReport(projectId: string): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     const issues = await issueRepo.find({ where: { projectId } });
-    
+
     // Parse time strings to hours
     const issuesWithParsedTime = issues.map(issue => ({
       ...issue,
       timeEstimateHours: this.parseTimeToHours(issue.timeEstimate),
       timeSpentHours: this.parseTimeToHours(issue.timeSpent)
     }));
-    
+
     const totalEstimated = parseFloat(issuesWithParsedTime.reduce((sum, i) => sum + i.timeEstimateHours, 0).toFixed(2));
     const totalLogged = parseFloat(issuesWithParsedTime.reduce((sum, i) => sum + i.timeSpentHours, 0).toFixed(2));
     const totalRemaining = parseFloat((totalEstimated - totalLogged).toFixed(2));
@@ -230,9 +243,9 @@ export class ReportingService {
    */
   public async getAverageAgeReport(projectId: string): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     const issues = await issueRepo.find({ where: { projectId } });
-    
+
     const now = new Date();
     const ages = issues.map(issue => {
       const created = new Date(issue.createdAt);
@@ -261,10 +274,12 @@ export class ReportingService {
    */
   public async getResolutionTimeReport(projectId: string): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
-    const resolvedIssues = await issueRepo.find({
-      where: { projectId, status: 'Done' },
-    });
+
+    const doneStatuses = await workflowService.getDoneStatuses(projectId);
+
+    const resolvedIssues = (await issueRepo.find({
+      where: { projectId },
+    })).filter(i => doneStatuses.includes(i.status.toLowerCase()));
 
     const resolutionTimes = resolvedIssues
       .filter(i => i.resolvedAt)
@@ -308,9 +323,9 @@ export class ReportingService {
    */
   public async getUserWorkloadReport(projectId: string): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     const issues = await issueRepo.find({ where: { projectId } });
-    
+
     const workload = issues.reduce((acc: any, issue) => {
       const assignee = issue.assigneeId || 'Unassigned';
       if (!acc[assignee]) {
@@ -337,12 +352,16 @@ export class ReportingService {
    */
   public async getSprintReport(sprintId: string): Promise<any> {
     const issueRepo = AppDataSource.getRepository(Issue);
-    
+
     const issues = await issueRepo.find({ where: { sprintId } });
-    
-    const completed = issues.filter(i => i.status === 'Done');
-    const incomplete = issues.filter(i => i.status !== 'Done');
-    
+    if (issues.length === 0) return { total: 0, completed: 0, incomplete: 0, completedPoints: 0, incompletePoints: 0, completionRate: 0, issues: { completed: [], incomplete: [] } };
+
+    const projectId = issues[0].projectId;
+    const doneStatuses = await workflowService.getDoneStatuses(projectId);
+
+    const completed = issues.filter(i => doneStatuses.includes(i.status.toLowerCase()));
+    const incomplete = issues.filter(i => !doneStatuses.includes(i.status.toLowerCase()));
+
     return {
       total: issues.length,
       completed: completed.length,

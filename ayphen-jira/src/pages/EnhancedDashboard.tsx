@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Row, Col, Statistic, Progress, List, Avatar, Tag, Button, Select, Spin } from 'antd';
 import { TrendingUp, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { issuesApi, sprintsApi } from '../services/api';
+import { issuesApi, sprintsApi, workflowsApi } from '../services/api';
 import { OrphanedIssuesWidget } from '../components/Dashboard/OrphanedIssuesWidget';
 import { AIAssistant, LiveCursors, PredictiveAnalytics, AchievementSystem, BlockchainAudit, VirtualWorkspace } from '../features';
 import { H1, BodyLarge } from '../components/Typography';
@@ -160,6 +160,13 @@ export const EnhancedDashboard: React.FC = () => {
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [upcomingDeadlines, setUpcomingDeadlines] = useState<any[]>([]);
   const [sprintProgress, setSprintProgress] = useState({ completed: 0, total: 0, percent: 0 });
+  const [workflowStatusList, setWorkflowStatusList] = useState<any[]>([]);
+
+  const projectIssues = useMemo(() => {
+    return currentProject
+      ? issues.filter((i: any) => i.projectId === currentProject.id)
+      : issues;
+  }, [currentProject, issues]);
 
   // Fetch data if store is empty (e.g. on page refresh)
   useEffect(() => {
@@ -167,6 +174,11 @@ export const EnhancedDashboard: React.FC = () => {
       if (!currentProject) return;
 
       try {
+        // Fetch workflow for categories
+        const wfId = currentProject.workflowId || 'workflow-1';
+        const wfRes = await workflowsApi.getById(wfId);
+        setWorkflowStatusList(wfRes.data.statuses || []);
+
         // Fetch issues if missing
         if (issues.length === 0) {
           const res = await issuesApi.getByProject(currentProject.id);
@@ -197,16 +209,16 @@ export const EnhancedDashboard: React.FC = () => {
       const userId = localStorage.getItem('userId');
       if (!userId) return;
 
-      const projectIssues = currentProject
-        ? issues.filter((i: any) => i.projectId === currentProject.id)
-        : issues;
+      const doneStatuses = workflowStatusList.filter(s => s.category === 'DONE').map(s => s.id.toLowerCase());
+      const inProgressStatuses = workflowStatusList.filter(s => s.category === 'IN_PROGRESS').map(s => s.id.toLowerCase());
+      const todoStatuses = workflowStatusList.filter(s => s.category === 'TODO').map(s => s.id.toLowerCase());
 
       const totalIssues = projectIssues.length;
-      const inProgress = projectIssues.filter((i: any) => i.status === 'in-progress').length;
-      const completed = projectIssues.filter((i: any) => i.status === 'done').length;
+      const inProgress = projectIssues.filter((i: any) => inProgressStatuses.includes(i.status.toLowerCase())).length;
+      const completed = projectIssues.filter((i: any) => doneStatuses.includes(i.status.toLowerCase())).length;
       const overdue = projectIssues.filter((i: any) => {
         if (!i.dueDate) return false;
-        return new Date(i.dueDate) < new Date() && i.status !== 'done';
+        return new Date(i.dueDate) < new Date() && !doneStatuses.includes(i.status.toLowerCase());
       }).length;
 
       setStats([
@@ -221,14 +233,14 @@ export const EnhancedDashboard: React.FC = () => {
         .slice(0, 5)
         .map((issue: any) => ({
           user: issue.assignee?.name || 'Unassigned',
-          action: issue.status === 'done' ? 'completed' : 'updated',
+          action: doneStatuses.includes(issue.status.toLowerCase()) ? 'completed' : 'updated',
           issue: issue.key,
           time: getTimeAgo(issue.updatedAt),
         }));
       setRecentActivity(recentIssues);
 
       const deadlines = projectIssues
-        .filter((i: any) => i.dueDate && i.status !== 'done')
+        .filter((i: any) => i.dueDate && !doneStatuses.includes(i.status.toLowerCase()))
         .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
         .slice(0, 5)
         .map((issue: any) => ({
@@ -241,7 +253,7 @@ export const EnhancedDashboard: React.FC = () => {
       const activeSprint = sprints.find((s: any) => s.status === 'active');
       if (activeSprint) {
         const sprintIssues = projectIssues.filter((i: any) => i.sprintId === activeSprint.id);
-        const completedCount = sprintIssues.filter((i: any) => i.status === 'done').length;
+        const completedCount = sprintIssues.filter((i: any) => doneStatuses.includes(i.status.toLowerCase())).length;
         setSprintProgress({
           completed: completedCount,
           total: sprintIssues.length,
@@ -399,10 +411,9 @@ export const EnhancedDashboard: React.FC = () => {
           <GlassCard title="Issue Distribution">
             <List
               dataSource={[
-                { name: 'To Do', count: issues.filter((i: any) => i.status === 'todo').length },
-                { name: 'In Progress', count: issues.filter((i: any) => i.status === 'in-progress').length },
-                { name: 'In Review', count: issues.filter((i: any) => i.status === 'in-review').length },
-                { name: 'Done', count: issues.filter((i: any) => i.status === 'done').length },
+                { name: 'To Do', count: projectIssues.filter((i: any) => workflowStatusList.find(s => s.id === i.status && s.category === 'TODO')).length },
+                { name: 'In Progress', count: projectIssues.filter((i: any) => workflowStatusList.find(s => s.id === i.status && s.category === 'IN_PROGRESS')).length },
+                { name: 'Done', count: projectIssues.filter((i: any) => workflowStatusList.find(s => s.id === i.status && s.category === 'DONE')).length },
               ]}
               renderItem={(item) => (
                 <List.Item>

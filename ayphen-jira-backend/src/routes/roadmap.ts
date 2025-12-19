@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AppDataSource } from '../config/database';
 import { Issue } from '../entities/Issue';
+import { workflowService } from '../services/workflow.service';
 
 const router = Router();
 const issueRepo = AppDataSource.getRepository(Issue);
@@ -24,10 +25,12 @@ router.get('/:projectId', async (req, res) => {
       relations: ['assignee'],
     });
 
+    const doneStatuses = await workflowService.getDoneStatuses(projectId);
+
     // Build roadmap data
     const roadmapData = epics.map(epic => {
       const children = childIssues.filter(issue => issue.epicLink === epic.id);
-      const completedChildren = children.filter(i => i.status === 'done');
+      const completedChildren = children.filter(i => doneStatuses.includes(i.status.toLowerCase()));
       const totalPoints = children.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
       const completedPoints = completedChildren.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
 

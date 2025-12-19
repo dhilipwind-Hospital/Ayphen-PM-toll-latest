@@ -2,7 +2,7 @@
 
 export type IssueType = 'epic' | 'story' | 'task' | 'bug' | 'subtask';
 export type IssuePriority = 'highest' | 'high' | 'medium' | 'low' | 'lowest';
-export type IssueStatus = 'todo' | 'in-progress' | 'in-review' | 'done' | 'backlog';
+export type IssueStatus = string; // Supports dynamic custom statuses
 export type ProjectType = 'scrum' | 'kanban';
 export type BoardType = 'scrum' | 'kanban';
 
@@ -252,7 +252,7 @@ export interface Workflow {
 export interface WorkflowStatus {
   id: string;
   name: string;
-  category: 'todo' | 'in-progress' | 'done';
+  category: 'TODO' | 'IN_PROGRESS' | 'DONE';
 }
 
 export interface WorkflowTransition {

@@ -112,6 +112,7 @@ export const StoriesListView: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [testCasesMap, setTestCasesMap] = useState<Record<string, number>>({});
   const [bugsMap, setBugsMap] = useState<Record<string, number>>({});
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   // Derive stories from store issues
   const stories = React.useMemo(() => {
@@ -165,10 +166,23 @@ export const StoriesListView: React.FC = () => {
     }
   };
 
+  // Load workflow statuses
+  const loadWorkflow = async () => {
+    if (!currentProject) return;
+    try {
+      const wfId = currentProject.workflowId || 'workflow-1';
+      const res = await api.get(`/workflows/${wfId}`);
+      setWorkflowStatuses(res.data.statuses || []);
+    } catch (e) {
+      console.error('Failed to load workflow', e);
+    }
+  };
+
   // Initial load if issues are empty
   useEffect(() => {
-    if (currentProject && issues.length === 0) {
-      refreshIssues();
+    if (currentProject) {
+      if (issues.length === 0) refreshIssues();
+      loadWorkflow();
     }
   }, [currentProject]); // Run once when project loads
 
@@ -215,13 +229,16 @@ export const StoriesListView: React.FC = () => {
 
 
   const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      'todo': 'default',
-      'in-progress': 'processing',
-      'in-review': 'warning',
-      'done': 'success',
-    };
-    return colors[status] || 'default';
+    const matched = workflowStatuses.find(s => s.id === status);
+    if (!matched) {
+      if (status === 'done') return 'success';
+      if (status === 'in-progress') return 'processing';
+      return 'default';
+    }
+
+    if (matched.category === 'DONE') return 'success';
+    if (matched.category === 'IN_PROGRESS') return 'processing';
+    return 'default';
   };
 
   const getPriorityColor = (priority: string) => {
@@ -384,10 +401,9 @@ export const StoriesListView: React.FC = () => {
           placeholder="All Status"
         >
           <Select.Option value="all">All Status</Select.Option>
-          <Select.Option value="todo">To Do</Select.Option>
-          <Select.Option value="in-progress">In Progress</Select.Option>
-          <Select.Option value="in-review">In Review</Select.Option>
-          <Select.Option value="done">Done</Select.Option>
+          {workflowStatuses.map(s => (
+            <Select.Option key={s.id} value={s.id}>{s.name}</Select.Option>
+          ))}
         </Select>
         <Select
           value={priorityFilter}
@@ -436,7 +452,10 @@ export const StoriesListView: React.FC = () => {
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={2}>
                     <strong>
-                      {filteredStories.filter(s => s.status === 'done').length} completed
+                      {filteredStories.filter(s => {
+                        const ws = workflowStatuses.find(ws => ws.id === s.status);
+                        return ws ? ws.category === 'DONE' : s.status === 'done';
+                      }).length} completed
                     </strong>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={3} />

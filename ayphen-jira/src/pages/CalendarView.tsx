@@ -139,6 +139,7 @@ export const CalendarView: React.FC = () => {
   const [issues, setIssues] = useState<any[]>([]);
   const [sprints, setSprints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   // Fetch fresh data from API
   useEffect(() => {
@@ -152,13 +153,15 @@ export const CalendarView: React.FC = () => {
       try {
         const userId = localStorage.getItem('userId');
 
-        // Fetch issues and sprints in parallel
-        const [issuesRes, sprintsRes] = await Promise.all([
+        // Fetch issues, sprints and workflow in parallel
+        const [issuesRes, sprintsRes, workflowRes] = await Promise.all([
           api.get('/issues', { params: { projectId: currentProject.id, userId } }),
-          api.get('/sprints', { params: { projectId: currentProject.id } })
+          api.get('/sprints', { params: { projectId: currentProject.id } }),
+          api.get(`/workflows/${currentProject.workflowId || 'workflow-1'}`)
         ]);
 
         setIssues(issuesRes.data || []);
+        setWorkflowStatuses(workflowRes.data.statuses || []);
 
         const sprintData = Array.isArray(sprintsRes.data) ? sprintsRes.data : (sprintsRes.data?.sprints || []);
         setSprints(sprintData);
@@ -186,8 +189,10 @@ export const CalendarView: React.FC = () => {
   }).length;
 
   const overdue = projectIssues.filter(i => {
-    if (!i.dueDate || i.status === 'done') return false;
-    return dayjs(i.dueDate).isBefore(dayjs());
+    if (!i.dueDate) return false;
+    const ws = workflowStatuses.find(s => s.id === i.status);
+    const isDone = ws ? ws.category === 'DONE' : i.status === 'done';
+    return !isDone && dayjs(i.dueDate).isBefore(dayjs());
   }).length;
 
   const upcomingSprints = sprints.filter(s =>

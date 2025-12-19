@@ -234,6 +234,7 @@ export const PeoplePage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
   const [form] = Form.useForm();
 
   const [currentUserRole, setCurrentUserRole] = useState<string>('member'); // Default to member
@@ -284,13 +285,37 @@ export const PeoplePage: React.FC = () => {
       const projectMembers = membersResponse.data;
       const issues = issuesResponse.data;
 
+      // Load Workflow
+      let wfStatuses: any[] = [];
+      try {
+        const wfId = currentProject?.workflowId || 'workflow-1';
+        const wfRes = await axios.get(`${API_URL}/workflows/${wfId}`);
+        wfStatuses = wfRes.data.statuses || [];
+        setWorkflowStatuses(wfStatuses);
+      } catch (e) {
+        console.error('Failed to load workflow in PeoplePage', e);
+      }
+
+      const doneStatuses = wfStatuses.filter(s => s.category === 'DONE').map(s => s.id);
+      const todoStatuses = wfStatuses.filter(s => s.category === 'TODO').map(s => s.id);
+
+      const isDone = (status: string) => {
+        if (doneStatuses.length > 0) return doneStatuses.includes(status);
+        return status === 'done';
+      };
+
+      const isTodo = (status: string) => {
+        if (todoStatuses.length > 0) return todoStatuses.includes(status);
+        return status === 'todo' || status === 'backlog';
+      };
+
       const teamMembers: TeamMember[] = projectMembers.map((pm: any, index: number) => {
         const user = pm.user;
         // Filter issues where assignee ID matches the user ID
         const userIssues = issues.filter((issue: any) => issue.assignee?.id === user.id);
-        const doneIssues = userIssues.filter((issue: any) => issue.status === 'done');
+        const doneIssues = userIssues.filter((issue: any) => isDone(issue.status));
         const activeIssues = userIssues.filter((issue: any) =>
-          issue.status !== 'done' && issue.status !== 'backlog'
+          !isDone(issue.status) && !isTodo(issue.status)
         );
 
         const colors = ['#1890FF', '#52C41A', '#722ED1', '#FA8C16', '#13C2C2', '#EB2F96'];

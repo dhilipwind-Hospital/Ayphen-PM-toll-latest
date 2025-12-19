@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Radio, Select, Card, Statistic, Row, Col, List, Tag, message } from 'antd';
 import { CheckCircle, XCircle } from 'lucide-react';
 import styled from 'styled-components';
-import { sprintsApi } from '../../services/api';
+import { sprintsApi, workflowsApi } from '../../services/api';
 import { colors } from '../../theme/colors';
 
 const StatsCard = styled(Card)`
@@ -44,10 +44,30 @@ export const CompleteSprintModal: React.FC<CompleteSprintModalProps> = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [incompleteAction, setIncompleteAction] = useState<'backlog' | 'next-sprint' | 'new-sprint'>('backlog');
+  const [doneStatuses, setDoneStatuses] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchWorkflow = async () => {
+      if (sprint?.projectId) {
+        try {
+          const res = await workflowsApi.getAll(sprint.projectId);
+          const workflow = res.data[0]; // Assuming first workflow for now
+          const doneIds = workflow.statuses
+            .filter((s: any) => s.category === 'DONE')
+            .map((s: any) => s.id.toLowerCase());
+          setDoneStatuses(doneIds);
+        } catch (error) {
+          console.error('Failed to load workflow:', error);
+          setDoneStatuses(['done', 'closed', 'resolved']); // Fallback
+        }
+      }
+    };
+    if (visible) fetchWorkflow();
+  }, [visible, sprint?.projectId]);
 
   const sprintIssues = issues.filter(i => i.sprintId === sprint?.id);
-  const completedIssues = sprintIssues.filter(i => i.status === 'done');
-  const incompleteIssues = sprintIssues.filter(i => i.status !== 'done');
+  const completedIssues = sprintIssues.filter(i => doneStatuses.includes(i.status.toLowerCase()));
+  const incompleteIssues = sprintIssues.filter(i => !doneStatuses.includes(i.status.toLowerCase()));
 
   const completedPoints = completedIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
   const incompletePoints = incompleteIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);

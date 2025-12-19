@@ -15,10 +15,14 @@ export default function ProjectDetailView() {
   const [project, setProject] = useState<any>(null);
   const [epics, setEpics] = useState<any[]>([]);
   const [tab, setTab] = useState(0);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
+  const [issues, setIssues] = useState<any[]>([]);
 
   useEffect(() => {
     loadProject();
     loadEpics();
+    loadWorkflow();
+    loadIssues();
   }, [projectId]);
 
   const loadProject = async () => {
@@ -39,9 +43,33 @@ export default function ProjectDetailView() {
     }
   };
 
+  const loadWorkflow = async () => {
+    try {
+      const projRes = await api.get(`/projects/${projectId}`);
+      const wfId = projRes.data.workflowId || 'workflow-1';
+      const wfRes = await api.get(`/workflows/${wfId}`);
+      setWorkflowStatuses(wfRes.data.statuses || []);
+    } catch (e) {
+      console.error('Failed to load workflow:', e);
+    }
+  };
+
+  const loadIssues = async () => {
+    try {
+      const res = await api.get('/issues', { params: { projectId } });
+      setIssues(res.data || []);
+    } catch (error) {
+      console.error('Failed to load issues:', error);
+    }
+  };
+
   const getEpicProgress = (epic: any) => {
     if (!epic.childIssues || epic.childIssues.length === 0) return 0;
-    const completed = epic.childIssues.filter((i: any) => i.status === 'done').length;
+    const doneStatuses = workflowStatuses.filter(s => s.category === 'DONE').map(s => s.id);
+    const completed = epic.childIssues.filter((i: any) => {
+      if (doneStatuses.length > 0) return doneStatuses.includes(i.status);
+      return i.status === 'done' || i.status === 'resolved';
+    }).length;
     return Math.round((completed / epic.childIssues.length) * 100);
   };
 
@@ -94,22 +122,22 @@ export default function ProjectDetailView() {
             <Card onClick={() => navigate('/stories')}>
               <FileTextOutlined style={{ fontSize: 24 }} />
               <h4>User Stories</h4>
-              <h2>0</h2>
+              <h2>{issues.filter(i => i.type === 'story').length}</h2>
             </Card>
             <Card onClick={() => navigate('/bugs')}>
               <BugOutlined style={{ fontSize: 24 }} />
               <h4>Bugs</h4>
-              <h2>0</h2>
+              <h2>{issues.filter(i => i.type === 'bug').length}</h2>
             </Card>
             <Card onClick={() => navigate('/board')}>
               <CheckSquareOutlined style={{ fontSize: 24 }} />
               <h4>Tasks</h4>
-              <h2>0</h2>
+              <h2>{issues.filter(i => i.type === 'task').length}</h2>
             </Card>
             <Card onClick={() => navigate('/board')}>
               <FileTextOutlined style={{ fontSize: 24 }} />
               <h4>Subtasks</h4>
-              <h2>0</h2>
+              <h2>{issues.filter(i => i.parentId).length}</h2>
             </Card>
           </div>
         </div>

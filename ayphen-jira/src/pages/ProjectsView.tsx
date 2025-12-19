@@ -68,8 +68,8 @@ export const ProjectsView: React.FC = () => {
     <Container>
       <Header>
         <Title>Projects ({projects.length})</Title>
-        <Button 
-          type="primary" 
+        <Button
+          type="primary"
           onClick={() => navigate('/projects/create')}
         >
           <Plus size={16} style={{ marginRight: 8 }} />
@@ -80,8 +80,14 @@ export const ProjectsView: React.FC = () => {
       <Row gutter={[16, 16]}>
         {projects.map(project => {
           const projectIssues = issues.filter(i => i.projectId === project.id);
-          const completed = projectIssues.filter(i => i.status === 'done').length;
-          
+          // For now, use a robust set of 'done' statuses since we don't have all workflows loaded here
+          const completed = projectIssues.filter(i =>
+            i.status === 'done' ||
+            i.status === 'resolved' ||
+            i.status === 'closed' ||
+            i.status === 'completed'
+          ).length;
+
           return (
             <Col key={project.id} xs={24} sm={12} md={8} lg={6}>
               <ProjectCard onClick={() => {

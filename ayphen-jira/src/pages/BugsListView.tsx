@@ -112,6 +112,7 @@ export const BugsListView: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   // Derive bugs from store issues
   const bugs = React.useMemo(() => {
@@ -148,21 +149,37 @@ export const BugsListView: React.FC = () => {
     }
   };
 
-  // Initial load if issues are empty
+  // Load workflow statuses
+  const loadWorkflow = async () => {
+    if (!currentProject) return;
+    try {
+      const wfId = currentProject.workflowId || 'workflow-1';
+      const res = await api.get(`/workflows/${wfId}`);
+      setWorkflowStatuses(res.data.statuses || []);
+    } catch (e) {
+      console.error('Failed to load workflow', e);
+    }
+  };
+
+  // Initial load
   useEffect(() => {
-    if (currentProject && issues.length === 0) {
-      refreshIssues();
+    if (currentProject) {
+      if (issues.length === 0) refreshIssues();
+      loadWorkflow();
     }
   }, [currentProject]);
 
   const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      'todo': 'default',
-      'in-progress': 'processing',
-      'in-review': 'warning',
-      'done': 'success',
-    };
-    return colors[status] || 'default';
+    const matched = workflowStatuses.find(s => s.id === status);
+    if (!matched) {
+      if (status === 'done' || status === 'resolved') return 'success';
+      if (status === 'in-progress') return 'processing';
+      return 'default';
+    }
+
+    if (matched.category === 'DONE') return 'success';
+    if (matched.category === 'IN_PROGRESS') return 'processing';
+    return 'default';
   };
 
   const getSeverityColor = (severity: string) => {
@@ -296,10 +313,9 @@ export const BugsListView: React.FC = () => {
           placeholder="All Status"
         >
           <Select.Option value="all">All Status</Select.Option>
-          <Select.Option value="todo">To Do</Select.Option>
-          <Select.Option value="in-progress">In Progress</Select.Option>
-          <Select.Option value="in-review">In Review</Select.Option>
-          <Select.Option value="done">Done</Select.Option>
+          {workflowStatuses.map(s => (
+            <Select.Option key={s.id} value={s.id}>{s.name}</Select.Option>
+          ))}
         </Select>
         <Select
           value={severityFilter}
@@ -347,7 +363,10 @@ export const BugsListView: React.FC = () => {
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={2}>
                     <strong>
-                      {filteredBugs.filter(b => b.status === 'done').length} resolved
+                      {filteredBugs.filter(b => {
+                        const ws = workflowStatuses.find(ws => ws.id === b.status);
+                        return ws ? ws.category === 'DONE' : (b.status === 'done' || b.status === 'resolved');
+                      }).length} resolved
                     </strong>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={3}>

@@ -5,7 +5,7 @@ import { Card, Input, Tabs, Tag, Button, Space, Empty, Badge, Modal, Form, messa
 import { Search, Download, FileText, Bug, CheckSquare, Zap, Save } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
-import { filtersApi } from '../services/api';
+import { filtersApi, api } from '../services/api';
 import { BulkOperationsToolbar } from '../components/BulkOperations/BulkOperationsToolbar';
 
 const Container = styled.div`
@@ -99,6 +99,7 @@ export const FiltersView: React.FC = () => {
   const [selectedIssueIds, setSelectedIssueIds] = useState<string[]>([]);
   const [savedFilters, setSavedFilters] = useState<any[]>([]);
   const [loadingFilters, setLoadingFilters] = useState(false);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   const [aiModalVisible, setAiModalVisible] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
@@ -111,10 +112,14 @@ export const FiltersView: React.FC = () => {
   const loadSavedFilters = async () => {
     try {
       setLoadingFilters(true);
-      const res = await filtersApi.getAll();
-      setSavedFilters(res.data || []);
+      const [filtersRes, workflowRes] = await Promise.all([
+        filtersApi.getAll(),
+        currentProject ? api.get(`/workflows/${currentProject.workflowId || 'workflow-1'}`) : Promise.resolve({ data: { statuses: [] } })
+      ]);
+      setSavedFilters(filtersRes.data || []);
+      setWorkflowStatuses(workflowRes.data.statuses || []);
     } catch (error) {
-      console.error('Failed to load filters', error);
+      console.error('Failed to load filters or workflow', error);
     } finally {
       setLoadingFilters(false);
     }
@@ -129,9 +134,11 @@ export const FiltersView: React.FC = () => {
 
   const handleSaveFilter = async (values: any) => {
     try {
+      const doneStatuses = workflowStatuses.filter(s => s.category === 'DONE').map(s => s.id);
+
       const filterConfig = {
         projectId: currentProject?.id,
-        status: activeFilter === 'done' ? ['done'] : activeFilter === 'my-open' ? undefined : undefined,
+        status: activeFilter === 'done' ? doneStatuses : activeFilter === 'my-open' ? undefined : undefined,
         assigneeId: activeFilter === 'my-open' ? currentUser?.id : undefined,
         searchText: searchText || undefined,
       };
@@ -185,9 +192,27 @@ export const FiltersView: React.FC = () => {
     };
 
     // 1. Detect Status
-    if (query.includes('done') || query.includes('completed')) config.status.push('done');
-    if (query.includes('pending') || query.includes('progress') || query.includes('working')) config.status.push('in-progress');
-    if (query.includes('todo') || query.includes('backlog')) config.status.push('todo');
+    workflowStatuses.forEach(s => {
+      if (query.includes(s.name.toLowerCase()) || query.includes(s.id.toLowerCase())) {
+        config.status.push(s.id);
+      }
+    });
+
+    // Fallbacks for common terms
+    if (config.status.length === 0) {
+      if (query.includes('done') || query.includes('completed')) {
+        const done = workflowStatuses.find(s => s.category === 'DONE');
+        if (done) config.status.push(done.id);
+      }
+      if (query.includes('pending') || query.includes('progress') || query.includes('working')) {
+        const ip = workflowStatuses.find(s => s.category === 'IN_PROGRESS');
+        if (ip) config.status.push(ip.id);
+      }
+      if (query.includes('todo') || query.includes('backlog')) {
+        const todo = workflowStatuses.find(s => s.category === 'TODO');
+        if (todo) config.status.push(todo.id);
+      }
+    }
 
     // 2. Detect Type
     if (query.includes('bug')) config.type.push('bug');
@@ -212,8 +237,10 @@ export const FiltersView: React.FC = () => {
 
     // Apply status filter if detected
     if (config.status.length > 0) {
-      if (config.status.includes('done') && config.status.length === 1) setActiveFilter('done');
-      else setActiveFilter('custom_ai'); // We would need a custom filter state theoretically, or just filter via searchText
+      const doneStatusIds = workflowStatuses.filter(s => s.category === 'DONE').map(s => s.id);
+      const isOnlyDone = config.status.every((id: string) => doneStatusIds.includes(id));
+      if (isOnlyDone) setActiveFilter('done');
+      else setActiveFilter('custom_ai');
     }
 
     // Since our local filtering is simplistic in this view (it relies on `activeFilter` enum), 
@@ -305,7 +332,11 @@ export const FiltersView: React.FC = () => {
                 )}
               </IssueMain>
               <IssueMeta>
-                <Tag color={issue.status === 'done' ? 'green' : issue.status === 'in-progress' ? 'blue' : 'default'}>
+                <Tag color={(() => {
+                  const ws = workflowStatuses.find(s => s.id === issue.status);
+                  if (ws) return ws.category === 'DONE' ? 'green' : ws.category === 'IN_PROGRESS' ? 'blue' : 'default';
+                  return issue.status === 'done' ? 'green' : issue.status === 'in-progress' ? 'blue' : 'default';
+                })()}>
                   {issue.status?.toUpperCase()}
                 </Tag>
                 <Tag color={issue.priority === 'highest' ? 'red' : issue.priority === 'high' ? 'orange' : 'default'}>
@@ -330,13 +361,17 @@ export const FiltersView: React.FC = () => {
     });
 
     // Apply filter type
+    const doneStatuses = workflowStatuses.filter(s => s.category === 'DONE').map(s => s.id);
+    const todoStatuses = workflowStatuses.filter(s => s.category === 'TODO').map(s => s.id);
+    const inProgressStatuses = workflowStatuses.filter(s => s.category === 'IN_PROGRESS').map(s => s.id);
+
     if (activeFilter === 'my-open') {
       filtered = filtered.filter(issue =>
         issue.assignee?.id === currentUser?.id &&
-        issue.status !== 'done'
+        !doneStatuses.includes(issue.status)
       );
     } else if (activeFilter === 'done') {
-      filtered = filtered.filter(issue => issue.status === 'done');
+      filtered = filtered.filter(issue => doneStatuses.includes(issue.status));
     } else {
       // Check if it's a saved filter
       const saved = savedFilters.find(f => f.id === activeFilter);

@@ -7,6 +7,7 @@ import { getUserProjectIds } from '../middleware/projectAccess';
 import { aiDuplicateDetector } from '../services/ai-duplicate-detector.service';
 import { websocketService } from '../services/websocket.service';
 import { emailService } from '../services/email.service';
+import { workflowService } from '../services/workflow.service';
 import { In } from 'typeorm';
 
 const router = Router();
@@ -331,6 +332,16 @@ router.put('/:id', async (req, res) => {
     for (const field of allowedFields) {
       if (validUpdateFields[field] !== undefined) {
         updatePayload[field] = validUpdateFields[field];
+      }
+    }
+
+    // Automatically set resolvedAt if status is entering DONE category
+    if (updatePayload.status && updatePayload.status !== existingIssue.status) {
+      const isDone = await workflowService.isDone(existingIssue.projectId, updatePayload.status);
+      if (isDone) {
+        updatePayload.resolvedAt = new Date();
+      } else {
+        updatePayload.resolvedAt = null;
       }
     }
 

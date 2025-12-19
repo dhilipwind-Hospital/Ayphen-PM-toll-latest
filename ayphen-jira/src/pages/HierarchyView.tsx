@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Tree, Card, Spin, Tag, Empty, Button } from 'antd';
 import { useStore } from '../store/useStore';
-import { issuesApi } from '../services/api';
-import { Issue } from '../types';
+import { issuesApi, workflowsApi } from '../services/api';
+import type { Issue } from '../types';
 import styled from 'styled-components';
 import {
   FolderOpen, Flag, FileText, Bug, CheckSquare,
@@ -62,10 +62,12 @@ export default function HierarchyView() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(false);
   const [treeData, setTreeData] = useState<any[]>([]);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   useEffect(() => {
     if (currentProject) {
       loadIssues();
+      loadWorkflow();
     }
   }, [currentProject]);
 
@@ -75,13 +77,36 @@ export default function HierarchyView() {
     try {
       const response = await issuesApi.getByProject(currentProject.id);
       setIssues(response.data);
-      buildTree(response.data);
+      // buildTree is called after workflow is also loaded for correct coloring
+      if (workflowStatuses.length > 0) {
+        buildTree(response.data, workflowStatuses);
+      } else {
+        // Fallback for first load if workflow isn't ready
+        buildTree(response.data, []);
+      }
     } catch (error) {
       console.error('Failed to load issues hierarchy:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const loadWorkflow = async () => {
+    if (!currentProject) return;
+    try {
+      const res = await workflowsApi.getById(currentProject.workflowId || 'workflow-1');
+      setWorkflowStatuses(res.data.statuses || []);
+    } catch (e) {
+      console.error('Failed to load workflow', e);
+    }
+  };
+
+  // Trigger rebuild when workflow statuses load
+  useEffect(() => {
+    if (issues.length > 0 && workflowStatuses.length > 0) {
+      buildTree(issues, workflowStatuses);
+    }
+  }, [workflowStatuses, issues]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -93,7 +118,16 @@ export default function HierarchyView() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, wfStatuses: any[]) => {
+    const matched = wfStatuses.find(s => s.id === status);
+    if (matched) {
+      switch (matched.category) {
+        case 'DONE': return 'green';
+        case 'IN_PROGRESS': return 'blue';
+        case 'TODO': return 'default';
+        default: return 'default';
+      }
+    }
     switch (status) {
       case 'done': return 'green';
       case 'in-progress': return 'blue';
@@ -102,7 +136,7 @@ export default function HierarchyView() {
     }
   };
 
-  const buildTree = (allIssues: Issue[]) => {
+  const buildTree = (allIssues: Issue[], wfStatuses: any[]) => {
     // 1. Find all Epics
     const epics = allIssues.filter(i => i.type === 'epic');
 
@@ -134,7 +168,7 @@ export default function HierarchyView() {
             {getIcon(issue.type)}
             <IssueKey>{issue.key}</IssueKey>
             <IssueSummary>{issue.summary}</IssueSummary>
-            <Tag color={getStatusColor(issue.status)}>{issue.status.toUpperCase()}</Tag>
+            <Tag color={getStatusColor(issue.status, wfStatuses)}>{issue.status.toUpperCase()}</Tag>
             <span style={{ fontSize: 12, color: '#999' }}>{issue.assignee?.name || 'Unassigned'}</span>
           </NodeTitle>
         ),

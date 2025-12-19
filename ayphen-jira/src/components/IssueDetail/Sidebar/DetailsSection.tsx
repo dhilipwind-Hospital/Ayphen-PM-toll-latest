@@ -31,11 +31,21 @@ const Value = styled.div`
 interface DetailsSectionProps {
     issue: any;
     epics?: any[];
+    statuses?: any[];
     onUpdate: (field: string, value: any) => Promise<void>;
     onAIAction?: (action: string) => void;
 }
 
-export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [], onUpdate, onAIAction }) => {
+export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [], statuses = [], onUpdate, onAIAction }) => {
+    const getStatusColor = (category: string) => {
+        switch (category) {
+            case 'DONE': return colors.status.done;
+            case 'IN_PROGRESS': return colors.status.inProgress;
+            case 'TODO': return colors.status.todo;
+            default: return 'default';
+        }
+    };
+
     return (
         <SidebarSection title="Details">
             <FieldRow>
@@ -50,24 +60,34 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [
                     onChange={(val) => onUpdate('status', val)}
                     dropdownMatchSelectWidth={false}
                 >
-                    <Select.Option value="backlog">
-                        <Tag color="default">Backlog</Tag>
-                    </Select.Option>
-                    <Select.Option value="todo">
-                        <Tag color={colors.status.todo}>To Do</Tag>
-                    </Select.Option>
-                    <Select.Option value="in-progress">
-                        <Tag color={colors.status.inProgress}>In Progress</Tag>
-                    </Select.Option>
-                    <Select.Option value="in-review">
-                        <Tag color="purple">In Review</Tag>
-                    </Select.Option>
-                    <Select.Option value="blocked">
-                        <Tag color="red">Blocked</Tag>
-                    </Select.Option>
-                    <Select.Option value="done">
-                        <Tag color={colors.status.done}>Done</Tag>
-                    </Select.Option>
+                    {statuses.length > 0 ? (
+                        statuses.map((s: any) => (
+                            <Select.Option key={s.id} value={s.id}>
+                                <Tag color={getStatusColor(s.category)}>{s.name}</Tag>
+                            </Select.Option>
+                        ))
+                    ) : (
+                        <>
+                            <Select.Option value="backlog">
+                                <Tag color="default">Backlog</Tag>
+                            </Select.Option>
+                            <Select.Option value="todo">
+                                <Tag color={colors.status.todo}>To Do</Tag>
+                            </Select.Option>
+                            <Select.Option value="in-progress">
+                                <Tag color={colors.status.inProgress}>In Progress</Tag>
+                            </Select.Option>
+                            <Select.Option value="in-review">
+                                <Tag color="purple">In Review</Tag>
+                            </Select.Option>
+                            <Select.Option value="blocked">
+                                <Tag color="red">Blocked</Tag>
+                            </Select.Option>
+                            <Select.Option value="done">
+                                <Tag color={colors.status.done}>Done</Tag>
+                            </Select.Option>
+                        </>
+                    )}
                 </Select>
             </FieldRow>
 

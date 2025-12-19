@@ -10,7 +10,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
-import { sprintsApi, issuesApi } from '../services/api';
+import { sprintsApi, issuesApi, api } from '../services/api';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { StartSprintModal } from '../components/Sprint/StartSprintModal';
 import { CreateSprintModal } from '../components/Sprint/CreateSprintModal';
@@ -159,7 +159,7 @@ const IssueItemContainer = styled.div<{ isDragging?: boolean; isSelected?: boole
 
 // --- Memoized Components ---
 
-const SortableIssueItem = React.memo(({ issue, onClick, isSelected }: { issue: any, onClick: () => void, isSelected?: boolean }) => {
+const SortableIssueItem = React.memo(({ issue, onClick, isSelected, workflowStatuses }: { issue: any, onClick: () => void, isSelected?: boolean, workflowStatuses: any[] }) => {
   const {
     attributes,
     listeners,
@@ -172,6 +172,18 @@ const SortableIssueItem = React.memo(({ issue, onClick, isSelected }: { issue: a
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+  };
+
+  const getStatusColor = (status: string) => {
+    const matched = workflowStatuses.find(s => s.id === status);
+    if (matched) {
+      if (matched.category === 'DONE') return 'green';
+      if (matched.category === 'IN_PROGRESS') return 'blue';
+      return 'default';
+    }
+    if (status === 'done') return 'green';
+    if (status === 'in-progress' || status === 'in-review') return 'blue';
+    return 'default';
   };
 
   return (
@@ -194,20 +206,24 @@ const SortableIssueItem = React.memo(({ issue, onClick, isSelected }: { issue: a
 
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 500, color: colors.text.secondary, fontSize: 12, minWidth: 60 }}>{issue.key}</span>
-            <span style={{ fontSize: 14, color: colors.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{issue.summary}</span>
+            <span style={{ fontWeight: 500, color: colors.text.secondary, fontSize: 11, minWidth: 45 }}>{issue.key}</span>
+            <span style={{ fontSize: 13, color: colors.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{issue.summary}</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Tag color={getStatusColor(issue.status)} style={{ fontSize: '10px', lineHeight: '16px', borderRadius: '10px' }}>
+            {issue.status?.toUpperCase()}
+          </Tag>
+
           {/* Priority Tag - Simplified visual */}
-          {issue.priority === 'high' ? <Badge color="red" /> : <Badge color="blue" />}
+          {issue.priority === 'high' || issue.priority === 'highest' ? <Badge color="red" /> : <Badge color="blue" />}
 
           {/* Sprint Points */}
-          {issue.storyPoints && <Badge count={issue.storyPoints} style={{ backgroundColor: '#f0f0f0', color: '#666' }} />}
+          {issue.storyPoints && <Badge count={issue.storyPoints} style={{ backgroundColor: '#f0f0f0', color: '#666', boxShadow: 'none' }} />}
 
           {/* Assignee */}
-          <Avatar src={issue.assignee?.avatar} size="small" style={{ backgroundColor: colors.primary[500], width: 24, height: 24, fontSize: 12 }}>
+          <Avatar src={issue.assignee?.avatar} size="small" style={{ backgroundColor: colors.primary[500], width: 22, height: 22, fontSize: 10 }}>
             {issue.assignee?.name?.[0]}
           </Avatar>
         </div>
@@ -218,10 +234,12 @@ const SortableIssueItem = React.memo(({ issue, onClick, isSelected }: { issue: a
   return prev.issue.id === next.issue.id &&
     prev.isSelected === next.isSelected &&
     prev.issue.listPosition === next.issue.listPosition &&
+    prev.workflowStatuses === next.workflowStatuses &&
+    prev.issue.status === next.issue.status &&
     prev.issue.sprintId === next.issue.sprintId;
 });
 
-const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssueClick }: { sprintId: string, issues: any[], selectedIssueId: string | null, onIssueClick: (key: string) => void }) => {
+const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssueClick, workflowStatuses }: { sprintId: string, issues: any[], selectedIssueId: string | null, onIssueClick: (key: string) => void, workflowStatuses: any[] }) => {
   const { setNodeRef } = useDroppable({
     id: sprintId,
     data: { type: 'sprint', sprintId }
@@ -237,6 +255,7 @@ const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssue
               issue={issue}
               isSelected={selectedIssueId === issue.key}
               onClick={() => onIssueClick(issue.key)}
+              workflowStatuses={workflowStatuses}
             />
           ))}
           {issues.length === 0 && (
@@ -258,6 +277,7 @@ export const BacklogView: React.FC = () => {
   const [localSprints, setLocalSprints] = useState<any[]>([]);
   const [issues, setIssues] = useState<any[]>([]);
   const [selectedIssueKey, setSelectedIssueKey] = useState<string | null>(null);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -305,6 +325,11 @@ export const BacklogView: React.FC = () => {
         const res = await issuesApi.getByProject(currentProject.id);
         const sortedIssues = res.data.sort((a: any, b: any) => (a.listPosition || 0) - (b.listPosition || 0));
         setIssues(sortedIssues);
+
+        // Fetch workflow
+        const wfId = currentProject.workflowId || 'workflow-1';
+        const wfRes = await api.get(`/workflows/${wfId}`);
+        setWorkflowStatuses(wfRes.data.statuses || []);
 
       } catch (e) {
         console.error('[BacklogView] Failed to load backlog:', e);
@@ -499,6 +524,7 @@ export const BacklogView: React.FC = () => {
                   issues={issues.filter(i => i.sprintId === sprint.id && i.type !== 'epic')}
                   selectedIssueId={selectedIssueKey}
                   onIssueClick={(key) => setSelectedIssueKey(key)}
+                  workflowStatuses={workflowStatuses}
                 />
               </SprintCard>
             ))
@@ -518,6 +544,7 @@ export const BacklogView: React.FC = () => {
               issues={backlogIssues}
               selectedIssueId={selectedIssueKey}
               onIssueClick={(key) => setSelectedIssueKey(key)}
+              workflowStatuses={workflowStatuses}
             />
           </SprintCard>
 

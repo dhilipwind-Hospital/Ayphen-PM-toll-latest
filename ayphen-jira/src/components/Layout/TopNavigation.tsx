@@ -35,6 +35,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { TeamNotificationPanel } from '../TeamNotifications/TeamNotificationPanel';
 import { NotificationSystem } from '../Notifications/NotificationSystem';
 import { UserAvatar } from '../common/UserAvatar';
+import { api } from '../../services/api';
 
 const { Header } = Layout;
 
@@ -311,6 +312,30 @@ export const TopNavigation: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [teamNotifVisible, setTeamNotifVisible] = useState(false);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    const loadWorkflow = async () => {
+      if (!currentProject) return;
+      try {
+        const wfId = currentProject.workflowId || 'workflow-1';
+        const res = await api.get(`/workflows/${wfId}`);
+        setWorkflowStatuses(res.data.statuses || []);
+      } catch (e) {
+        console.error('Failed to load workflow in TopNav', e);
+      }
+    };
+    loadWorkflow();
+  }, [currentProject?.id]);
+
+  const doneStatuses = React.useMemo(() => {
+    return workflowStatuses.filter(s => s.category === 'DONE').map(s => s.id);
+  }, [workflowStatuses]);
+
+  const isDone = (status: string) => {
+    if (doneStatuses.length > 0) return doneStatuses.includes(status);
+    return status.toLowerCase() === 'done' || status.toLowerCase() === 'resolved';
+  };
 
   const handleProjectChange = (value: unknown) => {
     const projectId = value as string;
@@ -414,7 +439,7 @@ export const TopNavigation: React.FC = () => {
       { type: 'divider' as const },
       {
         key: 'my-open-issues',
-        label: `My open issues (${issues.filter(i => i.assignee?.id === currentUser?.id && i.status !== 'done').length})`
+        label: `My open issues (${issues.filter(i => i.assignee?.id === currentUser?.id && !isDone(i.status)).length})`
       },
       {
         key: 'reported-by-me',
@@ -423,11 +448,11 @@ export const TopNavigation: React.FC = () => {
       { key: 'all-issues', label: `All issues (${issues.length})` },
       {
         key: 'open-issues',
-        label: `Open issues (${issues.filter(i => i.status !== 'done').length})`
+        label: `Open issues (${issues.filter(i => !isDone(i.status)).length})`
       },
       {
         key: 'done-issues',
-        label: `Done issues (${issues.filter(i => i.status === 'done').length})`
+        label: `Done issues (${issues.filter(i => isDone(i.status)).length})`
       },
       { type: 'divider' as const },
       { key: 'viewed-recently', label: '👁️ Viewed recently' },

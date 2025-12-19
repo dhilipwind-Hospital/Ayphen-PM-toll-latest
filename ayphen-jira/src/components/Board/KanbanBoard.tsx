@@ -4,7 +4,7 @@ import { Card, Avatar, Tag, Button, Modal, Form, Input, Select, message } from '
 import { Plus, MoreHorizontal, Flag } from 'lucide-react';
 import styled from 'styled-components';
 import { useStore } from '../../store/useStore';
-import { issuesApi } from '../../services/api';
+import { issuesApi, api } from '../../services/api';
 
 const BoardContainer = styled.div`
   display: flex;
@@ -74,56 +74,39 @@ interface Column {
 
 export const KanbanBoard: React.FC = () => {
   const { issues: storeIssues, currentProject, addIssue, updateIssue } = useStore();
-  const [columns, setColumns] = useState<Column[]>([
-    { id: 'todo', title: 'To Do', issues: [] },
-    { id: 'inprogress', title: 'In Progress', issues: [] },
-    { id: 'review', title: 'In Review', issues: [] },
-    { id: 'done', title: 'Done', issues: [] }
-  ]);
+  const [columns, setColumns] = useState<Column[]>([]);
+  const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState<string>('');
   const [form] = Form.useForm();
 
   useEffect(() => {
-    loadIssues();
+    loadWorkflowAndIssues();
   }, [storeIssues, currentProject]);
 
-  const loadIssues = () => {
-    const projectIssues = currentProject
-      ? storeIssues.filter((i: any) => i.projectId === currentProject.id)
-      : storeIssues;
+  const loadWorkflowAndIssues = async () => {
+    if (!currentProject) return;
 
-    const newColumns = [
-      {
-        id: 'todo',
-        title: 'To Do',
+    try {
+      const wfId = currentProject.workflowId || 'workflow-1';
+      const res = await api.get(`/workflows/${wfId}`);
+      const statuses = res.data.statuses || [];
+      setWorkflowStatuses(statuses);
+
+      const projectIssues = storeIssues.filter((i: any) => i.projectId === currentProject.id);
+
+      const newColumns = statuses.map((status: any) => ({
+        id: status.id,
+        title: status.name,
         issues: projectIssues
-          .filter((i: any) => i.status === 'todo' || i.status === 'backlog')
+          .filter((i: any) => i.status === status.id)
           .map(mapIssue)
-      },
-      {
-        id: 'inprogress',
-        title: 'In Progress',
-        issues: projectIssues
-          .filter((i: any) => i.status === 'in-progress')
-          .map(mapIssue)
-      },
-      {
-        id: 'review',
-        title: 'In Review',
-        issues: projectIssues
-          .filter((i: any) => i.status === 'in-review')
-          .map(mapIssue)
-      },
-      {
-        id: 'done',
-        title: 'Done',
-        issues: projectIssues
-          .filter((i: any) => i.status === 'done')
-          .map(mapIssue)
-      }
-    ];
-    setColumns(newColumns);
+      }));
+
+      setColumns(newColumns);
+    } catch (e) {
+      console.error('Failed to load board', e);
+    }
   };
 
   const mapIssue = (issue: any): Issue => ({
@@ -156,14 +139,7 @@ export const KanbanBoard: React.FC = () => {
 
       // Update issue status in backend
       try {
-        const statusMap: { [key: string]: string } = {
-          'todo': 'todo',
-          'inprogress': 'in-progress',
-          'review': 'in-review',
-          'done': 'done'
-        };
-
-        const newStatus = statusMap[destination.droppableId];
+        const newStatus = destination.droppableId;
         if (newStatus) {
           await issuesApi.update(draggableId, { status: newStatus });
           updateIssue(draggableId, { status: newStatus });
