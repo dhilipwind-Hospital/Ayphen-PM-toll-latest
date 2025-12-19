@@ -14,6 +14,10 @@ import { EmailIntegrationPanel } from '../components/AI/EmailIntegrationPanel';
 const Container = styled.div`
   padding: 24px;
   max-width: 1200px;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
 `;
 
 const Header = styled.div`

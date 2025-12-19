@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { colors } from '../../theme/colors';
 import { FileText, Sparkles, CheckCircle, Loader } from 'lucide-react';
-import axios from 'axios';
+import { message } from 'antd';
+import { api } from '../../services/api';
 
 const FormContainer = styled.div`
   background: ${colors.background.paper};
@@ -187,46 +188,46 @@ const Summary = styled.div`
 `;
 
 interface MeetingScribeFormProps {
-    projectId: string;
-    onComplete?: () => void;
+  projectId: string;
+  onComplete?: () => void;
 }
 
 export const MeetingScribeForm: React.FC<MeetingScribeFormProps> = ({ projectId, onComplete }) => {
-    const [meetingTitle, setMeetingTitle] = useState('');
-    const [transcript, setTranscript] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<any>(null);
+  const [meetingTitle, setMeetingTitle] = useState('');
+  const [transcript, setTranscript] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setResult(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setResult(null);
 
-        try {
-            const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/meeting-scribe/process', {
-                transcript,
-                projectId,
-                meetingTitle: meetingTitle || 'Team Meeting'
-            });
+    try {
+      const response = await api.post('/meeting-scribe/process', {
+        transcript,
+        projectId,
+        meetingTitle: meetingTitle || 'Team Meeting'
+      });
 
-            if (response.data.success) {
-                setResult(response.data);
-                setTranscript('');
-                setMeetingTitle('');
+      if (response.data.success) {
+        setResult(response.data);
+        setTranscript('');
+        setMeetingTitle('');
 
-                if (onComplete) {
-                    onComplete();
-                }
-            }
-        } catch (error: any) {
-            console.error('Meeting scribe error:', error);
-            alert(`Failed to process meeting: ${error.response?.data?.error || error.message}`);
-        } finally {
-            setLoading(false);
+        if (onComplete) {
+          onComplete();
         }
-    };
+      }
+    } catch (error: any) {
+      console.error('Meeting scribe error:', error);
+      message.error(`Failed to process meeting: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const placeholder = `Paste your meeting notes or transcript here...
+  const placeholder = `Paste your meeting notes or transcript here...
 
 Example:
 "Sprint Planning Meeting - March 15
@@ -239,108 +240,108 @@ Example:
 
 Next meeting: March 22"`;
 
-    return (
-        <FormContainer>
-            <Header>
-                <IconWrapper>
-                    <FileText size={24} />
-                </IconWrapper>
-                <div>
-                    <Title>
-                        <Sparkles size={22} style={{ color: '#ffd700' }} />
-                        Meeting Scribe
-                    </Title>
-                    <div style={{ fontSize: '13px', color: colors.text.secondary }}>
-                        AI-powered meeting notes → Jira issues
-                    </div>
-                </div>
-            </Header>
+  return (
+    <FormContainer>
+      <Header>
+        <IconWrapper>
+          <FileText size={24} />
+        </IconWrapper>
+        <div>
+          <Title>
+            <Sparkles size={22} style={{ color: '#ffd700' }} />
+            Meeting Scribe
+          </Title>
+          <div style={{ fontSize: '13px', color: colors.text.secondary }}>
+            AI-powered meeting notes → Jira issues
+          </div>
+        </div>
+      </Header>
 
-            <form onSubmit={handleSubmit}>
-                <FormGroup>
-                    <Label>Meeting Title (Optional)</Label>
-                    <Input
-                        type="text"
-                        placeholder="e.g., Sprint Planning, Team Sync, Retro..."
-                        value={meetingTitle}
-                        onChange={(e) => setMeetingTitle(e.target.value)}
-                    />
-                </FormGroup>
+      <form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Label>Meeting Title (Optional)</Label>
+          <Input
+            type="text"
+            placeholder="e.g., Sprint Planning, Team Sync, Retro..."
+            value={meetingTitle}
+            onChange={(e) => setMeetingTitle(e.target.value)}
+          />
+        </FormGroup>
 
-                <FormGroup>
-                    <Label>Meeting Transcript or Notes *</Label>
-                    <TextArea
-                        placeholder={placeholder}
-                        value={transcript}
-                        onChange={(e) => setTranscript(e.target.value)}
-                        required
-                    />
-                </FormGroup>
+        <FormGroup>
+          <Label>Meeting Transcript or Notes *</Label>
+          <TextArea
+            placeholder={placeholder}
+            value={transcript}
+            onChange={(e) => setTranscript(e.target.value)}
+            required
+          />
+        </FormGroup>
 
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <Button type="submit" primary disabled={loading || !transcript.trim()}>
-                        {loading ? (
-                            <>
-                                <Loader size={16} className="spin" />
-                                Processing...
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles size={16} />
-                                Process Meeting
-                            </>
-                        )}
-                    </Button>
-
-                    <Button type="button" onClick={() => { setTranscript(''); setMeetingTitle(''); setResult(null); }}>
-                        Clear
-                    </Button>
-                </div>
-            </form>
-
-            {result && (
-                <ResultsSection>
-                    <ResultTitle>
-                        <CheckCircle size={20} style={{ color: '#4caf50' }} />
-                        Meeting Processed Successfully!
-                    </ResultTitle>
-
-                    {result.summary && (
-                        <div style={{ marginBottom: '20px' }}>
-                            <Label>Summary</Label>
-                            <Summary>{result.summary}</Summary>
-                        </div>
-                    )}
-
-                    {result.issuesCreated && result.issuesCreated.length > 0 && (
-                        <div>
-                            <Label>Created {result.issuesCreated.length} Issue{result.issuesCreated.length > 1 ? 's' : ''}</Label>
-                            <IssuesList>
-                                {result.issuesCreated.map((issue: any) => (
-                                    <IssueItem key={issue.id}>
-                                        <CheckCircle size={16} style={{ color: '#4caf50' }} />
-                                        <IssueKey>{issue.key}</IssueKey>
-                                        <IssueSummary>{issue.summary}</IssueSummary>
-                                    </IssueItem>
-                                ))}
-                            </IssuesList>
-                        </div>
-                    )}
-
-                    {result.decisions && result.decisions.length > 0 && (
-                        <div style={{ marginTop: '16px' }}>
-                            <Label>Key Decisions</Label>
-                            <ul style={{ margin: '8px 0', paddingLeft: '20px', color: colors.text.secondary }}>
-                                {result.decisions.map((decision: string, i: number) => (
-                                    <li key={i} style={{ marginBottom: '4px' }}>{decision}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </ResultsSection>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <Button type="submit" primary disabled={loading || !transcript.trim()}>
+            {loading ? (
+              <>
+                <Loader size={16} className="spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Sparkles size={16} />
+                Process Meeting
+              </>
             )}
+          </Button>
 
-            <style>{`
+          <Button type="button" onClick={() => { setTranscript(''); setMeetingTitle(''); setResult(null); }}>
+            Clear
+          </Button>
+        </div>
+      </form>
+
+      {result && (
+        <ResultsSection>
+          <ResultTitle>
+            <CheckCircle size={20} style={{ color: '#4caf50' }} />
+            Meeting Processed Successfully!
+          </ResultTitle>
+
+          {result.summary && (
+            <div style={{ marginBottom: '20px' }}>
+              <Label>Summary</Label>
+              <Summary>{result.summary}</Summary>
+            </div>
+          )}
+
+          {result.issuesCreated && result.issuesCreated.length > 0 && (
+            <div>
+              <Label>Created {result.issuesCreated.length} Issue{result.issuesCreated.length > 1 ? 's' : ''}</Label>
+              <IssuesList>
+                {result.issuesCreated.map((issue: any) => (
+                  <IssueItem key={issue.id}>
+                    <CheckCircle size={16} style={{ color: '#4caf50' }} />
+                    <IssueKey>{issue.key}</IssueKey>
+                    <IssueSummary>{issue.summary}</IssueSummary>
+                  </IssueItem>
+                ))}
+              </IssuesList>
+            </div>
+          )}
+
+          {result.decisions && result.decisions.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <Label>Key Decisions</Label>
+              <ul style={{ margin: '8px 0', paddingLeft: '20px', color: colors.text.secondary }}>
+                {result.decisions.map((decision: string, i: number) => (
+                  <li key={i} style={{ marginBottom: '4px' }}>{decision}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </ResultsSection>
+      )}
+
+      <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
@@ -349,6 +350,6 @@ Next meeting: March 22"`;
           animation: spin 1s linear infinite;
         }
       `}</style>
-        </FormContainer>
-    );
+    </FormContainer>
+  );
 };

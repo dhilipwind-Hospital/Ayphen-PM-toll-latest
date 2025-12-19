@@ -23,6 +23,12 @@ const LayoutContainer = styled.div`
   height: 100vh;
   background: #FAF9F7;
   overflow: hidden;
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+  }
 `;
 
 const MainColumn = styled.div`
@@ -43,12 +49,22 @@ const MainColumn = styled.div`
     background: #E0E0E0;
     border-radius: 4px;
   }
+
+  @media (max-width: 1024px) {
+    overflow-y: visible;
+    flex: none;
+    height: auto;
+  }
 `;
 
 const ContentWrapper = styled.div`
   padding: 32px 40px;
   max-width: 1200px;
   margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 16px 20px;
+  }
 `;
 
 const StickyHeader = styled.div`
@@ -61,6 +77,11 @@ const StickyHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #F0F0F0;
+
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+    gap: 12px;
+  }
 `;
 
 const IssueKeyBadge = styled.div`
@@ -155,7 +176,10 @@ const EmptyStateText = styled.div`
 const TabsContainer = styled.div`
   background: #FFFFFF;
   margin-top: 32px;
-  /* padding: 0 24px; remove padding here, padding inside tabs */
+
+  @media (max-width: 768px) {
+    margin-top: 16px;
+  }
 `;
 
 const StyledTabs = styled(Tabs)`
@@ -335,13 +359,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const loadEpics = async (projectId: string) => {
     try {
       const userId = localStorage.getItem('userId');
-      const res = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/issues?projectId=${projectId}&type=epic&userId=${userId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setEpics(data || []);
-      } else {
-        setEpics([]);
-      }
+      const res = await api.get(`/issues?projectId=${projectId}&type=epic&userId=${userId}`);
+      setEpics(res.data || []);
     } catch (e) {
       console.error('Failed to load epics:', e);
       setEpics([]);
@@ -350,24 +369,19 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
 
   const loadAttachments = async (issueId: string) => {
     try {
-      const attRes = await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/issue/${issueId}`);
-      if (attRes.ok) setAttachments(await attRes.json());
-      else setAttachments([]);
+      const attRes = await api.get(`/attachments-v2/issue/${issueId}`);
+      setAttachments(attRes.data || []);
     } catch (e) { setAttachments([]); }
   };
 
   const loadSubtasks = async (issueId: string) => {
     try {
       const getUrl = issue?.type === 'epic'
-        ? `https://ayphen-pm-toll-latest.onrender.com/api/issues?epicLink=${issue.key}&userId=${localStorage.getItem('userId')}`
-        : `https://ayphen-pm-toll-latest.onrender.com/api/issues?parentId=${issueId}&userId=${localStorage.getItem('userId')}`;
+        ? `/issues?epicLink=${issue.key}&userId=${localStorage.getItem('userId')}`
+        : `/issues?parentId=${issueId}&userId=${localStorage.getItem('userId')}`;
 
-      const subRes = await fetch(getUrl);
-      if (subRes.ok) {
-        setSubtasks(await subRes.json());
-      } else {
-        setSubtasks([]);
-      }
+      const subRes = await api.get(getUrl);
+      setSubtasks(subRes.data || []);
     } catch (e) {
       setSubtasks([]);
     }
@@ -1216,7 +1230,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                       onClick={async (e) => {
                                         e.stopPropagation();
                                         try {
-                                          await fetch(`https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/${att.id}`, { method: 'DELETE' });
+                                          await api.delete(`/attachments-v2/${att.id}`);
                                           message.success('Attachment deleted');
                                           loadAttachments(issue.id);
                                         } catch (err) {

@@ -24,6 +24,12 @@ const Container = styled.div`
   display: flex;
   height: calc(100vh - 64px); 
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    height: auto;
+    overflow: visible;
+    flex-direction: column;
+  }
 `;
 
 const BacklogColumn = styled.div<{ isSplit?: boolean }>`
@@ -48,6 +54,15 @@ const DetailColumn = styled.div`
   z-index: 10;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 1024px) {
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2000;
+  }
 `;
 
 const Header = styled.div`

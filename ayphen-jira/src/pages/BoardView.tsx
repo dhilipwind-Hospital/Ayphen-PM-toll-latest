@@ -23,6 +23,10 @@ import { GlassCard } from '../components/common/GlassPanel';
 const Container = styled.div`
   padding: 24px;
   min-height: calc(100vh - 56px);
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
 `;
 
 
@@ -996,8 +1000,20 @@ export const BoardView: React.FC = () => {
 
   return (
     <Container>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
+        <div style={{
+          display: 'flex',
+          gap: 16,
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
           <SavedViewsDropdown
             views={savedViews}
             currentView={currentView}
@@ -1022,7 +1038,7 @@ export const BoardView: React.FC = () => {
         <Button
           icon={<Settings size={16} />}
           onClick={() => setSettingsVisible(true)}
-          style={{ marginLeft: 16 }}
+          style={{ marginLeft: 'auto' }}
         >
           Board Settings
         </Button>

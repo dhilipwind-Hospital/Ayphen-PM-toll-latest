@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { colors } from '../../theme/colors';
 import { Settings, Bot, Save, RotateCcw } from 'lucide-react';
+import { message } from 'antd';
 
 const SettingsContainer = styled.div`
   background: ${colors.background.paper};
@@ -205,188 +206,188 @@ const Button = styled.button<{ primary?: boolean }>`
 `;
 
 interface PMBotSettingsProps {
-    projectId?: string;
-    onSave?: (settings: any) => void;
+  projectId?: string;
+  onSave?: (settings: any) => void;
 }
 
 export const PMBotSettings: React.FC<PMBotSettingsProps> = ({ projectId, onSave }) => {
-    const [settings, setSettings] = useState({
-        autoAssignEnabled: true,
-        staleThresholdDays: 7,
-        escalationThresholdDays: 14,
-        maxWorkloadPoints: 25,
-        autoTriageEnabled: true,
-        staleSweepEnabled: true,
-        notifyOnAssignment: true,
-        notifyOnStale: true
+  const [settings, setSettings] = useState({
+    autoAssignEnabled: true,
+    staleThresholdDays: 7,
+    escalationThresholdDays: 14,
+    maxWorkloadPoints: 25,
+    autoTriageEnabled: true,
+    staleSweepEnabled: true,
+    notifyOnAssignment: true,
+    notifyOnStale: true
+  });
+
+  const handleSave = () => {
+    // Save to backend
+    if (onSave) {
+      onSave(settings);
+    }
+    message.success('PMBot settings saved successfully!');
+  };
+
+  const handleReset = () => {
+    setSettings({
+      autoAssignEnabled: true,
+      staleThresholdDays: 7,
+      escalationThresholdDays: 14,
+      maxWorkloadPoints: 25,
+      autoTriageEnabled: true,
+      staleSweepEnabled: true,
+      notifyOnAssignment: true,
+      notifyOnStale: true
     });
+  };
 
-    const handleSave = () => {
-        // Save to backend
-        if (onSave) {
-            onSave(settings);
-        }
-        alert('PMBot settings saved successfully!');
-    };
+  return (
+    <SettingsContainer>
+      <Header>
+        <IconWrapper>
+          <Bot size={22} />
+        </IconWrapper>
+        <Title>
+          <Settings size={20} />
+          PMBot Configuration
+        </Title>
+      </Header>
 
-    const handleReset = () => {
-        setSettings({
-            autoAssignEnabled: true,
-            staleThresholdDays: 7,
-            escalationThresholdDays: 14,
-            maxWorkloadPoints: 25,
-            autoTriageEnabled: true,
-            staleSweepEnabled: true,
-            notifyOnAssignment: true,
-            notifyOnStale: true
-        });
-    };
+      <SettingGroup>
+        <SettingLabel>Auto-Assignment</SettingLabel>
+        <SettingDescription>
+          Automatically assign incoming issues to the best team member based on expertise and workload
+        </SettingDescription>
+        <ToggleContainer>
+          <ToggleLabel>Enable Auto-Assignment</ToggleLabel>
+          <Toggle>
+            <input
+              type="checkbox"
+              checked={settings.autoAssignEnabled}
+              onChange={(e) => setSettings({ ...settings, autoAssignEnabled: e.target.checked })}
+            />
+            <span></span>
+          </Toggle>
+        </ToggleContainer>
+      </SettingGroup>
 
-    return (
-        <SettingsContainer>
-            <Header>
-                <IconWrapper>
-                    <Bot size={22} />
-                </IconWrapper>
-                <Title>
-                    <Settings size={20} />
-                    PMBot Configuration
-                </Title>
-            </Header>
+      <SettingGroup>
+        <SettingLabel>Workload Capacity</SettingLabel>
+        <SettingDescription>
+          Maximum story points a team member can handle simultaneously
+        </SettingDescription>
+        <SliderContainer>
+          <Slider
+            type="range"
+            min="10"
+            max="50"
+            value={settings.maxWorkloadPoints}
+            onChange={(e) => setSettings({ ...settings, maxWorkloadPoints: parseInt(e.target.value) })}
+          />
+          <SliderValue>{settings.maxWorkloadPoints} points</SliderValue>
+        </SliderContainer>
+      </SettingGroup>
 
-            <SettingGroup>
-                <SettingLabel>Auto-Assignment</SettingLabel>
-                <SettingDescription>
-                    Automatically assign incoming issues to the best team member based on expertise and workload
-                </SettingDescription>
-                <ToggleContainer>
-                    <ToggleLabel>Enable Auto-Assignment</ToggleLabel>
-                    <Toggle>
-                        <input
-                            type="checkbox"
-                            checked={settings.autoAssignEnabled}
-                            onChange={(e) => setSettings({ ...settings, autoAssignEnabled: e.target.checked })}
-                        />
-                        <span></span>
-                    </Toggle>
-                </ToggleContainer>
-            </SettingGroup>
+      <SettingGroup>
+        <SettingLabel>Stale Issue Detection</SettingLabel>
+        <SettingDescription>
+          Number of days before an issue is considered stale and gets a reminder
+        </SettingDescription>
+        <SliderContainer>
+          <Slider
+            type="range"
+            min="3"
+            max="30"
+            value={settings.staleThresholdDays}
+            onChange={(e) => setSettings({ ...settings, staleThresholdDays: parseInt(e.target.value) })}
+          />
+          <SliderValue>{settings.staleThresholdDays} days</SliderValue>
+        </SliderContainer>
+      </SettingGroup>
 
-            <SettingGroup>
-                <SettingLabel>Workload Capacity</SettingLabel>
-                <SettingDescription>
-                    Maximum story points a team member can handle simultaneously
-                </SettingDescription>
-                <SliderContainer>
-                    <Slider
-                        type="range"
-                        min="10"
-                        max="50"
-                        value={settings.maxWorkloadPoints}
-                        onChange={(e) => setSettings({ ...settings, maxWorkloadPoints: parseInt(e.target.value) })}
-                    />
-                    <SliderValue>{settings.maxWorkloadPoints} points</SliderValue>
-                </SliderContainer>
-            </SettingGroup>
+      <SettingGroup>
+        <SettingLabel>Escalation Threshold</SettingLabel>
+        <SettingDescription>
+          Number of days before a stale issue gets escalated with urgency
+        </SettingDescription>
+        <SliderContainer>
+          <Slider
+            type="range"
+            min="7"
+            max="60"
+            value={settings.escalationThresholdDays}
+            onChange={(e) => setSettings({ ...settings, escalationThresholdDays: parseInt(e.target.value) })}
+          />
+          <SliderValue>{settings.escalationThresholdDays} days</SliderValue>
+        </SliderContainer>
+      </SettingGroup>
 
-            <SettingGroup>
-                <SettingLabel>Stale Issue Detection</SettingLabel>
-                <SettingDescription>
-                    Number of days before an issue is considered stale and gets a reminder
-                </SettingDescription>
-                <SliderContainer>
-                    <Slider
-                        type="range"
-                        min="3"
-                        max="30"
-                        value={settings.staleThresholdDays}
-                        onChange={(e) => setSettings({ ...settings, staleThresholdDays: parseInt(e.target.value) })}
-                    />
-                    <SliderValue>{settings.staleThresholdDays} days</SliderValue>
-                </SliderContainer>
-            </SettingGroup>
+      <SettingGroup>
+        <SettingLabel>Additional Features</SettingLabel>
+        <ToggleContainer>
+          <ToggleLabel>Auto-Triage (labels & priority)</ToggleLabel>
+          <Toggle>
+            <input
+              type="checkbox"
+              checked={settings.autoTriageEnabled}
+              onChange={(e) => setSettings({ ...settings, autoTriageEnabled: e.target.checked })}
+            />
+            <span></span>
+          </Toggle>
+        </ToggleContainer>
 
-            <SettingGroup>
-                <SettingLabel>Escalation Threshold</SettingLabel>
-                <SettingDescription>
-                    Number of days before a stale issue gets escalated with urgency
-                </SettingDescription>
-                <SliderContainer>
-                    <Slider
-                        type="range"
-                        min="7"
-                        max="60"
-                        value={settings.escalationThresholdDays}
-                        onChange={(e) => setSettings({ ...settings, escalationThresholdDays: parseInt(e.target.value) })}
-                    />
-                    <SliderValue>{settings.escalationThresholdDays} days</SliderValue>
-                </SliderContainer>
-            </SettingGroup>
+        <ToggleContainer>
+          <ToggleLabel>Daily Stale Issue Sweep</ToggleLabel>
+          <Toggle>
+            <input
+              type="checkbox"
+              checked={settings.staleSweepEnabled}
+              onChange={(e) => setSettings({ ...settings, staleSweepEnabled: e.target.checked })}
+            />
+            <span></span>
+          </Toggle>
+        </ToggleContainer>
+      </SettingGroup>
 
-            <SettingGroup>
-                <SettingLabel>Additional Features</SettingLabel>
-                <ToggleContainer>
-                    <ToggleLabel>Auto-Triage (labels & priority)</ToggleLabel>
-                    <Toggle>
-                        <input
-                            type="checkbox"
-                            checked={settings.autoTriageEnabled}
-                            onChange={(e) => setSettings({ ...settings, autoTriageEnabled: e.target.checked })}
-                        />
-                        <span></span>
-                    </Toggle>
-                </ToggleContainer>
+      <SettingGroup>
+        <SettingLabel>Notifications</SettingLabel>
+        <ToggleContainer>
+          <ToggleLabel>Notify on auto-assignment</ToggleLabel>
+          <Toggle>
+            <input
+              type="checkbox"
+              checked={settings.notifyOnAssignment}
+              onChange={(e) => setSettings({ ...settings, notifyOnAssignment: e.target.checked })}
+            />
+            <span></span>
+          </Toggle>
+        </ToggleContainer>
 
-                <ToggleContainer>
-                    <ToggleLabel>Daily Stale Issue Sweep</ToggleLabel>
-                    <Toggle>
-                        <input
-                            type="checkbox"
-                            checked={settings.staleSweepEnabled}
-                            onChange={(e) => setSettings({ ...settings, staleSweepEnabled: e.target.checked })}
-                        />
-                        <span></span>
-                    </Toggle>
-                </ToggleContainer>
-            </SettingGroup>
+        <ToggleContainer>
+          <ToggleLabel>Notify on stale detection</ToggleLabel>
+          <Toggle>
+            <input
+              type="checkbox"
+              checked={settings.notifyOnStale}
+              onChange={(e) => setSettings({ ...settings, notifyOnStale: e.target.checked })}
+            />
+            <span></span>
+          </Toggle>
+        </ToggleContainer>
+      </SettingGroup>
 
-            <SettingGroup>
-                <SettingLabel>Notifications</SettingLabel>
-                <ToggleContainer>
-                    <ToggleLabel>Notify on auto-assignment</ToggleLabel>
-                    <Toggle>
-                        <input
-                            type="checkbox"
-                            checked={settings.notifyOnAssignment}
-                            onChange={(e) => setSettings({ ...settings, notifyOnAssignment: e.target.checked })}
-                        />
-                        <span></span>
-                    </Toggle>
-                </ToggleContainer>
-
-                <ToggleContainer>
-                    <ToggleLabel>Notify on stale detection</ToggleLabel>
-                    <Toggle>
-                        <input
-                            type="checkbox"
-                            checked={settings.notifyOnStale}
-                            onChange={(e) => setSettings({ ...settings, notifyOnStale: e.target.checked })}
-                        />
-                        <span></span>
-                    </Toggle>
-                </ToggleContainer>
-            </SettingGroup>
-
-            <ButtonGroup>
-                <Button primary onClick={handleSave}>
-                    <Save size={16} />
-                    Save Settings
-                </Button>
-                <Button onClick={handleReset}>
-                    <RotateCcw size={16} />
-                    Reset to Defaults
-                </Button>
-            </ButtonGroup>
-        </SettingsContainer>
-    );
+      <ButtonGroup>
+        <Button primary onClick={handleSave}>
+          <Save size={16} />
+          Save Settings
+        </Button>
+        <Button onClick={handleReset}>
+          <RotateCcw size={16} />
+          Reset to Defaults
+        </Button>
+      </ButtonGroup>
+    </SettingsContainer>
+  );
 };

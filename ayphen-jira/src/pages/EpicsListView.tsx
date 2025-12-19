@@ -21,6 +21,13 @@ const Header = styled.div`
   padding: 20px 32px;
   border-bottom: 1px solid #e8e8e8;
   background: #fff;
+
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 `;
 
 const Title = styled.h1`

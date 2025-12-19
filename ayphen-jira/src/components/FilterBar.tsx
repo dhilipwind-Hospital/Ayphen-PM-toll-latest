@@ -13,6 +13,13 @@ const FilterBarContainer = styled.div`
   background: white;
   border-bottom: 1px solid ${colors.border.light};
   margin-bottom: 24px;
+
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 `;
 
 const ProjectInfo = styled.div`
@@ -58,6 +65,11 @@ const FiltersGroup = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `;
 
 const FilterSelect = styled(Select)`

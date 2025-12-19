@@ -19,6 +19,15 @@ const Container = styled.div`
   background: white;
   min-width: 300px;
   max-width: 350px;
+
+  @media (max-width: 1024px) {
+    min-width: 100%;
+    max-width: none;
+    border-left: none;
+    border-top: 1px solid ${colors.border.light};
+    height: auto;
+    overflow-y: visible;
+  }
 `;
 
 const TopActions = styled.div`

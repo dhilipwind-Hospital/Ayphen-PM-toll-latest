@@ -209,7 +209,7 @@ const AddButton = styled(Button)`
 export const ProjectSidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentProject, sidebarCollapsed } = useStore();
+  const { currentProject, sidebarCollapsed, setSidebarCollapsed } = useStore();
   const [selectedKey, setSelectedKey] = useState('board');
   const [addItemModalVisible, setAddItemModalVisible] = useState(false);
   const [customItems, setCustomItems] = useState<any[]>([]);
@@ -439,6 +439,9 @@ export const ProjectSidebar: React.FC = () => {
         items={menuItems}
         onClick={({ key }) => {
           setSelectedKey(key);
+          if (window.innerWidth < 1024) {
+            setSidebarCollapsed(true);
+          }
 
           // Find and execute the onClick handler for the clicked item
           const findAndExecuteHandler = (items: any[], targetKey: string): boolean => {

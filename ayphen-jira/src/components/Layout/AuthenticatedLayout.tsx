@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Spin, FloatButton } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
+import { useStore } from '../../store/useStore';
 import { TopNavigation } from './TopNavigation';
 import { ProjectSidebar } from './ProjectSidebar';
 import { QuickActionsFAB } from '../QuickActions/QuickActionsFAB';
@@ -24,6 +25,12 @@ const MainLayout = styled.div`
   overflow: hidden;
   margin-top: 96px; /* 16px top + 64px header + 16px gap */
   height: calc(100vh - 96px);
+
+  @media (max-width: 768px) {
+    margin-top: 72px;
+    height: calc(100vh - 72px);
+    flex-direction: column;
+  }
 `;
 
 const StyledContent = styled.div`
@@ -47,11 +54,23 @@ interface AuthenticatedLayoutProps {
 
 export const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
+  const { setSidebarCollapsed } = useStore();
   const location = useLocation();
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
-  
+
   // Initialize keyboard shortcuts (must be inside Router context)
   useKeyboardShortcuts();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(true);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setSidebarCollapsed]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {

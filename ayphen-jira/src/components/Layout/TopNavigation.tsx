@@ -8,6 +8,7 @@ import {
   Avatar,
   Button,
   Select,
+  Modal,
 } from 'antd';
 import {
   Search,
@@ -24,6 +25,7 @@ import {
   Moon,
   Sun,
   Bot,
+  Menu as MenuIcon,
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useStore } from '../../store/useStore';
@@ -94,6 +96,36 @@ const Logo = styled.div`
   &:hover {
     transform: scale(1.02);
   }
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+`;
+
+const LogoWrapper = styled.div`
+  background: white;
+  padding: 4px 12px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+  height: 44px;
+
+  @media (max-width: 1024px) {
+    height: 36px;
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+
+  img {
+    height: 36px;
+    display: block;
+    @media (max-width: 1024px) {
+      height: 28px;
+    }
+  }
 `;
 
 const NavMenu = styled.div`
@@ -101,6 +133,10 @@ const NavMenu = styled.div`
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+
+  @media (max-width: 1100px) {
+    display: none;
+  }
 `;
 
 const NavItem = styled.div`
@@ -157,6 +193,14 @@ const SearchInput = styled(Input)`
     background: rgba(255, 255, 255, 0.9);
     border-color: ${colors.primary[400]};
     width: 320px;
+    
+    @media (max-width: 900px) {
+      width: 200px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    display: none;
   }
 
   .ant-input {
@@ -187,6 +231,12 @@ const IconButton = styled.button`
     transform: translateY(-1px);
   }
 
+  &.hide-mobile {
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
   svg {
     width: 20px;
     height: 20px;
@@ -214,6 +264,13 @@ const CreateButton = styled(Button)`
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
   }
+
+  @media (max-width: 600px) {
+    span {
+      display: none;
+    }
+    padding: 0 8px;
+  }
 `;
 
 const ProjectSelector = styled(Select)`
@@ -239,11 +296,15 @@ const ProjectSelector = styled(Select)`
     background: rgba(255, 255, 255, 0.8) !important;
     border-color: ${colors.primary[200]} !important;
   }
+
+  @media (max-width: 900px) {
+    display: none;
+  }
 `;
 
 export const TopNavigation: React.FC = () => {
   const navigate = useNavigate();
-  const { currentUser, projects, issues = [], currentProject, setCurrentProject } = useStore();
+  const { currentUser, projects, issues = [], currentProject, setCurrentProject, sidebarCollapsed, setSidebarCollapsed } = useStore();
   const { logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
@@ -439,15 +500,25 @@ export const TopNavigation: React.FC = () => {
   const helpMenu = {
     onClick: ({ key }: any) => {
       if (key === 'keyboard-shortcuts') {
-        alert('Keyboard Shortcuts:\n\n' +
-          'c - Create issue\n' +
-          '/ - Search\n' +
-          'g + b - Go to board\n' +
-          'g + d - Go to dashboard\n' +
-          'g + p - Go to projects');
+        Modal.info({
+          title: 'Keyboard Shortcuts',
+          content: (
+            <div>
+              <p><b>c</b> - Create issue</p>
+              <p><b>/</b> - Search</p>
+              <p><b>g + b</b> - Go to board</p>
+              <p><b>g + d</b> - Go to dashboard</p>
+              <p><b>g + p</b> - Go to projects</p>
+            </div>
+          ),
+          width: 400,
+        });
       }
       if (key === 'about') {
-        alert('Ayphen Jira v1.0.0\n\nA complete Jira replica with full E2E functionality');
+        Modal.info({
+          title: 'About Ayphen Jira',
+          content: 'Ayphen Jira v1.0.0. A complete Jira replica with full E2E functionality.',
+        });
       }
     },
     items: [
@@ -530,24 +601,16 @@ export const TopNavigation: React.FC = () => {
     <>
       <StyledHeader>
         <LeftSection>
+          <IconButton onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ marginRight: 4, display: 'flex' }}>
+            <MenuIcon size={20} />
+          </IconButton>
           <Logo onClick={() => navigate('/dashboard')}>
-            <div style={{
-              background: 'white',
-              padding: '4px 12px',
-              borderRadius: '10px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              transition: 'all 0.2s ease',
-              height: '44px'
-            }}>
+            <LogoWrapper>
               <img
                 src="/ayphen-logo-new.png"
                 alt="Ayphen Technologies"
-                style={{ height: '36px', display: 'block' }}
               />
-            </div>
+            </LogoWrapper>
           </Logo>
 
           {projects.length > 0 && (
@@ -649,13 +712,13 @@ export const TopNavigation: React.FC = () => {
           </IconButton>
 
           <Dropdown menu={helpMenu} trigger={['click']}>
-            <IconButton>
+            <IconButton className="hide-mobile">
               <HelpCircle />
             </IconButton>
           </Dropdown>
 
           <Dropdown menu={settingsMenu} trigger={['click']}>
-            <IconButton>
+            <IconButton className="hide-mobile">
               <Settings />
             </IconButton>
           </Dropdown>
