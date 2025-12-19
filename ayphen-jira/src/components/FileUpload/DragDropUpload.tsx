@@ -74,7 +74,7 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
 
       onSuccess(response.data);
       message.success(`${file.name} uploaded successfully`);
-      
+
       if (onUploadComplete) {
         onUploadComplete([response.data]);
       }
@@ -91,6 +91,13 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
   const handleMultipleUpload = useCallback(async (files: File[]) => {
     if (files.length > maxFiles) {
       message.error(`You can only upload up to ${maxFiles} files at once`);
+      return;
+    }
+
+    // Validate file sizes
+    const oversizedFiles = files.filter(file => file.size > maxSize * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      message.error(`${oversizedFiles.length} file(s) exceed the ${maxSize}MB limit`);
       return;
     }
 
@@ -120,7 +127,7 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
       );
 
       message.success(`${files.length} files uploaded successfully`);
-      
+
       if (onUploadComplete) {
         onUploadComplete(response.data);
       }
@@ -151,7 +158,7 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
           Support for images, documents, and archives (max {maxSize}MB per file)
         </p>
       </Dragger>
-      
+
       {uploading && (
         <div style={{ marginTop: 16 }}>
           <Progress percent={progress} status="active" />
