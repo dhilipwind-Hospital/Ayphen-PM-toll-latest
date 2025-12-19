@@ -12,11 +12,18 @@ export default function TestRuns() {
   }, []);
 
   const loadRuns = async () => {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/test-runs', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setRuns(res.data);
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/test-runs', {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId }
+      });
+      setRuns(res.data || []);
+    } catch (error) {
+      console.error('Failed to load test runs:', error);
+      setRuns([]);
+    }
   };
 
   const columns = [
@@ -50,6 +57,7 @@ export default function TestRuns() {
         columns={columns}
         dataSource={runs}
         rowKey="id"
+        locale={{ emptyText: 'No test runs yet. Run a test suite to see results here.' }}
         onRow={(record) => ({
           onClick: () => navigate(`/test-runs/${record.id}`),
           style: { cursor: 'pointer' }

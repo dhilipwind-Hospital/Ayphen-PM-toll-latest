@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Button, Select, Modal, Form, Input, message, Tag } from 'antd';
 import { Edit, Trash2, Users, Tag as TagIcon, GitBranch, X } from 'lucide-react';
@@ -50,6 +50,27 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
   const [labelsModalVisible, setLabelsModalVisible] = useState(false);
   const [sprintModalVisible, setSprintModalVisible] = useState(false);
   const [form] = Form.useForm();
+
+  // Data for dropdowns
+  const [users, setUsers] = useState<any[]>([]);
+  const [sprints, setSprints] = useState<any[]>([]);
+
+  // Fetch users and sprints for dropdowns
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [usersRes, sprintsRes] = await Promise.all([
+          axios.get('https://ayphen-pm-toll-latest.onrender.com/api/users'),
+          axios.get('https://ayphen-pm-toll-latest.onrender.com/api/sprints')
+        ]);
+        setUsers(usersRes.data || []);
+        setSprints(sprintsRes.data || []);
+      } catch (error) {
+        console.error('Failed to fetch dropdown data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleBulkEdit = async (values: any) => {
     try {
@@ -226,7 +247,17 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
             label="Assignee"
             rules={[{ required: true, message: 'Please select an assignee' }]}
           >
-            <Input placeholder="Enter user ID" />
+            <Select
+              placeholder="Select a user"
+              showSearch
+              optionFilterProp="children"
+            >
+              {users.map((user: any) => (
+                <Select.Option key={user.id} value={user.id}>
+                  {user.name} ({user.email})
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         </Form>
       </Modal>
@@ -268,7 +299,18 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
             label="Sprint"
             rules={[{ required: true, message: 'Please select a sprint' }]}
           >
-            <Input placeholder="Enter sprint ID" />
+            <Select
+              placeholder="Select a sprint"
+              showSearch
+              optionFilterProp="children"
+            >
+              <Select.Option value="">Remove from Sprint (Backlog)</Select.Option>
+              {sprints.map((sprint: any) => (
+                <Select.Option key={sprint.id} value={sprint.id}>
+                  {sprint.name} ({sprint.status})
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         </Form>
       </Modal>

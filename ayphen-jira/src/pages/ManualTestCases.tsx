@@ -296,6 +296,7 @@ export default function ManualTestCases() {
         rowKey="id"
         loading={loading}
         pagination={{ pageSize: 10 }}
+        locale={{ emptyText: 'No test cases yet. Create one to get started!' }}
       />
 
       <Modal

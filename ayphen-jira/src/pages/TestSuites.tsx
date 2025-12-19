@@ -46,47 +46,76 @@ export default function TestSuites() {
   }, []);
 
   const loadSuites = async () => {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/test-suites', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setSuites(res.data);
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/test-suites', {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId }
+      });
+      setSuites(res.data || []);
+    } catch (error) {
+      console.error('Failed to load suites:', error);
+      setSuites([]);
+    }
   };
 
   const loadTestCases = async () => {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setTestCases(res.data);
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const res = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/manual-test-cases', {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId }
+      });
+      setTestCases(res.data || []);
+    } catch (error) {
+      console.error('Failed to load test cases:', error);
+      setTestCases([]);
+    }
   };
 
   const handleCreate = async () => {
-    const token = localStorage.getItem('token');
-    await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/test-suites', form, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setOpen(false);
-    setForm({ name: '', description: '' });
-    loadSuites();
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/test-suites', { ...form, userId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOpen(false);
+      setForm({ name: '', description: '' });
+      loadSuites();
+    } catch (error) {
+      console.error('Failed to create suite:', error);
+    }
   };
 
   const handleAddTest = async (testCaseId: number) => {
-    const token = localStorage.getItem('token');
-    await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/test-suites/${selectedSuite}/test-cases`, 
-      { testCaseId },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setAddTestOpen(false);
-    loadSuites();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/test-suites/${selectedSuite}/test-cases`,
+        { testCaseId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAddTestOpen(false);
+      loadSuites();
+    } catch (error) {
+      console.error('Failed to add test to suite:', error);
+    }
   };
 
   const handleRun = async (suiteId: number) => {
-    const token = localStorage.getItem('token');
-    const res = await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/test-suites/${suiteId}/run`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    navigate(`/test-runs/${res.data.id}`);
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const res = await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/test-suites/${suiteId}/run`, { userId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Navigate to test runs list instead of specific run (route may not exist)
+      navigate('/test-runs');
+    } catch (error) {
+      console.error('Failed to run suite:', error);
+    }
   };
 
   return (
@@ -99,24 +128,30 @@ export default function TestSuites() {
       </Header>
 
       <GridContainer>
-        {suites.map((suite: any) => (
-          <Card key={suite.id} title={suite.name}>
-            <Text type="secondary">{suite.description}</Text>
-            <CardActions>
-              <Button size="small" icon={<PlusOutlined />} onClick={() => { setSelectedSuite(suite.id); setAddTestOpen(true); }}>
-                Add Test
-              </Button>
-              <Button size="small" icon={<PlayCircleOutlined />} onClick={() => handleRun(suite.id)}>
-                Run Suite
-              </Button>
-            </CardActions>
+        {suites.length === 0 ? (
+          <Card style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 40 }}>
+            <Text type="secondary">No test suites yet. Create one to get started!</Text>
           </Card>
-        ))}
+        ) : (
+          suites.map((suite: any) => (
+            <Card key={suite.id} title={suite.name}>
+              <Text type="secondary">{suite.description}</Text>
+              <CardActions>
+                <Button size="small" icon={<PlusOutlined />} onClick={() => { setSelectedSuite(suite.id); setAddTestOpen(true); }}>
+                  Add Test
+                </Button>
+                <Button size="small" icon={<PlayCircleOutlined />} onClick={() => handleRun(suite.id)}>
+                  Run Suite
+                </Button>
+              </CardActions>
+            </Card>
+          ))
+        )}
       </GridContainer>
 
-      <Modal 
-        title="Create Test Suite" 
-        open={open} 
+      <Modal
+        title="Create Test Suite"
+        open={open}
         onCancel={() => setOpen(false)}
         onOk={handleCreate}
         okText="Create"
@@ -137,16 +172,16 @@ export default function TestSuites() {
         </div>
       </Modal>
 
-      <Modal 
-        title="Add Test Case" 
-        open={addTestOpen} 
+      <Modal
+        title="Add Test Case"
+        open={addTestOpen}
         onCancel={() => setAddTestOpen(false)}
         footer={null}
       >
         <List
           dataSource={testCases}
           renderItem={(tc: any) => (
-            <List.Item 
+            <List.Item
               style={{ cursor: 'pointer' }}
               onClick={() => handleAddTest(tc.id)}
             >

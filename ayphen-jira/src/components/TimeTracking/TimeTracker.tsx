@@ -259,7 +259,7 @@ export const TimeTracker: React.FC = () => {
             style={{ width: 200, marginRight: 12 }}
             showSearch
             filterOption={(input, option) =>
-              (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
+              String(option?.label || option?.children || '').toLowerCase().includes(input.toLowerCase())
             }
           >
             {issues.map(issue => (

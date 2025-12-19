@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup, Tooltip } from '@mui/material';
+import { Avatar, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
 
 interface User {
@@ -10,22 +10,27 @@ export default function PresenceIndicator({ issueId }: { issueId: string }) {
   const [activeUsers, setActiveUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    const mockUsers: User[] = [
-      { id: '1', name: 'John Doe' },
-      { id: '2', name: 'Jane Smith' }
-    ];
-    setActiveUsers(mockUsers);
+    // Show current user as viewing this issue
+    // In a real implementation, this would use WebSockets
+    const userId = localStorage.getItem('userId');
+    const userName = localStorage.getItem('userName') || 'Current User';
+
+    if (userId) {
+      setActiveUsers([{ id: userId, name: userName }]);
+    } else {
+      setActiveUsers([]);
+    }
   }, [issueId]);
 
   if (activeUsers.length === 0) return null;
 
   return (
-    <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 32, height: 32 } }}>
+    <Avatar.Group maxCount={4} size={32}>
       {activeUsers.map(user => (
         <Tooltip key={user.id} title={`${user.name} is viewing`}>
-          <Avatar sx={{ bgcolor: '#1976d2' }}>{user.name[0]}</Avatar>
+          <Avatar style={{ backgroundColor: '#0EA5E9' }}>{user.name[0]}</Avatar>
         </Tooltip>
       ))}
-    </AvatarGroup>
+    </Avatar.Group>
   );
 }

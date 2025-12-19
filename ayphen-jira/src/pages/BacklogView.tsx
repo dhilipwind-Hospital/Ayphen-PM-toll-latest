@@ -249,18 +249,15 @@ export const BacklogView: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (!currentProject) {
-        console.error('[BacklogView] No current project');
         return;
       }
 
       try {
-        console.error('[BacklogView] Fetching data for project:', currentProject.id);
 
         // Fetch sprints
         const userId = localStorage.getItem('userId') || undefined;
         const sprintRes = await sprintsApi.getAll(currentProject.id, userId);
-        console.error('[BacklogView] Sprint API raw response:', sprintRes);
-        console.error('[BacklogView] Type of data:', typeof sprintRes.data, Array.isArray(sprintRes.data));
+
 
         // Handle ALL possible response formats
         let sprintData: any[] = [];
@@ -275,7 +272,7 @@ export const BacklogView: React.FC = () => {
           sprintData = sprintRes as any;
         }
 
-        console.error('[BacklogView] Final parsed sprint data:', sprintData);
+
         setLocalSprints(sprintData);
 
         // Fetch issues
@@ -296,14 +293,14 @@ export const BacklogView: React.FC = () => {
   const loadData = async () => {
     if (!currentProject) return;
     try {
-      console.error('[BacklogView] Manual refresh triggered');
+
       const userId = localStorage.getItem('userId') || undefined;
       const sprintRes = await sprintsApi.getAll(currentProject.id, userId);
       let sprintData: any[] = [];
       if (Array.isArray(sprintRes.data)) sprintData = sprintRes.data;
       else if (sprintRes.data?.sprints) sprintData = sprintRes.data.sprints;
 
-      console.error('[BacklogView] Manual refresh data:', sprintData);
+
       setLocalSprints(sprintData);
 
       const res = await issuesApi.getByProject(currentProject.id);
@@ -465,12 +462,6 @@ export const BacklogView: React.FC = () => {
               </Button>
             </Controls>
           </Header>
-
-          {/* Debug info - remove after fixing */}
-          <div style={{ padding: '8px 16px', background: '#fef3c7', borderRadius: 4, marginBottom: 16, fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>Debug: localSprints count = {localSprints.length}, activeSprints = {activeSprints.length}, futureSprints = {futureSprints.length}</span>
-            <Button size="small" onClick={loadData}>Force Refresh</Button>
-          </div>
 
           {/* Sprints */}
           {[...activeSprints, ...futureSprints].length > 0 ? (

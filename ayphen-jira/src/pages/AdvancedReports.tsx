@@ -119,7 +119,20 @@ export const AdvancedReports: React.FC = () => {
       </Row>
 
       {loading ? (
-        <Spin size="large" />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+          <Spin size="large" />
+        </div>
+      ) : !data || (Array.isArray(data) && data.length === 0) ? (
+        <Card style={{ textAlign: 'center', padding: 60 }}>
+          <TrendingUp size={48} color="#ccc" style={{ marginBottom: 16 }} />
+          <h3 style={{ color: '#999' }}>No Data Available</h3>
+          <p style={{ color: '#bbb' }}>
+            No report data found for the selected period. Try selecting a different date range or report type.
+          </p>
+          <Button type="primary" onClick={loadReport} style={{ marginTop: 16 }}>
+            Refresh Data
+          </Button>
+        </Card>
       ) : (
         <Row gutter={[16, 16]}>
           <Col span={24}>
