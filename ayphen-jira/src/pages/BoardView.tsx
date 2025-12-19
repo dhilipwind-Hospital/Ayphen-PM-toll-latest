@@ -978,7 +978,7 @@ export const BoardView: React.FC = () => {
         }}>
           <h2>No Project Selected</h2>
           <p>Please select a project from the dropdown in the header to view the board.</p>
-          <Button type="primary" onClick={() => navigate('/projects')}>
+          <Button type="primary" onClick={() => navigate('/projects')} style={{ color: '#FFFFFF' }}>
             Go to Projects
           </Button>
         </div>
@@ -1047,7 +1047,7 @@ export const BoardView: React.FC = () => {
           <Layers size={48} style={{ marginBottom: 16, opacity: 0.5 }} />
           <h2 style={{ fontSize: 20, marginBottom: 8 }}>No Active Sprint</h2>
           <p>Start a sprint in the Backlog to see issues on the board.</p>
-          <Button type="primary" onClick={() => navigate('/backlog')} style={{ marginTop: 16 }}>
+          <Button type="primary" onClick={() => navigate('/backlog')} style={{ marginTop: 16, color: '#FFFFFF' }}>
             Go to Backlog
           </Button>
         </div>

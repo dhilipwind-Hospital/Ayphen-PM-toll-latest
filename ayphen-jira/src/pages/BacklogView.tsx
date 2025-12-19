@@ -516,7 +516,7 @@ export const BacklogView: React.FC = () => {
           {/* Backlog */}
           <SprintCard title={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <span style={{ fontWeight: 600 }}>Backlog ({backlogIssues.length} issues)</span>
-            <Button size="small" type="primary" onClick={() => setIsCreateSprintModalOpen(true)}>+ Create Sprint</Button>
+            <Button size="small" type="primary" onClick={() => setIsCreateSprintModalOpen(true)} style={{ color: '#FFFFFF' }}>+ Create Sprint</Button>
           </div>}>
             <DroppableSprint
               sprintId="backlog"

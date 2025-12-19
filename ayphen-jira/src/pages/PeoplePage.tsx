@@ -432,6 +432,7 @@ export const PeoplePage: React.FC = () => {
                   type={viewMode === 'grid' ? 'primary' : 'text'}
                   icon={<LayoutGrid size={16} />}
                   onClick={() => setViewMode('grid')}
+                  style={{ color: viewMode === 'grid' ? '#FFFFFF' : undefined }}
                 />
               </Tooltip>
               <Tooltip title="List View">
@@ -439,6 +440,7 @@ export const PeoplePage: React.FC = () => {
                   type={viewMode === 'list' ? 'primary' : 'text'}
                   icon={<List size={16} />}
                   onClick={() => setViewMode('list')}
+                  style={{ color: viewMode === 'list' ? '#FFFFFF' : undefined }}
                 />
               </Tooltip>
             </div>
@@ -448,6 +450,7 @@ export const PeoplePage: React.FC = () => {
                 icon={<UserPlus size={16} />}
                 size="large"
                 onClick={() => setIsAddModalOpen(true)}
+                style={{ color: '#FFFFFF' }}
               >
                 Invite Member
               </Button>

@@ -346,6 +346,7 @@ export const StoriesListView: React.FC = () => {
             type="primary"
             icon={<Plus size={16} />}
             onClick={() => setCreateModalOpen(true)}
+            style={{ color: '#FFFFFF' }}
           >
             Create Story
           </Button>

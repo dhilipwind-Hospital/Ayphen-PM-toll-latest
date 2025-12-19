@@ -418,18 +418,21 @@ export const FiltersView: React.FC = () => {
           <Button
             type={activeFilter === 'all' ? 'primary' : 'default'}
             onClick={() => setActiveFilter('all')}
+            style={{ color: activeFilter === 'all' ? '#FFFFFF' : undefined }}
           >
             All Issues
           </Button>
           <Button
             type={activeFilter === 'my-open' ? 'primary' : 'default'}
             onClick={() => setActiveFilter('my-open')}
+            style={{ color: activeFilter === 'my-open' ? '#FFFFFF' : undefined }}
           >
             My Open Issues
           </Button>
           <Button
             type={activeFilter === 'done' ? 'primary' : 'default'}
             onClick={() => setActiveFilter('done')}
+            style={{ color: activeFilter === 'done' ? '#FFFFFF' : undefined }}
           >
             Done Issues
           </Button>
