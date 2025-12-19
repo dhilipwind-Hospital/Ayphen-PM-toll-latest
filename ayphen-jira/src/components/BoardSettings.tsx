@@ -6,6 +6,15 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+const AVAILABLE_STATUSES = [
+  { label: 'Backlog', value: 'backlog' },
+  { label: 'To Do', value: 'todo' },
+  { label: 'In Progress', value: 'in-progress' },
+  { label: 'In Review', value: 'in-review' },
+  { label: 'Done', value: 'done' },
+  { label: 'Blocked', value: 'blocked' },
+  { label: 'Canceled', value: 'canceled' }
+];
 const ColumnItem = styled.div<{ isDragging?: boolean }>`
   display: flex;
   align-items: center;
@@ -35,6 +44,12 @@ const DragHandle = styled.div`
 
 const ColumnContent = styled.div`
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const ColumnHeaderRow = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
@@ -82,33 +97,46 @@ const SortableColumnItem: React.FC<SortableColumnItemProps> = ({ column, onUpdat
         <GripVertical size={16} />
       </DragHandle>
       <ColumnContent>
-        <Input
-          value={column.title}
-          onChange={(e) => onUpdate(column.id, { title: e.target.value })}
-          placeholder="Column name"
-          style={{ width: 150 }}
-        />
-        <InputNumber
-          value={column.wipLimit}
-          onChange={(value) => onUpdate(column.id, { wipLimit: value || undefined })}
-          placeholder="WIP Limit"
-          min={0}
-          style={{ width: 100 }}
-        />
-        <Select
-          value={column.color}
-          onChange={(value) => onUpdate(column.id, { color: value })}
-          placeholder="Color"
-          style={{ width: 120 }}
-          options={[
-            { label: 'Blue', value: '#1890ff' },
-            { label: 'Green', value: '#52c41a' },
-            { label: 'Orange', value: '#fa8c16' },
-            { label: 'Red', value: '#f5222d' },
-            { label: 'Purple', value: '#722ed1' },
-            { label: 'Gray', value: '#8c8c8c' },
-          ]}
-        />
+        <ColumnHeaderRow>
+          <Input
+            value={column.title}
+            onChange={(e) => onUpdate(column.id, { title: e.target.value })}
+            placeholder="Column name"
+            style={{ width: 150 }}
+          />
+          <InputNumber
+            value={column.wipLimit}
+            onChange={(value) => onUpdate(column.id, { wipLimit: value || undefined })}
+            placeholder="WIP Limit"
+            min={0}
+            style={{ width: 100 }}
+          />
+          <Select
+            value={column.color}
+            onChange={(value) => onUpdate(column.id, { color: value })}
+            placeholder="Color"
+            style={{ width: 120 }}
+            options={[
+              { label: 'Blue', value: '#1890ff' },
+              { label: 'Green', value: '#52c41a' },
+              { label: 'Orange', value: '#fa8c16' },
+              { label: 'Red', value: '#f5222d' },
+              { label: 'Purple', value: '#722ed1' },
+              { label: 'Gray', value: '#8c8c8c' },
+            ]}
+          />
+        </ColumnHeaderRow>
+        <div style={{ marginTop: 4 }}>
+          <Select
+            mode="multiple"
+            placeholder="Map Statuses (e.g. To Do)"
+            value={column.statuses}
+            onChange={(values) => onUpdate(column.id, { statuses: values })}
+            style={{ width: '100%' }}
+            options={AVAILABLE_STATUSES}
+            maxTagCount="responsive"
+          />
+        </div>
       </ColumnContent>
       <Button
         type="text"
@@ -247,9 +275,9 @@ export const BoardSettings: React.FC<BoardSettingsProps> = ({ visible, onClose, 
           </DndContext>
         </Form.Item>
 
-        <div style={{ 
-          padding: 12, 
-          background: '#f0f0f0', 
+        <div style={{
+          padding: 12,
+          background: '#f0f0f0',
           borderRadius: 4,
           fontSize: 12,
           color: '#595959'

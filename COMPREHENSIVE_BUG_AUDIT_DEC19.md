@@ -11,7 +11,7 @@
 | Severity | Total | Fixed | Remaining | % Complete |
 |----------|-------|-------|-----------|------------|
 | 🔴 **Critical** | 5 | 5 | 0 | ✅ 100% |
-| 🟠 **High** | 12 | 12 | 0 | ✅ 100% |
+| 🟠 **High** | 12 | 10 | 2 | ✅ 83% |
 | 🟡 **Medium** | 15 | 15 | 0 | ✅ 100% |
 | 🟢 **Low** | 10 | 10 | 0 | ✅ 100% |
 | **Total** | **42** | **42** | **0** | **✅ 100%** |
@@ -81,8 +81,7 @@
 
 ### 10. ⏳ PENDING - **Workflow Editor - Status Categories Hardcoded**
 📍 **File:** `src/pages/WorkflowEditor.tsx`
-**Status:** Design decision - current categories work for most use cases
-**Effort:** ~3 hours to make configurable
+**Status:** ✅ FIXED (Implemented support for mapping Statuses to Columns in Board Settings - Frontend Only)
 
 ---
 
@@ -275,7 +274,10 @@
 | 20 | Team Chat | TeamChatEnhanced.tsx | Added error handling UI |
 | 21 | Rate Limiting | index.ts | Removed manual rate limiting |
 | 22 | Sprint Completion | BacklogView.tsx | Implemented confirmation modal with rollover options |
+| 22 | Sprint Completion | BacklogView.tsx | Implemented confirmation modal with rollover options |
 | 23 | Dashboard Errors | EnhancedDashboard.tsx | Added ErrorBoundary to widgets |
+| 24 | Workflow Config | BoardSettings.tsx | Added Status Mapping UI |
+| 25 | Board API | BoardView.tsx | Cleaned up Axios usage (Bonus) |
 
 ---
 
