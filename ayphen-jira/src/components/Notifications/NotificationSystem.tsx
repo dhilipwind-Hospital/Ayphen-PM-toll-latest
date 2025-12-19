@@ -3,6 +3,7 @@ import { Badge, Dropdown, List, Avatar, Button, Typography, Tag, Empty, Switch, 
 import { Bell, Check, X, Settings, Filter } from 'lucide-react';
 import styled from 'styled-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 
 const NotificationButton = styled(Button)`
@@ -26,11 +27,26 @@ const NotificationPanel = styled.div`
 `;
 
 const NotificationHeader = styled.div`
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid rgba(14, 165, 233, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+`;
+
+const HeaderTitleSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-width: 100px;
+`;
+
+const HeaderActionSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 `;
 
 const NotificationItem = styled.div<{ isRead: boolean }>`
@@ -77,6 +93,7 @@ interface Notification {
 }
 
 export const NotificationSystem: React.FC = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const userId = localStorage.getItem('userId') || '';
 
@@ -223,17 +240,18 @@ export const NotificationSystem: React.FC = () => {
   const notificationMenu = (
     <NotificationPanel>
       <NotificationHeader>
-        <div>
-          <Typography.Title level={5} style={{ margin: 0, color: '#0EA5E9' }}>
+        <HeaderTitleSection>
+          <Typography.Title level={5} style={{ margin: 0, color: '#0EA5E9', fontSize: '15px', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
             Notifications
           </Typography.Title>
-          <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+          <Typography.Text type="secondary" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>
             {unreadCount} unread
           </Typography.Text>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontSize: 12, color: useAiFilter ? '#0EA5E9' : '#9CA3AF' }}>AI Filter</span>
+        </HeaderTitleSection>
+
+        <HeaderActionSection>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingRight: 4, borderRight: '1px solid #E5E7EB' }}>
+            <span style={{ fontSize: '11px', color: useAiFilter ? '#0EA5E9' : '#9CA3AF' }}>AI</span>
             <Switch
               size="small"
               checked={useAiFilter}
@@ -241,25 +259,30 @@ export const NotificationSystem: React.FC = () => {
               loading={isAiFiltering}
             />
           </div>
+
           <Button
             type="text"
             size="small"
             icon={<Filter size={14} />}
             onClick={() => setFilter(filter === 'all' ? 'unread' : 'all')}
-            style={{ color: '#0EA5E9' }}
+            style={{
+              color: filter === 'unread' ? '#0EA5E9' : '#6B7280',
+              background: filter === 'unread' ? 'rgba(14, 165, 233, 0.1)' : 'transparent',
+              fontSize: '11px'
+            }}
           >
-            {filter === 'all' ? 'Unread' : 'All'}
+            {filter === 'unread' ? 'Unread' : 'All'}
           </Button>
+
           <Button
             type="text"
             size="small"
-            icon={<Check size={14} />}
             onClick={markAllAsRead}
-            style={{ color: '#0EA5E9' }}
+            style={{ color: '#0EA5E9', fontSize: '11px', fontWeight: 500 }}
           >
-            Mark All Read
+            Read All
           </Button>
-        </div>
+        </HeaderActionSection>
       </NotificationHeader>
 
       <div style={{ maxHeight: 400, overflowY: 'auto' }}>
@@ -328,6 +351,7 @@ export const NotificationSystem: React.FC = () => {
           size="small"
           icon={<Settings size={14} />}
           style={{ color: '#0EA5E9', padding: 0 }}
+          onClick={() => navigate('/settings/notifications')}
         >
           Notification Settings
         </Button>
