@@ -241,7 +241,9 @@ export const PeoplePage: React.FC = () => {
     setLoading(true);
     try {
       const userId = localStorage.getItem('userId');
-      const usersResponse = await axios.get(`${API_URL}/users`);
+      const usersResponse = await axios.get(`${API_URL}/users`, {
+        params: { projectId: currentProject?.id }
+      });
       const issuesResponse = await axios.get(`${API_URL}/issues`, { params: { userId } });
 
       const users = usersResponse.data;

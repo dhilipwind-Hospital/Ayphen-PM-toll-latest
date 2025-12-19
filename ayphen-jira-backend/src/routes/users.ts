@@ -38,12 +38,28 @@ const upload = multer({
   }
 });
 
-// GET all users
+// GET all users (with optional project filtering)
 router.get('/', async (req, res) => {
   try {
-    const users = await userRepo.find();
+    const { projectId } = req.query;
+
+    if (projectId) {
+      // Enterprise-grade: Only fetch users belonging to the specific project
+      const users = await userRepo.createQueryBuilder('user')
+        .innerJoin('project_members', 'pm', 'pm.userId = user.id')
+        .where('pm.projectId = :projectId', { projectId })
+        .select(['user.id', 'user.name', 'user.email', 'user.avatar', 'user.role', 'user.isActive']) // Select only necessary fields for privacy
+        .getMany();
+      return res.json(users);
+    }
+
+    // Fallback: Return all users (Note: In a strict enterprise system, this should likely be restricted to Admins only)
+    const users = await userRepo.find({
+      select: ['id', 'name', 'email', 'avatar', 'role', 'isActive'] // Restrict fields
+    });
     res.json(users);
   } catch (error) {
+    console.error('Failed to fetch users:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
@@ -79,7 +95,7 @@ router.patch('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     // Update user fields
     Object.assign(user, req.body);
     const updatedUser = await userRepo.save(user);
@@ -97,7 +113,7 @@ router.put('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     Object.assign(user, req.body);
     const updatedUser = await userRepo.save(user);
     res.json(updatedUser);
@@ -114,7 +130,7 @@ router.patch('/:id/profile', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     const { name, email, jobTitle, department, location, timezone } = req.body;
     if (name) user.name = name;
     if (email) user.email = email;
@@ -122,7 +138,7 @@ router.patch('/:id/profile', async (req, res) => {
     if (department) user.department = department;
     if (location) user.location = location;
     if (timezone) user.timezone = timezone;
-    
+
     const updatedUser = await userRepo.save(user);
     res.json(updatedUser);
   } catch (error) {
@@ -135,27 +151,27 @@ router.patch('/:id/profile', async (req, res) => {
 router.post('/:id/change-password', async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    
+
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Current and new password required' });
     }
-    
+
     const user = await userRepo.findOne({ where: { id: req.params.id } });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     // Verify current password
     const isValid = await bcrypt.compare(currentPassword, user.password);
     if (!isValid) {
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
-    
+
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await userRepo.save(user);
-    
+
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
     console.error('Failed to change password:', error);
@@ -170,7 +186,7 @@ router.get('/:id/preferences', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     res.json({
       language: user.language || 'en',
       dateFormat: user.dateFormat || 'MM/DD/YYYY',
@@ -192,7 +208,7 @@ router.put('/:id/preferences', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     const { language, dateFormat, timeFormat, timezone, theme, notificationsEnabled } = req.body;
     if (language) user.language = language;
     if (dateFormat) user.dateFormat = dateFormat;
@@ -200,7 +216,7 @@ router.put('/:id/preferences', async (req, res) => {
     if (timezone) user.timezone = timezone;
     if (theme) user.theme = theme;
     if (notificationsEnabled !== undefined) user.notificationsEnabled = notificationsEnabled;
-    
+
     const updatedUser = await userRepo.save(user);
     res.json({
       language: updatedUser.language,
@@ -222,14 +238,14 @@ router.post('/:id/avatar', upload.single('avatar'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    
+
     const user = await userRepo.findOne({ where: { id: req.params.id } });
     if (!user) {
       // Clean up uploaded file
       fs.unlinkSync(req.file.path);
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     // Delete old avatar if exists
     if (user.avatar && user.avatar.startsWith('/uploads/')) {
       const oldAvatarPath = path.join(process.cwd(), user.avatar);
@@ -237,11 +253,11 @@ router.post('/:id/avatar', upload.single('avatar'), async (req, res) => {
         fs.unlinkSync(oldAvatarPath);
       }
     }
-    
+
     const avatarUrl = `/uploads/avatars/${req.file.filename}`;
     user.avatar = avatarUrl;
     const updatedUser = await userRepo.save(user);
-    
+
     res.json({ avatar: updatedUser.avatar });
   } catch (error) {
     console.error('Failed to upload avatar:', error);
@@ -256,7 +272,7 @@ router.delete('/:id/avatar', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     // Delete avatar file if exists
     if (user.avatar && user.avatar.startsWith('/uploads/')) {
       const avatarPath = path.join(process.cwd(), user.avatar);
@@ -264,12 +280,12 @@ router.delete('/:id/avatar', async (req, res) => {
         fs.unlinkSync(avatarPath);
       }
     }
-    
+
     // Reset to default avatar
     const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1890ff&color=fff`;
     user.avatar = defaultAvatar;
     await userRepo.save(user);
-    
+
     res.json({ success: true, avatar: defaultAvatar });
   } catch (error) {
     console.error('Failed to delete avatar:', error);
@@ -284,10 +300,10 @@ router.post('/:id/deactivate', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     user.isActive = false;
     await userRepo.save(user);
-    
+
     res.json({ success: true, message: 'User deactivated successfully' });
   } catch (error) {
     console.error('Failed to deactivate user:', error);
@@ -302,10 +318,10 @@ router.post('/:id/activate', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     user.isActive = true;
     await userRepo.save(user);
-    
+
     res.json({ success: true, message: 'User activated successfully' });
   } catch (error) {
     console.error('Failed to activate user:', error);
@@ -320,7 +336,7 @@ router.get('/:id/settings', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     res.json({
       emailNotifications: user.emailNotifications !== false,
       desktopNotifications: user.desktopNotifications !== false,
@@ -342,7 +358,7 @@ router.put('/:id/settings', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     const {
       emailNotifications,
       desktopNotifications,
@@ -351,16 +367,16 @@ router.put('/:id/settings', async (req, res) => {
       twoFactorEnabled,
       keyboardShortcutsEnabled
     } = req.body;
-    
+
     if (emailNotifications !== undefined) user.emailNotifications = emailNotifications;
     if (desktopNotifications !== undefined) user.desktopNotifications = desktopNotifications;
     if (pushNotifications !== undefined) user.pushNotifications = pushNotifications;
     if (notificationFrequency) user.notificationFrequency = notificationFrequency;
     if (twoFactorEnabled !== undefined) user.twoFactorEnabled = twoFactorEnabled;
     if (keyboardShortcutsEnabled !== undefined) user.keyboardShortcutsEnabled = keyboardShortcutsEnabled;
-    
+
     await userRepo.save(user);
-    
+
     res.json({
       emailNotifications: user.emailNotifications,
       desktopNotifications: user.desktopNotifications,
@@ -382,7 +398,7 @@ router.delete('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     await userRepo.remove(user);
     res.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
