@@ -10,26 +10,27 @@ const issueRepo = AppDataSource.getRepository(Issue);
 router.get('/:projectId', async (req, res) => {
   try {
     const { projectId } = req.params;
-    
+
     // Get all epics for the project
     const epics = await issueRepo.find({
       where: { projectId, type: 'epic' },
       order: { startDate: 'ASC' },
     });
-    
+
     // Get all issues linked to these epics
     const epicIds = epics.map(e => e.id);
     const childIssues = await issueRepo.find({
       where: epicIds.length > 0 ? epicIds.map(id => ({ epicLink: id })) : [],
+      relations: ['assignee'],
     });
-    
+
     // Build roadmap data
     const roadmapData = epics.map(epic => {
       const children = childIssues.filter(issue => issue.epicLink === epic.id);
       const completedChildren = children.filter(i => i.status === 'done');
       const totalPoints = children.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
       const completedPoints = completedChildren.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
-      
+
       return {
         id: epic.id,
         key: epic.key,
@@ -53,10 +54,14 @@ router.get('/:projectId', async (req, res) => {
           type: c.type,
           status: c.status,
           storyPoints: c.storyPoints,
+          startDate: c.startDate,
+          endDate: c.endDate,
+          dueDate: c.dueDate,
+          assignee: c.assignee,
         })),
       };
     });
-    
+
     res.json(roadmapData);
   } catch (error) {
     console.error('Failed to get roadmap:', error);
@@ -70,19 +75,19 @@ router.put('/:epicId/dates', async (req, res) => {
   try {
     const { epicId } = req.params;
     const { startDate, endDate } = req.body;
-    
+
     const epic = await issueRepo.findOne({ where: { id: epicId } });
     if (!epic) {
       return res.status(404).json({ error: 'Epic not found' });
     }
-    
+
     if (epic.type !== 'epic') {
       return res.status(400).json({ error: 'Issue is not an epic' });
     }
-    
+
     epic.startDate = startDate ? new Date(startDate) : epic.startDate;
     epic.endDate = endDate ? new Date(endDate) : epic.endDate;
-    
+
     const savedEpic = await issueRepo.save(epic);
     res.json(savedEpic);
   } catch (error) {
@@ -97,18 +102,18 @@ router.put('/:epicId/dependencies', async (req, res) => {
   try {
     const { epicId } = req.params;
     const { dependencies } = req.body;
-    
+
     const epic = await issueRepo.findOne({ where: { id: epicId } });
     if (!epic) {
       return res.status(404).json({ error: 'Epic not found' });
     }
-    
+
     if (epic.type !== 'epic') {
       return res.status(400).json({ error: 'Issue is not an epic' });
     }
-    
+
     epic.dependencies = dependencies || [];
-    
+
     const savedEpic = await issueRepo.save(epic);
     res.json(savedEpic);
   } catch (error) {
@@ -123,17 +128,17 @@ router.get('/:projectId/timeline', async (req, res) => {
   try {
     const { projectId } = req.params;
     const { view = 'months' } = req.query; // quarters, months, weeks
-    
+
     const epics = await issueRepo.find({
       where: { projectId, type: 'epic' },
       order: { startDate: 'ASC' },
     });
-    
+
     // Calculate timeline bounds
     const epicDates = epics
       .filter(e => e.startDate && e.endDate)
       .flatMap(e => [new Date(e.startDate!), new Date(e.endDate!)]);
-    
+
     if (epicDates.length === 0) {
       return res.json({
         epics: [],
@@ -142,13 +147,13 @@ router.get('/:projectId/timeline', async (req, res) => {
         periods: [],
       });
     }
-    
+
     const timelineStart = new Date(Math.min(...epicDates.map(d => d.getTime())));
     const timelineEnd = new Date(Math.max(...epicDates.map(d => d.getTime())));
-    
+
     // Generate periods based on view
     const periods = generatePeriods(timelineStart, timelineEnd, view as string);
-    
+
     res.json({
       epics: epics.map(e => ({
         id: e.id,
@@ -171,7 +176,7 @@ router.get('/:projectId/timeline', async (req, res) => {
 function generatePeriods(start: Date, end: Date, view: string): any[] {
   const periods = [];
   const current = new Date(start);
-  
+
   if (view === 'quarters') {
     while (current <= end) {
       const quarter = Math.floor(current.getMonth() / 3) + 1;
@@ -207,7 +212,7 @@ function generatePeriods(start: Date, end: Date, view: string): any[] {
       current.setDate(current.getDate() + 7);
     }
   }
-  
+
   return periods;
 }
 

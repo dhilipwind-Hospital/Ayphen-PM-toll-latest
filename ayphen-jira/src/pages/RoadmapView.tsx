@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { Card, Select, Button, Drawer, Form, Input, DatePicker, Progress, Tag, message, Modal } from 'antd';
-import { Calendar, Filter, Plus, Edit, Link as LinkIcon, ZoomIn, ZoomOut } from 'lucide-react';
+import { Calendar, Filter, Plus, Edit, Link as LinkIcon, ZoomIn, ZoomOut, ChevronRight, ChevronDown } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
 import { api, issuesApi } from '../services/api';
@@ -164,6 +164,18 @@ const StatCard = styled.div`
   margin-bottom: 16px;
 `;
 
+interface ChildIssue {
+  id: string;
+  key: string;
+  summary: string;
+  type: string;
+  status: string;
+  startDate?: string;
+  endDate?: string;
+  dueDate?: string;
+  assignee?: any;
+}
+
 interface Epic {
   id: string;
   key: string;
@@ -180,7 +192,7 @@ interface Epic {
   completedIssues: number;
   totalPoints: number;
   completedPoints: number;
-  children: any[];
+  children: ChildIssue[];
 }
 
 export const RoadmapView: React.FC = () => {
@@ -194,6 +206,17 @@ export const RoadmapView: React.FC = () => {
   const [resizingEpic, setResizingEpic] = useState<{ id: string; side: 'left' | 'right' } | null>(null);
   const [createEpicModalVisible, setCreateEpicModalVisible] = useState(false);
   const [createEpicForm] = Form.useForm();
+  const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
+
+  const toggleEpic = (epicId: string) => {
+    const newExpanded = new Set(expandedEpics);
+    if (newExpanded.has(epicId)) {
+      newExpanded.delete(epicId);
+    } else {
+      newExpanded.add(epicId);
+    }
+    setExpandedEpics(newExpanded);
+  };
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const projectId = currentProject?.id || 'default-project';
@@ -293,25 +316,31 @@ export const RoadmapView: React.FC = () => {
     return periods;
   };
 
-  const calculateEpicPosition = (epic: Epic) => {
-    if (!epic.startDate || !epic.endDate) return { left: 0, width: 0 };
+  const calculatePosition = (item: { startDate?: string; endDate?: string }) => {
+    if (!item.startDate || !item.endDate) return { left: 0, width: 0 };
 
     const { start: timelineStart } = calculateTimelineBounds();
     const periods = generatePeriods();
     const totalWidth = periods.length * 150; // 150px per period
 
     const timelineStartTime = timelineStart.getTime();
-    const timelineEndTime = new Date(periods[periods.length - 1].end).getTime();
+    // Use optional chaining/safety for periods array
+    const lastPeriod = periods[periods.length - 1];
+    if (!lastPeriod) return { left: 0, width: 0 };
+
+    const timelineEndTime = new Date(lastPeriod.end).getTime();
     const timelineRange = timelineEndTime - timelineStartTime;
 
-    const epicStart = new Date(epic.startDate).getTime();
-    const epicEnd = new Date(epic.endDate).getTime();
+    const itemStart = new Date(item.startDate).getTime();
+    const itemEnd = new Date(item.endDate).getTime();
 
-    const left = ((epicStart - timelineStartTime) / timelineRange) * totalWidth;
-    const width = ((epicEnd - epicStart) / timelineRange) * totalWidth;
+    const left = ((itemStart - timelineStartTime) / timelineRange) * totalWidth;
+    const width = ((itemEnd - itemStart) / timelineRange) * totalWidth;
 
-    return { left: Math.max(0, left), width: Math.max(50, width) };
+    return { left: Math.max(0, left), width: Math.max(20, width) };
   };
+
+  const calculateEpicPosition = (epic: Epic) => calculatePosition(epic);
 
   const getEpicColor = (status: string) => {
     const colorMap: Record<string, string> = {
@@ -322,6 +351,16 @@ export const RoadmapView: React.FC = () => {
       'backlog': '#d9d9d9',
     };
     return colorMap[status] || '#8884d8';
+  };
+
+  const getTypeColor = (type: string) => {
+    const colorMap: Record<string, string> = {
+      'story': '#65BA43', // Green
+      'bug': '#E5493A',   // Red
+      'task': '#4BADE8',  // Blue
+      'subtask': '#8993A4' // Grey
+    };
+    return colorMap[type] || '#4BADE8';
   };
 
   const handleEpicClick = (epic: Epic) => {
@@ -486,27 +525,67 @@ export const RoadmapView: React.FC = () => {
               {/* Epic bars */}
               {epics.map((epic, index) => {
                 const { left, width } = calculateEpicPosition(epic);
+                const isExpanded = expandedEpics.has(epic.id);
 
                 return (
-                  <EpicRow key={epic.id}>
-                    <EpicLabel onClick={() => handleEpicClick(epic)}>
-                      {epic.key} - {epic.summary}
-                    </EpicLabel>
-                    <EpicBar
-                      left={left}
-                      width={width}
-                      color={getEpicColor(epic.status)}
-                      isDragging={draggedEpic === epic.id}
-                      onClick={() => handleEpicClick(epic)}
-                    >
-                      <ResizeHandle position="left" />
-                      <EpicBarContent>
-                        <span>{epic.summary.substring(0, 20)}...</span>
-                        <span>{epic.progress}%</span>
-                      </EpicBarContent>
-                      <ResizeHandle position="right" />
-                    </EpicBar>
-                  </EpicRow>
+                  <React.Fragment key={epic.id}>
+                    <EpicRow>
+                      <EpicLabel onClick={() => toggleEpic(epic.id)} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        <span style={{ fontWeight: 600 }}>{epic.key}</span>
+                        <span style={{ fontSize: 12, color: '#666', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          - {epic.summary}
+                        </span>
+                      </EpicLabel>
+                      <EpicBar
+                        left={left}
+                        width={width}
+                        color={getEpicColor(epic.status)}
+                        isDragging={draggedEpic === epic.id}
+                        onClick={() => handleEpicClick(epic)}
+                      >
+                        <ResizeHandle position="left" />
+                        <EpicBarContent>
+                          <span>{epic.summary.substring(0, 20)}...</span>
+                          <span>{epic.progress}%</span>
+                        </EpicBarContent>
+                        <ResizeHandle position="right" />
+                      </EpicBar>
+                    </EpicRow>
+
+                    {/* Render Children if Expanded */}
+                    {isExpanded && epic.children && epic.children.map(child => {
+                      const childPos = calculatePosition(child);
+                      // Only render bar if it has valid dates (width > 0)
+                      const hasDates = childPos.width > 0;
+
+                      return (
+                        <EpicRow key={child.id} style={{ height: 40, marginBottom: 8 }}>
+                          <EpicLabel style={{ paddingLeft: 32, fontSize: 12, color: '#444' }} onClick={() => { }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{
+                                width: 6, height: 6, borderRadius: '50%',
+                                background: getTypeColor(child.type)
+                              }} />
+                              <span>{child.key} - {child.summary}</span>
+                            </div>
+                          </EpicLabel>
+                          {hasDates && (
+                            <EpicBar
+                              left={childPos.left}
+                              width={childPos.width}
+                              color={getTypeColor(child.type)}
+                              style={{ height: 24, opacity: 0.8 }}
+                            >
+                              <EpicBarContent style={{ fontSize: 10 }}>
+                                <span>{child.assignee ? child.assignee.name.split(' ')[0] : ''}</span>
+                              </EpicBarContent>
+                            </EpicBar>
+                          )}
+                        </EpicRow>
+                      );
+                    })}
+                  </React.Fragment>
                 );
               })}
             </EpicsContainer>
