@@ -96,6 +96,23 @@ class SocketService {
       }
     });
 
+    // Issue Deleted
+    this.socket.on('issue_deleted', (data: { issueId: string, deleterId: string }) => {
+      const { deleteIssue } = useStore.getState();
+      deleteIssue(data.issueId);
+    });
+
+    // Sprint Events
+    this.socket.on('sprint_started', (sprint: any) => {
+      const { updateSprint } = useStore.getState();
+      updateSprint(sprint.id, sprint);
+    });
+
+    this.socket.on('sprint_completed', (sprint: any) => {
+      const { updateSprint } = useStore.getState();
+      updateSprint(sprint.id, sprint);
+    });
+
     // Assignment Changed (handled via notifications usually, but good for board update)
     // The 'issue_updated' event usually carries the new assignee, so this might be redundant for state update,
     // but useful for specific UI alerts if needed.

@@ -67,13 +67,13 @@ export class WebSocketService {
       socket.on('join_issue', async (data: { issueId: string; userId: string }) => {
         socket.join(`issue:${data.issueId}`);
         await this.updateUserPresence(data.userId, data.issueId, 'online');
-        
+
         // Notify others in the room
         socket.to(`issue:${data.issueId}`).emit('user_joined_issue', {
           userId: data.userId,
           issueId: data.issueId,
         });
-        
+
         // Send current viewers to the new user
         const viewers = await this.getIssueViewers(data.issueId);
         socket.emit('issue_viewers', { issueId: data.issueId, viewers });
@@ -83,7 +83,7 @@ export class WebSocketService {
       socket.on('leave_issue', async (data: { issueId: string; userId: string }) => {
         socket.leave(`issue:${data.issueId}`);
         await this.updateUserPresence(data.userId, null, 'online');
-        
+
         socket.to(`issue:${data.issueId}`).emit('user_left_issue', {
           userId: data.userId,
           issueId: data.issueId,
@@ -126,24 +126,24 @@ export class WebSocketService {
       socket.on('join-chat', ({ projectId, userId, userName }) => {
         socket.join(`chat:${projectId}`);
         console.log(`💬 User ${userName} joined chat for project ${projectId}`);
-        
+
         // Notify others in chat room
         socket.to(`chat:${projectId}`).emit('user-joined-chat', { userId, userName });
       });
 
       socket.on('send-message', async (messageData) => {
         const { projectId, userId, userName, content } = messageData;
-        
+
         // Save message to database
         try {
           const messageId = Date.now().toString();
           const timestamp = new Date().toISOString();
-          
+
           await AppDataSource.query(`
             INSERT INTO chat_messages (id, projectId, userId, userName, content, timestamp)
             VALUES (?, ?, ?, ?, ?, ?)
           `, [messageId, projectId, userId, userName, content, timestamp]);
-          
+
           const message = {
             id: messageId,
             projectId,
@@ -152,9 +152,9 @@ export class WebSocketService {
             content,
             timestamp
           };
-          
+
           console.log(`💬 WebSocket: Message saved to DB - ${userName}: ${content}`);
-          
+
           // Broadcast to all users in chat room
           this.io.to(`chat:${projectId}`).emit('new-message', message);
         } catch (error) {
@@ -224,7 +224,7 @@ export class WebSocketService {
     // Remove socket from mappings
     const userSocketIds = this.userSockets.get(userId) || [];
     const filteredSockets = userSocketIds.filter(id => id !== socket.id);
-    
+
     if (filteredSockets.length === 0) {
       this.userSockets.delete(userId);
       // User has no more active connections
@@ -233,7 +233,7 @@ export class WebSocketService {
     } else {
       this.userSockets.set(userId, filteredSockets);
     }
-    
+
     this.socketUsers.delete(socket.id);
   }
 
@@ -245,9 +245,9 @@ export class WebSocketService {
   ) {
     try {
       const presenceRepo = AppDataSource.getRepository(UserPresence);
-      
+
       let presence = await presenceRepo.findOne({ where: { userId } });
-      
+
       if (!presence) {
         presence = presenceRepo.create({
           userId,
@@ -264,7 +264,7 @@ export class WebSocketService {
           presence.socketId = socketId;
         }
       }
-      
+
       await presenceRepo.save(presence);
     } catch (error) {
       console.error('Error updating user presence:', error);
@@ -275,11 +275,11 @@ export class WebSocketService {
     try {
       const presenceRepo = AppDataSource.getRepository(UserPresence);
       const userRepo = AppDataSource.getRepository(User);
-      
+
       const presences = await presenceRepo.find({
         where: { currentIssueId: issueId, status: 'online' },
       });
-      
+
       const viewers = await Promise.all(
         presences.map(async (p) => {
           const user = await userRepo.findOne({ where: { id: p.userId } });
@@ -290,7 +290,7 @@ export class WebSocketService {
           };
         })
       );
-      
+
       return viewers;
     } catch (error) {
       console.error('Error getting issue viewers:', error);
@@ -491,6 +491,10 @@ export class WebSocketService {
 
     // Broadcast to project
     this.emitToProject(issue.projectId, 'status_changed', { issue, oldStatus, newStatus });
+  }
+
+  public async notifyIssueDeleted(issueId: string, projectId: string, deleterId: string) {
+    this.emitToProject(projectId, 'issue_deleted', { issueId, deleterId });
   }
 
   public async notifySprintStarted(sprint: any, projectId: string) {

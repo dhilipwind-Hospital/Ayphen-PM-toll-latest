@@ -11,12 +11,12 @@ const sprintRepo = AppDataSource.getRepository(Sprint);
 router.get('/custom', async (req, res) => {
   try {
     const { reportType, projectId, startDate, endDate } = req.query;
-    
+
     const where: any = {};
     if (projectId) where.projectId = projectId;
-    
+
     const issues = await issueRepo.find({ where });
-    
+
     res.json({
       reportType,
       data: issues,
@@ -33,7 +33,7 @@ router.get('/custom', async (req, res) => {
 router.post('/generate', async (req, res) => {
   try {
     const { reportConfig } = req.body;
-    
+
     const report = {
       id: `report-${Date.now()}`,
       config: reportConfig,
@@ -41,7 +41,7 @@ router.post('/generate', async (req, res) => {
       status: 'completed',
       data: { /* report data */ },
     };
-    
+
     res.json(report);
   } catch (error) {
     console.error('Failed to generate report:', error);
@@ -54,14 +54,14 @@ router.get('/export/:format', async (req, res) => {
   try {
     const { format } = req.params;
     const { reportId } = req.query;
-    
+
     const exportData = {
       format,
       reportId,
       exportedAt: new Date(),
       downloadUrl: `/downloads/report-${reportId}.${format}`,
     };
-    
+
     res.json(exportData);
   } catch (error) {
     console.error('Failed to export report:', error);
@@ -73,7 +73,7 @@ router.get('/export/:format', async (req, res) => {
 router.post('/schedule', async (req, res) => {
   try {
     const { reportConfig, frequency, recipients } = req.body;
-    
+
     const schedule = {
       id: `schedule-${Date.now()}`,
       reportConfig,
@@ -82,7 +82,7 @@ router.post('/schedule', async (req, res) => {
       nextRun: new Date(),
       active: true,
     };
-    
+
     res.json(schedule);
   } catch (error) {
     console.error('Failed to schedule report:', error);
@@ -94,27 +94,52 @@ router.post('/schedule', async (req, res) => {
 router.get('/burndown-chart', async (req, res) => {
   try {
     const { sprintId } = req.query;
-    
+
     const sprint = await sprintRepo.findOne({ where: { id: sprintId as string } });
     if (!sprint) {
       return res.status(404).json({ error: 'Sprint not found' });
     }
-    
+
     const issues = await issueRepo.find({ where: { sprintId: sprintId as string } });
-    
+
     const totalStoryPoints = issues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
-    const completedPoints = issues
-      .filter(i => i.status === 'done')
-      .reduce((sum, i) => sum + (i.storyPoints || 0), 0);
-    
-    const chartData = {
-      totalPoints: totalStoryPoints,
-      completedPoints,
-      remainingPoints: totalStoryPoints - completedPoints,
-      idealBurndown: [],
-      actualBurndown: [],
-    };
-    
+
+    // Calculate dates
+    const startDate = sprint.startDate ? new Date(sprint.startDate) : new Date(sprint.createdAt);
+    const endDate = sprint.endDate ? new Date(sprint.endDate) : new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    // Ensure we have a valid duration
+    const durationMs = endDate.getTime() - startDate.getTime();
+    const durationDays = Math.max(1, Math.ceil(durationMs / (1000 * 60 * 60 * 24)));
+    const burnRate = totalStoryPoints / durationDays;
+
+    const chartData = [];
+    const now = new Date();
+
+    for (let i = 0; i <= durationDays; i++) {
+      const dayDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const dayLabel = dayDate.toISOString().split('T')[0].slice(5); // MM-DD
+
+      const point: any = {
+        name: i === 0 ? 'Start' : `Day ${i}`,
+        date: dayLabel,
+        ideal: Math.round(Math.max(0, totalStoryPoints - (i * burnRate))),
+      };
+
+      // Calculate actual only if day is in past/present
+      if (dayDate <= new Date(now.getTime() + 24 * 60 * 60 * 1000)) {
+        const resolvedIssues = issues.filter(issue =>
+          issue.status === 'done' &&
+          issue.resolvedAt &&
+          new Date(issue.resolvedAt) <= dayDate
+        );
+        const resolvedPoints = resolvedIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
+        point.actual = totalStoryPoints - resolvedPoints;
+      }
+
+      chartData.push(point);
+    }
+
     res.json(chartData);
   } catch (error) {
     console.error('Failed to get burndown chart:', error);
@@ -126,13 +151,13 @@ router.get('/burndown-chart', async (req, res) => {
 router.get('/velocity-chart', async (req, res) => {
   try {
     const { projectId } = req.query;
-    
+
     const sprints = await sprintRepo.find({
       where: { projectId: projectId as string },
       order: { createdAt: 'DESC' },
       take: 5,
     });
-    
+
     const velocityData = [];
     for (const sprint of sprints) {
       const issues = await issueRepo.find({ where: { sprintId: sprint.id } });
@@ -140,14 +165,14 @@ router.get('/velocity-chart', async (req, res) => {
       const completed = issues
         .filter(i => i.status === 'done')
         .reduce((sum, i) => sum + (i.storyPoints || 0), 0);
-      
+
       velocityData.push({
         sprintName: sprint.name,
         committed,
         completed,
       });
     }
-    
+
     res.json(velocityData);
   } catch (error) {
     console.error('Failed to get velocity chart:', error);
@@ -159,16 +184,16 @@ router.get('/velocity-chart', async (req, res) => {
 router.get('/cumulative-flow', async (req, res) => {
   try {
     const { projectId, startDate, endDate } = req.query;
-    
+
     const issues = await issueRepo.find({ where: { projectId: projectId as string } });
-    
+
     const flowData = {
       todo: issues.filter(i => i.status === 'todo').length,
       inProgress: issues.filter(i => i.status === 'in-progress').length,
       inReview: issues.filter(i => i.status === 'in-review').length,
       done: issues.filter(i => i.status === 'done').length,
     };
-    
+
     res.json(flowData);
   } catch (error) {
     console.error('Failed to get cumulative flow:', error);
@@ -180,18 +205,18 @@ router.get('/cumulative-flow', async (req, res) => {
 router.get('/control-chart', async (req, res) => {
   try {
     const { projectId } = req.query;
-    
+
     const issues = await issueRepo.find({
       where: { projectId: projectId as string, status: 'done' },
     });
-    
+
     const cycleTime = issues.map(issue => {
       const created = new Date(issue.createdAt);
       const resolved = issue.resolvedAt ? new Date(issue.resolvedAt) : new Date();
       const days = Math.floor((resolved.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
       return { issueKey: issue.key, cycleTime: days };
     });
-    
+
     res.json(cycleTime);
   } catch (error) {
     console.error('Failed to get control chart:', error);
@@ -203,9 +228,9 @@ router.get('/control-chart', async (req, res) => {
 router.get('/time-tracking', async (req, res) => {
   try {
     const { projectId, startDate, endDate } = req.query;
-    
+
     const issues = await issueRepo.find({ where: { projectId: projectId as string } });
-    
+
     const timeData = issues.map(issue => ({
       issueKey: issue.key,
       summary: issue.summary,
@@ -213,7 +238,7 @@ router.get('/time-tracking', async (req, res) => {
       timeSpent: issue.timeSpent || '0h',
       remainingEstimate: issue.remainingEstimate || '0h',
     }));
-    
+
     res.json(timeData);
   } catch (error) {
     console.error('Failed to get time tracking report:', error);
@@ -225,12 +250,12 @@ router.get('/time-tracking', async (req, res) => {
 router.get('/user-workload', async (req, res) => {
   try {
     const { projectId } = req.query;
-    
+
     const issues = await issueRepo.find({
       where: { projectId: projectId as string },
       relations: ['assignee'],
     });
-    
+
     const workload = issues.reduce((acc: any, issue) => {
       const assigneeId = issue.assigneeId || 'unassigned';
       if (!acc[assigneeId]) {
@@ -249,7 +274,7 @@ router.get('/user-workload', async (req, res) => {
       acc[assigneeId].storyPoints += issue.storyPoints || 0;
       return acc;
     }, {});
-    
+
     res.json(Object.values(workload));
   } catch (error) {
     console.error('Failed to get user workload:', error);

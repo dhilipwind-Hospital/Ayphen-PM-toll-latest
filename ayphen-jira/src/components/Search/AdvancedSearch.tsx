@@ -398,6 +398,13 @@ export const AdvancedSearch: React.FC = () => {
       {searchResults.length > 0 && (
         <SearchCard title={`Search Results (${searchResults.length})`}>
           <List
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Total ${total} items`,
+              position: 'bottom',
+              align: 'center'
+            }}
             dataSource={searchResults}
             renderItem={(result) => (
               <ResultCard size="small">

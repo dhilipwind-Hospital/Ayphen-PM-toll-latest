@@ -110,10 +110,25 @@ router.get('/', async (req, res) => {
     if (req.query.parentId) where.parentId = req.query.parentId;
     if (req.query.epicLink) where.epicLink = req.query.epicLink;
 
+    const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+
+    if (page && limit) {
+      const [issues, total] = await issueRepo.findAndCount({
+        where,
+        relations: ['reporter', 'assignee', 'project'],
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+      return res.json({ data: issues, total, page, limit });
+    }
+
     const issues = await issueRepo.find({
       where,
       relations: ['reporter', 'assignee', 'project'],
       order: { createdAt: 'DESC' },
+      take: 1000 // Safety limit for non-paginated calls
     });
     res.json(issues);
   } catch (error) {
@@ -493,7 +508,19 @@ router.put('/:id', async (req, res) => {
 // DELETE issue
 router.delete('/:id', async (req, res) => {
   try {
+    const issue = await issueRepo.findOne({ where: { id: req.params.id } });
+    if (!issue) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
     await issueRepo.delete(req.params.id);
+
+    // Notify via WebSocket
+    if (websocketService) {
+      const deleterId = req.body.userId || 'system';
+      websocketService.notifyIssueDeleted(issue.id, issue.projectId, deleterId);
+    }
+
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete issue' });

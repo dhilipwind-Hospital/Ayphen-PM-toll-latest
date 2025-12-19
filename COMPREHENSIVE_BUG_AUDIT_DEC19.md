@@ -196,9 +196,10 @@
 
 ---
 
-### 29. ⏳ PENDING - **Search Results - No Pagination**
+
+### 29. ✅ FIXED - **Search - No Pagination**
 📍 **File:** `src/components/Search/AdvancedSearch.tsx`
-**Effort:** ~2 hours
+**Fix Applied:** Added UI pagination to result list. Added backend pagination support (api) and safety cap.
 
 ---
 
@@ -214,9 +215,9 @@
 
 ---
 
-### 32. ⏳ PENDING - **Sprint Burndown - Hardcoded Data**
-**Status:** Needs backend verification
-**Effort:** ~2 hours
+### 32. ✅ FIXED - **Sprint Burndown - Hardcoded Data**
+📍 **File:** `src/pages/AdvancedReports.tsx`, `backend/src/routes/reports-enhanced.ts`
+**Fix Applied:** Implemented real backend calculation. Enforced real-time frontend updates via WebSocket subscription and Store syncing.
 
 ---
 
@@ -287,6 +288,8 @@
 | 21 | Comments Limit | IssueDetailPanel.tsx | Added maxLength & counter |
 | 24 | Issue Links | IssueLinkModal.tsx | API refactor & error handling |
 | 19 | Form Validation | StartSprintModal.tsx | Added Date Logic |
+| 32 | Burndown Data | AdvancedReports.tsx | Real Backend Data Implemented |
+| 29 | Search Pagination | AdvancedSearch.tsx | UI Pagination & Backend Cap |
 
 ---
 

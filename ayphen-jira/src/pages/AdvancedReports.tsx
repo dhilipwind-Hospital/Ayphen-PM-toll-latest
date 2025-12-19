@@ -17,7 +17,7 @@ const Container = styled.div`
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const AdvancedReports: React.FC = () => {
-  const { currentProject, sprints } = useStore();
+  const { currentProject, sprints, issues } = useStore();
   const [loading, setLoading] = useState(false);
   const [reportType, setReportType] = useState('velocity');
   const [dateRange, setDateRange] = useState<[any, any]>([dayjs().subtract(30, 'days'), dayjs()]);
@@ -28,7 +28,7 @@ export const AdvancedReports: React.FC = () => {
     if (currentProject) {
       loadReport();
     }
-  }, [reportType, dateRange, currentProject]);
+  }, [reportType, dateRange, currentProject, issues]);
 
   const loadReport = async () => {
     if (!currentProject) return;
@@ -142,13 +142,24 @@ export const AdvancedReports: React.FC = () => {
           <Col span={24}>
             <Card title={`${reportType.toUpperCase()} Report`}>
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={data || []}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="value" stroke="#8884d8" />
-                </LineChart>
+                {reportType === 'burndown' ? (
+                  <LineChart data={data || []}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="ideal" stroke="#8884d8" strokeDasharray="5 5" name="Ideal Burndown" />
+                    <Line type="monotone" dataKey="actual" stroke="#82ca9d" name="Actual Remaining" />
+                  </LineChart>
+                ) : (
+                  <LineChart data={data || []}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="value" stroke="#8884d8" />
+                  </LineChart>
+                )}
               </ResponsiveContainer>
             </Card>
           </Col>
