@@ -13,7 +13,25 @@ class WebSocketService {
         this.socketUsers = new Map(); // socketId -> userId
         this.io = new socket_io_1.Server(httpServer, {
             cors: {
-                origin: process.env.CORS_ORIGIN || 'http://localhost:1500',
+                origin: (origin, callback) => {
+                    const allowedOrigins = [
+                        'http://localhost:1600',
+                        'http://127.0.0.1:1600',
+                        'http://localhost:1500',
+                        'http://127.0.0.1:1500',
+                        process.env.CORS_ORIGIN
+                    ].filter(Boolean);
+                    if (!origin ||
+                        allowedOrigins.includes(origin) ||
+                        origin.includes('127.0.0.1') ||
+                        origin.includes('localhost') ||
+                        origin.endsWith('.vercel.app')) {
+                        callback(null, true);
+                    }
+                    else {
+                        callback(new Error('Not allowed by CORS'));
+                    }
+                },
                 methods: ['GET', 'POST'],
                 credentials: true,
             },
@@ -404,6 +422,9 @@ class WebSocketService {
         }
         // Broadcast to project
         this.emitToProject(issue.projectId, 'status_changed', { issue, oldStatus, newStatus });
+    }
+    async notifyIssueDeleted(issueId, projectId, deleterId) {
+        this.emitToProject(projectId, 'issue_deleted', { issueId, deleterId });
     }
     async notifySprintStarted(sprint, projectId) {
         this.emitToProject(projectId, 'sprint_started', sprint);

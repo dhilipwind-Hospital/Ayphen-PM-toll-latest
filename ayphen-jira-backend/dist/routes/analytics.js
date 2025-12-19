@@ -4,6 +4,7 @@ const express_1 = require("express");
 const database_1 = require("../config/database");
 const Issue_1 = require("../entities/Issue");
 const Sprint_1 = require("../entities/Sprint");
+const workflow_service_1 = require("../services/workflow.service");
 const router = (0, express_1.Router)();
 // Get project analytics
 router.get('/project/:projectId', async (req, res) => {
@@ -11,13 +12,17 @@ router.get('/project/:projectId', async (req, res) => {
         const { projectId } = req.params;
         const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
         const issues = await issueRepo.find({ where: { projectId } });
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(projectId);
+        const workflows = await workflow_service_1.workflowService.getAll();
+        const projectWorkflow = workflows.find(w => w.projectIds.includes(projectId)) || await workflow_service_1.workflowService.getById('workflow-1');
+        const todoStatuses = projectWorkflow.statuses.filter(s => s.category === 'TODO').map(s => s.id.toLowerCase());
+        const inProgressStatuses = projectWorkflow.statuses.filter(s => s.category === 'IN_PROGRESS').map(s => s.id.toLowerCase());
         const analytics = {
             totalIssues: issues.length,
             byStatus: {
-                todo: issues.filter(i => i.status === 'todo').length,
-                inProgress: issues.filter(i => i.status === 'in-progress').length,
-                inReview: issues.filter(i => i.status === 'in-review').length,
-                done: issues.filter(i => i.status === 'done').length,
+                todo: issues.filter(i => todoStatuses.includes(i.status.toLowerCase())).length,
+                inProgress: issues.filter(i => inProgressStatuses.includes(i.status.toLowerCase())).length,
+                done: issues.filter(i => doneStatuses.includes(i.status.toLowerCase())).length,
             },
             byType: {
                 epic: issues.filter(i => i.type === 'epic').length,
@@ -31,8 +36,8 @@ router.get('/project/:projectId', async (req, res) => {
                 medium: issues.filter(i => i.priority === 'medium').length,
                 low: issues.filter(i => i.priority === 'low').length,
             },
-            completionRate: issues.length > 0 ? (issues.filter(i => i.status === 'done').length / issues.length * 100).toFixed(2) : 0,
-            avgTimeToComplete: calculateAvgTime(issues.filter(i => i.status === 'done')),
+            completionRate: issues.length > 0 ? (issues.filter(i => doneStatuses.includes(i.status.toLowerCase())).length / issues.length * 100).toFixed(2) : 0,
+            avgTimeToComplete: calculateAvgTime(issues.filter(i => doneStatuses.includes(i.status.toLowerCase()))),
         };
         res.json(analytics);
     }
@@ -50,12 +55,28 @@ router.get('/user/:userId', async (req, res) => {
         const reportedIssues = await issueRepo.find({ where: { reporterId: userId } });
         const performance = {
             assigned: assignedIssues.length,
-            completed: assignedIssues.filter(i => i.status === 'done').length,
-            inProgress: assignedIssues.filter(i => i.status === 'in-progress').length,
+            completedByStatus: await (async () => {
+                const results = { completed: 0, inProgress: 0 };
+                for (const i of assignedIssues) {
+                    const isDone = await workflow_service_1.workflowService.isDone(i.projectId, i.status);
+                    if (isDone)
+                        results.completed++;
+                    else
+                        results.inProgress++; // Simplified
+                }
+                return results;
+            })(),
             reported: reportedIssues.length,
-            completionRate: assignedIssues.length > 0 ? (assignedIssues.filter(i => i.status === 'done').length / assignedIssues.length * 100).toFixed(2) : 0,
         };
-        res.json(performance);
+        // Legacy mapping for existing frontend expectations
+        const performanceLegacy = {
+            assigned: performance.assigned,
+            completed: performance.completedByStatus.completed,
+            inProgress: performance.completedByStatus.inProgress,
+            reported: performance.reported,
+            completionRate: performance.assigned > 0 ? (performance.completedByStatus.completed / performance.assigned * 100).toFixed(2) : 0,
+        };
+        res.json(performanceLegacy);
     }
     catch (error) {
         console.error('Error fetching user performance:', error);
@@ -74,7 +95,9 @@ router.get('/velocity/:projectId', async (req, res) => {
             take: 10
         });
         const velocity = await Promise.all(sprints.map(async (sprint) => {
-            const issues = await issueRepo.find({ where: { sprintId: sprint.id, status: 'done' } });
+            const doneStatusesVelocity = await workflow_service_1.workflowService.getDoneStatuses(projectId);
+            const allSprintIssues = await issueRepo.find({ where: { sprintId: sprint.id } });
+            const issues = allSprintIssues.filter(i => doneStatusesVelocity.includes(i.status.toLowerCase()));
             const points = issues.reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
             return { sprintName: sprint.name, points, issueCount: issues.length };
         }));

@@ -36,19 +36,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const database_1 = require("../config/database");
 const Sprint_1 = require("../entities/Sprint");
+const workflow_service_1 = require("../services/workflow.service");
 const router = (0, express_1.Router)();
 const sprintRepo = database_1.AppDataSource.getRepository(Sprint_1.Sprint);
 // GET all sprints
 router.get('/', async (req, res) => {
     try {
-        const { projectId } = req.query;
+        const { projectId, userId } = req.query;
+        if (!userId) {
+            return res.json([]); // No userId = No data
+        }
+        const { getUserProjectIds } = await Promise.resolve().then(() => __importStar(require('../middleware/projectAccess')));
+        const accessibleProjectIds = await getUserProjectIds(userId);
         const where = {};
-        if (projectId)
+        if (projectId) {
+            // Verify access to specific project
+            if (!accessibleProjectIds.includes(projectId)) {
+                return res.status(403).json({ error: 'Access denied to this project' });
+            }
             where.projectId = projectId;
+        }
+        else {
+            // Return sprints for all accessible projects
+            const { In } = await Promise.resolve().then(() => __importStar(require('typeorm')));
+            if (accessibleProjectIds.length === 0) {
+                return res.json([]);
+            }
+            where.projectId = In(accessibleProjectIds);
+        }
         const sprints = await sprintRepo.find({ where, order: { createdAt: 'DESC' } });
         res.json(sprints);
     }
     catch (error) {
+        console.error('Failed to fetch sprints:', error);
         res.status(500).json({ error: 'Failed to fetch sprints' });
     }
 });
@@ -74,6 +94,23 @@ router.put('/:id', async (req, res) => {
         res.status(500).json({ error: 'Failed to update sprint' });
     }
 });
+// DELETE sprint
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Move issues to backlog (unassign sprintId)
+        const { Issue } = await Promise.resolve().then(() => __importStar(require('../entities/Issue')));
+        const issueRepo = database_1.AppDataSource.getRepository(Issue);
+        await issueRepo.update({ sprintId: id }, { sprintId: null });
+        // Delete sprint
+        await sprintRepo.delete(id);
+        res.json({ message: 'Sprint deleted successfully' });
+    }
+    catch (error) {
+        console.error('Failed to delete sprint:', error);
+        res.status(500).json({ error: 'Failed to delete sprint' });
+    }
+});
 // POST start sprint
 router.post('/:id/start', async (req, res) => {
     try {
@@ -88,6 +125,16 @@ router.post('/:id/start', async (req, res) => {
         sprint.endDate = endDate;
         sprint.goal = goal;
         const savedSprint = await sprintRepo.save(sprint);
+        // Update issues in this sprint from 'backlog' to 'todo'
+        const { Issue } = await Promise.resolve().then(() => __importStar(require('../entities/Issue')));
+        const issueRepo = database_1.AppDataSource.getRepository(Issue);
+        const issuesToUpdate = await issueRepo.find({
+            where: { sprintId: id, status: 'backlog' }
+        });
+        for (const issue of issuesToUpdate) {
+            issue.status = 'todo';
+            await issueRepo.save(issue);
+        }
         res.json(savedSprint);
     }
     catch (error) {
@@ -118,6 +165,7 @@ router.post('/:id/complete', async (req, res) => {
                     continue;
                 if (item.action === 'backlog') {
                     issue.sprintId = undefined;
+                    issue.status = 'backlog';
                 }
                 else if (item.action === 'next-sprint' && item.targetSprintId) {
                     issue.sprintId = item.targetSprintId;
@@ -158,8 +206,9 @@ router.get('/:id/report', async (req, res) => {
         const { Issue } = await Promise.resolve().then(() => __importStar(require('../entities/Issue')));
         const issueRepo = database_1.AppDataSource.getRepository(Issue);
         const issues = await issueRepo.find({ where: { sprintId: id } });
-        const completed = issues.filter(i => i.status === 'done');
-        const incomplete = issues.filter(i => i.status !== 'done');
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(sprint.projectId);
+        const completed = issues.filter(i => doneStatuses.includes(i.status.toLowerCase()));
+        const incomplete = issues.filter(i => !doneStatuses.includes(i.status.toLowerCase()));
         const completedPoints = completed.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
         const totalPoints = issues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
         res.json({
@@ -198,7 +247,8 @@ router.get('/:id/burndown', async (req, res) => {
         for (let i = 0; i <= days; i++) {
             const ideal = totalPoints - (totalPoints / days) * i;
             // Simplified actual - in production, track actual daily progress
-            const completedIssues = issues.filter(issue => issue.status === 'done');
+            const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(sprint.projectId);
+            const completedIssues = issues.filter(issue => doneStatuses.includes(issue.status.toLowerCase()));
             const completedPoints = completedIssues.reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
             const actual = i === days ? totalPoints - completedPoints : totalPoints - (completedPoints / days) * i;
             burndown.push({
@@ -225,11 +275,13 @@ router.get('/velocity', async (req, res) => {
         });
         const { Issue } = await Promise.resolve().then(() => __importStar(require('../entities/Issue')));
         const issueRepo = database_1.AppDataSource.getRepository(Issue);
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(projectId);
         const velocity = [];
         for (const sprint of sprints) {
-            const issues = await issueRepo.find({
-                where: { sprintId: sprint.id, status: 'done' }
+            const allIssuesFromSprint = await issueRepo.find({
+                where: { sprintId: sprint.id }
             });
+            const issues = allIssuesFromSprint.filter(i => doneStatuses.includes(i.status.toLowerCase()));
             const points = issues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
             velocity.push({
                 sprint: sprint.name,

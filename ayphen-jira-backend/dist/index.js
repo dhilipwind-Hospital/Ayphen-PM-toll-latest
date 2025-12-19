@@ -83,6 +83,7 @@ const ai_description_1 = __importDefault(require("./routes/ai-description"));
 const issue_merge_1 = __importDefault(require("./routes/issue-merge"));
 const duplicate_feedback_1 = __importDefault(require("./routes/duplicate-feedback"));
 const team_comparison_1 = __importDefault(require("./routes/team-comparison"));
+const test_email_1 = __importDefault(require("./routes/test-email"));
 const templates_1 = __importDefault(require("./routes/templates"));
 const ai_auto_assignment_1 = __importDefault(require("./routes/ai-auto-assignment"));
 const ai_smart_prioritization_1 = __importDefault(require("./routes/ai-smart-prioritization"));
@@ -108,7 +109,10 @@ app.use((0, cors_1.default)({
         // Allow requests with no origin (like mobile apps, curl, Postman)
         if (!origin)
             return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('127.0.0.1') || origin.includes('localhost')) {
+        if (allowedOrigins.indexOf(origin) !== -1 ||
+            origin.includes('127.0.0.1') ||
+            origin.includes('localhost') ||
+            origin.endsWith('.vercel.app')) {
             callback(null, true);
         }
         else {
@@ -119,6 +123,7 @@ app.use((0, cors_1.default)({
 }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
+// Rate limiting removed by user request
 // Serve static files from uploads directory
 app.use('/uploads', express_1.default.static('uploads'));
 // Routes
@@ -149,6 +154,7 @@ app.use('/api/roadmap', roadmap_1.default);
 app.use('/api/search', search_1.default);
 app.use('/api/epics', epics_1.default);
 app.use('/api/auth', auth_1.default);
+app.use('/api/test-email', test_email_1.default);
 // AI Test Automation routes
 app.use('/api/ai-test-automation/requirements', ai_requirements_1.default);
 app.use('/api/ai-test-automation/stories', ai_stories_1.default);

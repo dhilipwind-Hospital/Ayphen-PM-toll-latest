@@ -59,9 +59,21 @@ __decorate([
     __metadata("design:type", String)
 ], AITestCase.prototype, "title", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 20 }),
+    (0, typeorm_1.Column)('text', { nullable: true }),
+    __metadata("design:type", String)
+], AITestCase.prototype, "description", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 50 }),
     __metadata("design:type", String)
 ], AITestCase.prototype, "type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
+    __metadata("design:type", String)
+], AITestCase.prototype, "priority", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], AITestCase.prototype, "automated", void 0);
 __decorate([
     (0, typeorm_1.Column)('simple-array', { nullable: true }),
     __metadata("design:type", Array)

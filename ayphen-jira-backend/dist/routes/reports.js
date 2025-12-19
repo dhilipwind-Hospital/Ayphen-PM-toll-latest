@@ -7,6 +7,7 @@ const Sprint_1 = require("../entities/Sprint");
 const User_1 = require("../entities/User");
 const typeorm_1 = require("typeorm");
 const reporting_service_1 = require("../services/reporting.service");
+const workflow_service_1 = require("../services/workflow.service");
 const router = (0, express_1.Router)();
 const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
 const sprintRepo = database_1.AppDataSource.getRepository(Sprint_1.Sprint);
@@ -42,9 +43,9 @@ router.get('/burndown/:sprintId', async (req, res) => {
             currentDate.setDate(startDate.getDate() + day);
             // Calculate ideal remaining
             const idealRemaining = Math.max(0, totalPoints - (idealBurnRate * day));
-            // Calculate actual remaining (issues completed by this day)
+            const doneStatusesBurndown = await workflow_service_1.workflowService.getDoneStatuses(sprint.projectId);
             const completedIssues = issues.filter(issue => {
-                if (issue.status === 'done' && issue.updatedAt) {
+                if (doneStatusesBurndown.includes(issue.status.toLowerCase()) && issue.updatedAt) {
                     return new Date(issue.updatedAt) <= currentDate;
                 }
                 return false;
@@ -90,9 +91,9 @@ router.get('/burnup/:sprintId', async (req, res) => {
                 return new Date(issue.createdAt) <= currentDate;
             });
             const totalScope = scopeIssues.reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
-            // Calculate completed work
+            const doneStatusesBurnup = await workflow_service_1.workflowService.getDoneStatuses(sprint.projectId);
             const completedIssues = scopeIssues.filter(issue => {
-                if (issue.status === 'done' && issue.updatedAt) {
+                if (doneStatusesBurnup.includes(issue.status.toLowerCase()) && issue.updatedAt) {
                     return new Date(issue.updatedAt) <= currentDate;
                 }
                 return false;
@@ -128,16 +129,21 @@ router.get('/cumulative-flow/:projectId', async (req, res) => {
             const currentDate = new Date(startDate);
             currentDate.setDate(startDate.getDate() + day);
             const issuesAtDate = issues.filter(issue => new Date(issue.createdAt) <= currentDate);
-            const statusCounts = {
-                todo: 0,
-                'in-progress': 0,
-                'in-review': 0,
-                done: 0,
-            };
+            const statusCounts = { todo: 0, 'in-progress': 0, 'in-review': 0, done: 0 };
+            const doneStatusesCFD = await workflow_service_1.workflowService.getDoneStatuses(projectId);
+            const projectWorkflowCFD = (await workflow_service_1.workflowService.getAll()).find(w => w.projectIds.includes(projectId)) || (await workflow_service_1.workflowService.getById('workflow-1'));
+            const todoStatusesCFD = projectWorkflowCFD.statuses.filter(s => s.category === 'TODO').map(s => s.id.toLowerCase());
+            const inProgressStatusesCFD = projectWorkflowCFD.statuses.filter(s => s.category === 'IN_PROGRESS').map(s => s.id.toLowerCase());
             issuesAtDate.forEach(issue => {
-                if (statusCounts.hasOwnProperty(issue.status)) {
-                    statusCounts[issue.status]++;
-                }
+                const s = issue.status.toLowerCase();
+                if (todoStatusesCFD.includes(s))
+                    statusCounts.todo++;
+                else if (inProgressStatusesCFD.includes(s))
+                    statusCounts['in-progress']++;
+                else if (doneStatusesCFD.includes(s))
+                    statusCounts.done++;
+                else
+                    statusCounts['in-review']++; // Default for remaining
             });
             cfdData.push({
                 date: currentDate.toISOString().split('T')[0],
@@ -161,15 +167,16 @@ router.get('/control-chart/:projectId', async (req, res) => {
         const { projectId } = req.params;
         const days = parseInt(req.query.days) || 30;
         const { startDate } = getDateRange(days);
+        const doneStatusesCtrl = await workflow_service_1.workflowService.getDoneStatuses(projectId);
         const issues = await issueRepo.find({
             where: {
                 projectId,
-                status: 'done',
                 updatedAt: (0, typeorm_1.Not)(null)
             },
             order: { updatedAt: 'ASC' }
         });
-        const controlData = issues
+        const filteredIssues = issues.filter(i => doneStatusesCtrl.includes(i.status.toLowerCase()));
+        const controlData = filteredIssues
             .filter(issue => new Date(issue.updatedAt) >= startDate)
             .map(issue => {
             const created = new Date(issue.createdAt);
@@ -212,8 +219,9 @@ router.get('/velocity/:projectId', async (req, res) => {
             take: limit,
         });
         const velocityData = await Promise.all(sprints.reverse().map(async (sprint) => {
+            const doneStatusesVel = await workflow_service_1.workflowService.getDoneStatuses(projectId);
             const issues = await issueRepo.find({ where: { sprintId: sprint.id } });
-            const completedIssues = issues.filter(i => i.status === 'done');
+            const completedIssues = issues.filter(i => doneStatusesVel.includes(i.status.toLowerCase()));
             const points = completedIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
             return {
                 sprint: sprint.name,
@@ -277,11 +285,19 @@ router.get('/epic-report/:epicId', async (req, res) => {
         const { epicId } = req.params;
         const issues = await issueRepo.find({ where: { epicId } });
         const totalIssues = issues.length;
-        const completedIssues = issues.filter(i => i.status === 'done').length;
-        const inProgressIssues = issues.filter(i => i.status === 'in-progress').length;
-        const todoIssues = issues.filter(i => i.status === 'todo').length;
+        let doneStats = ['done'];
+        let tStats = ['todo'];
+        if (issues.length > 0) {
+            doneStats = await workflow_service_1.workflowService.getDoneStatuses(issues[0].projectId);
+            const wfs = await workflow_service_1.workflowService.getAll();
+            const pw = wfs.find(w => w.projectIds.includes(issues[0].projectId)) || await workflow_service_1.workflowService.getById('workflow-1');
+            tStats = pw.statuses.filter(s => s.category === 'TODO').map(s => s.id.toLowerCase());
+        }
+        const completedIssues = issues.filter(i => doneStats.includes(i.status.toLowerCase())).length;
+        const inProgressIssues = issues.filter(i => !doneStats.includes(i.status.toLowerCase()) && !tStats.includes(i.status.toLowerCase())).length;
+        const todoIssues = issues.filter(i => tStats.includes(i.status.toLowerCase())).length;
         const totalPoints = issues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
-        const completedPoints = issues.filter(i => i.status === 'done').reduce((sum, i) => sum + (i.storyPoints || 0), 0);
+        const completedPoints = issues.filter(i => doneStats.includes(i.status.toLowerCase())).reduce((sum, i) => sum + (i.storyPoints || 0), 0);
         const issuesByType = issues.reduce((acc, issue) => {
             acc[issue.type] = (acc[issue.type] || 0) + 1;
             return acc;
@@ -333,8 +349,9 @@ router.get('/created-vs-resolved/:projectId', async (req, res) => {
                 const createdDate = new Date(issue.createdAt);
                 return createdDate >= currentDate && createdDate < nextDate;
             }).length;
+            const doneS = await workflow_service_1.workflowService.getDoneStatuses(projectId);
             const resolved = issues.filter(issue => {
-                if (issue.status === 'done' && issue.updatedAt) {
+                if (doneS.includes(issue.status.toLowerCase()) && issue.updatedAt) {
                     const resolvedDate = new Date(issue.updatedAt);
                     return resolvedDate >= currentDate && resolvedDate < nextDate;
                 }
@@ -397,9 +414,11 @@ router.get('/time-tracking/:projectId', async (req, res) => {
 router.get('/user-workload/:projectId', async (req, res) => {
     try {
         const { projectId } = req.params;
-        const issues = await issueRepo.find({
-            where: { projectId, status: (0, typeorm_1.Not)('done') }
+        const doneS = await workflow_service_1.workflowService.getDoneStatuses(projectId);
+        const allIssues = await issueRepo.find({
+            where: { projectId }
         });
+        const issues = allIssues.filter(i => !doneS.includes(i.status.toLowerCase()));
         const users = await userRepo.find();
         const workloadData = users.map(user => {
             const userIssues = issues.filter(i => i.assignee?.id === user.id);

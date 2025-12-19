@@ -11,21 +11,29 @@ const axios_1 = __importDefault(require("axios"));
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY || '';
 const CEREBRAS_BASE_URL = 'https://api.cerebras.ai/v1';
 async function generateAIText(systemPrompt, userPrompt) {
-    const response = await axios_1.default.post(`${CEREBRAS_BASE_URL}/chat/completions`, {
-        model: 'llama3.1-8b',
-        messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
-    }, {
-        headers: {
-            'Authorization': `Bearer ${CEREBRAS_API_KEY}`,
-            'Content-Type': 'application/json',
-        },
-    });
-    return response.data.choices[0].message.content;
+    try {
+        const response = await axios_1.default.post(`${CEREBRAS_BASE_URL}/chat/completions`, {
+            model: 'llama3.1-8b',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+            ],
+            temperature: 0.7,
+            max_tokens: 1000,
+        }, {
+            headers: {
+                'Authorization': `Bearer ${CEREBRAS_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data.choices[0].message.content;
+    }
+    catch (error) {
+        if (error.response) {
+            console.error('Cerebras API Error:', error.response.status, error.response.data);
+        }
+        throw error;
+    }
 }
 const router = (0, express_1.Router)();
 /**
@@ -86,15 +94,29 @@ router.post('/generate', async (req, res) => {
         console.log('Issue Type:', issueType);
         console.log('Summary:', issueSummary);
         console.log('User Input:', userInput);
-        // Generate variants (3 different styles)
-        const [detailedDesc, conciseDesc, technicalDesc] = await Promise.all([
-            // Detailed version
-            generateAIText('You are an expert Agile project manager. Be detailed and comprehensive.', prompt + '\n\nStyle: Detailed and comprehensive with all possible details.'),
-            // Concise version
-            generateAIText('You are an expert Agile project manager. Be concise and focused.', prompt + '\n\nStyle: Concise and focused, only essential information.'),
-            // Technical version
-            generateAIText('You are an expert software architect. Be technical and specific.', prompt + '\n\nStyle: Technical and implementation-focused.'),
-        ]);
+        // Generate variants sequentially to avoid rate limits
+        let detailedDesc, conciseDesc, technicalDesc;
+        try {
+            detailedDesc = await generateAIText('You are an expert Agile project manager. Be detailed and comprehensive.', prompt + '\n\nStyle: Detailed and comprehensive with all possible details.');
+        }
+        catch (error) {
+            console.error('Failed to generate detailed description:', error);
+            throw error; // Primary description is required
+        }
+        try {
+            conciseDesc = await generateAIText('You are an expert Agile project manager. Be concise and focused.', prompt + '\n\nStyle: Concise and focused, only essential information.');
+        }
+        catch (error) {
+            console.error('Failed to generate concise description:', error);
+            conciseDesc = 'Failed to generate concise version.';
+        }
+        try {
+            technicalDesc = await generateAIText('You are an expert software architect. Be technical and specific.', prompt + '\n\nStyle: Technical and implementation-focused.');
+        }
+        catch (error) {
+            console.error('Failed to generate technical description:', error);
+            technicalDesc = 'Failed to generate technical version.';
+        }
         const suggestions = [
             {
                 id: 1,

@@ -90,6 +90,10 @@ __decorate([
     __metadata("design:type", Array)
 ], Project.prototype, "memberRoles", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0 }),
+    __metadata("design:type", Number)
+], Project.prototype, "lastIssueNumber", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => ProjectMember_1.ProjectMember, member => member.project),
     __metadata("design:type", Array)
 ], Project.prototype, "members", void 0);

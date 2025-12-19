@@ -45,6 +45,10 @@ __decorate([
     __metadata("design:type", String)
 ], Issue.prototype, "priority", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'float', default: 0 }),
+    __metadata("design:type", Number)
+], Issue.prototype, "listPosition", void 0);
+__decorate([
     (0, typeorm_1.ManyToOne)(() => Project_1.Project),
     (0, typeorm_1.JoinColumn)({ name: 'projectId' }),
     __metadata("design:type", Project_1.Project)
@@ -96,11 +100,11 @@ __decorate([
     __metadata("design:type", String)
 ], Issue.prototype, "epicKey", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
     __metadata("design:type", Date)
 ], Issue.prototype, "startDate", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
     __metadata("design:type", Date)
 ], Issue.prototype, "endDate", void 0);
 __decorate([
@@ -136,11 +140,11 @@ __decorate([
     __metadata("design:type", String)
 ], Issue.prototype, "timeEstimate", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
     __metadata("design:type", Date)
 ], Issue.prototype, "dueDate", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
     __metadata("design:type", Date)
 ], Issue.prototype, "resolvedAt", void 0);
 __decorate([
@@ -156,7 +160,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Issue.prototype, "archived", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
     __metadata("design:type", Date)
 ], Issue.prototype, "archivedAt", void 0);
 __decorate([
@@ -176,13 +180,17 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Issue.prototype, "isFlagged", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
     __metadata("design:type", Date)
 ], Issue.prototype, "flaggedAt", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Issue.prototype, "flaggedBy", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'simple-json', nullable: true }),
+    __metadata("design:type", Object)
+], Issue.prototype, "creationMetadata", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

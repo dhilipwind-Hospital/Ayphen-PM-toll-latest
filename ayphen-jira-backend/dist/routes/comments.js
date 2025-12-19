@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const database_1 = require("../config/database");
+const Issue_1 = require("../entities/Issue");
 const User_1 = require("../entities/User");
+const email_service_1 = require("../services/email.service");
 const router = (0, express_1.Router)();
 // In-memory comments storage (you can create a Comment entity later)
 let comments = [];
@@ -81,6 +83,41 @@ router.post('/', async (req, res) => {
         };
         comments.push(comment);
         console.log('✅ Comment created:', comment);
+        // Add to history
+        const historyEntry = {
+            id: `history-${Date.now()}`,
+            issueId,
+            userId: actualUserId,
+            field: 'comment',
+            oldValue: null,
+            newValue: actualText.substring(0, 100) + (actualText.length > 100 ? '...' : ''),
+            description: `added a comment`,
+            createdAt: new Date().toISOString(),
+        };
+        global.historyEntries = global.historyEntries || [];
+        global.historyEntries.push(historyEntry);
+        console.log('📝 History entry added for comment');
+        // Send email notification to issue assignee
+        try {
+            const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
+            const issue = await issueRepo.findOne({
+                where: { id: issueId },
+                relations: ['assignee', 'project'],
+            });
+            if (issue && issue.assignee && issue.assignee.id !== actualUserId) {
+                await email_service_1.emailService.sendNotificationEmail(issue.assignee.id, 'comment_added', {
+                    actorName: user.name,
+                    projectKey: issue.project?.key || 'PROJECT',
+                    issueKey: issue.key,
+                    comment: actualText,
+                });
+                console.log(`📧 Comment notification sent to assignee: ${issue.assignee.email}`);
+            }
+        }
+        catch (emailError) {
+            console.error('Failed to send comment email notification:', emailError);
+            // Don't fail the request if email fails
+        }
         res.status(201).json(comment);
     }
     catch (error) {
@@ -112,14 +149,44 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const { userId } = req.query; // User requesting deletion
         const commentIndex = comments.findIndex(c => c.id === id);
         if (commentIndex === -1) {
             return res.status(404).json({ error: 'Comment not found' });
         }
+        const comment = comments[commentIndex];
+        // Permission check: Only comment author can delete
+        if (comment.userId !== userId && comment.author?.id !== userId) {
+            return res.status(403).json({
+                error: 'Forbidden: You can only delete your own comments'
+            });
+        }
+        // Log to history before deleting
+        try {
+            const historyEntry = {
+                id: `history-${Date.now()}`,
+                issueId: comment.issueId,
+                userId: userId,
+                field: 'comment',
+                oldValue: comment.content || comment.text,
+                newValue: null,
+                description: `removed a comment`,
+                createdAt: new Date().toISOString(),
+            };
+            global.historyEntries = global.historyEntries || [];
+            global.historyEntries.push(historyEntry);
+            console.log('📝 History entry added for comment deletion');
+        }
+        catch (histErr) {
+            console.error('⚠️ Failed to log comment deletion to history:', histErr);
+        }
+        // Delete the comment
         comments.splice(commentIndex, 1);
+        console.log(`✅ Comment ${id} deleted by user ${userId}`);
         res.status(204).send();
     }
     catch (error) {
+        console.error('❌ Error deleting comment:', error);
         res.status(500).json({ error: error.message });
     }
 });

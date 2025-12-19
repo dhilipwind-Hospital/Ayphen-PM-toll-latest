@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const database_1 = require("../config/database");
 const Issue_1 = require("../entities/Issue");
+const workflow_service_1 = require("../services/workflow.service");
 const router = (0, express_1.Router)();
 const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
 // GET /api/roadmap/:projectId
@@ -19,11 +20,13 @@ router.get('/:projectId', async (req, res) => {
         const epicIds = epics.map(e => e.id);
         const childIssues = await issueRepo.find({
             where: epicIds.length > 0 ? epicIds.map(id => ({ epicLink: id })) : [],
+            relations: ['assignee'],
         });
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(projectId);
         // Build roadmap data
         const roadmapData = epics.map(epic => {
             const children = childIssues.filter(issue => issue.epicLink === epic.id);
-            const completedChildren = children.filter(i => i.status === 'done');
+            const completedChildren = children.filter(i => doneStatuses.includes(i.status.toLowerCase()));
             const totalPoints = children.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
             const completedPoints = completedChildren.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
             return {
@@ -49,6 +52,10 @@ router.get('/:projectId', async (req, res) => {
                     type: c.type,
                     status: c.status,
                     storyPoints: c.storyPoints,
+                    startDate: c.startDate,
+                    endDate: c.endDate,
+                    dueDate: c.dueDate,
+                    assignee: c.assignee,
                 })),
             };
         });

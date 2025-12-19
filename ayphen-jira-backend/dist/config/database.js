@@ -38,8 +38,11 @@ const typeorm_1 = require("typeorm");
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
 exports.AppDataSource = new typeorm_1.DataSource({
-    type: 'sqlite',
-    database: 'ayphen_jira.db',
+    type: 'postgres',
+    url: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false // Required for Supabase
+    },
     synchronize: true, // Auto-create tables (disable in production)
     logging: false,
     entities: [__dirname + '/../entities/**/*.{ts,js}'],

@@ -3,9 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const database_1 = require("../config/database");
 const User_1 = require("../entities/User");
+const History_1 = require("../entities/History");
 const router = (0, express_1.Router)();
-// In-memory storage for history
-let historyEntries = [];
 // Helper function to generate human-readable descriptions
 function generateDescription(field, oldValue, newValue, changeType) {
     switch (changeType) {
@@ -49,28 +48,30 @@ function generateDescription(field, oldValue, newValue, changeType) {
 router.get('/issue/:issueId', async (req, res) => {
     try {
         const { issueId } = req.params;
+        const historyRepository = database_1.AppDataSource.getRepository(History_1.History);
         const userRepository = database_1.AppDataSource.getRepository(User_1.User);
-        const history = historyEntries
-            .filter(entry => entry.issueId === issueId)
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        // Fetch user data for history entries
+        // Fetch history from DB
+        const history = await historyRepository.find({
+            where: { issueId },
+            order: { createdAt: 'DESC' },
+            relations: ['user'] // Eager load user if possible, but manual fallback is fine
+        });
+        // Ensure user data is populated (if relation didn't load or we want flat structure)
         const enrichedHistory = await Promise.all(history.map(async (entry) => {
-            if (entry.userId && !entry.user) {
-                const user = await userRepository.findOne({ where: { id: entry.userId } });
-                if (user) {
-                    return {
-                        ...entry,
-                        user: {
-                            id: user.id,
-                            name: user.name,
-                            email: user.email,
-                            avatar: user.avatar,
-                        },
-                        userName: user.name,
-                    };
-                }
+            let user = entry.user;
+            if (!user && entry.userId) {
+                user = await userRepository.findOne({ where: { id: entry.userId } });
             }
-            return entry;
+            return {
+                ...entry,
+                user: user ? {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    avatar: user.avatar,
+                } : null,
+                userName: user?.name || 'Unknown',
+            };
         }));
         res.json(enrichedHistory);
     }
@@ -79,26 +80,27 @@ router.get('/issue/:issueId', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// Create a history entry
+// Create a history entry (internal usage mostly, but kept for API completeness)
 router.post('/', async (req, res) => {
     try {
         const { issueId, userId, field, oldValue, newValue, changeType, projectId, description } = req.body;
-        const entry = {
-            id: `history-${Date.now()}`,
+        const historyRepository = database_1.AppDataSource.getRepository(History_1.History);
+        const entryDescription = description || generateDescription(field, oldValue, newValue, changeType);
+        const newHistory = historyRepository.create({
             issueId,
             userId,
             field,
             oldValue: oldValue ? JSON.stringify(oldValue) : null,
             newValue: newValue ? JSON.stringify(newValue) : null,
-            changeType, // 'field_change', 'status_change', 'comment', 'attachment', 'type_conversion', etc.
-            description: description || generateDescription(field, oldValue, newValue, changeType),
+            changeType,
+            description: entryDescription,
             projectId,
-            createdAt: new Date().toISOString(),
-        };
-        historyEntries.push(entry);
-        res.status(201).json(entry);
+        });
+        const savedEntry = await historyRepository.save(newHistory);
+        res.status(201).json(savedEntry);
     }
     catch (error) {
+        console.error('Error creating history:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -106,9 +108,11 @@ router.post('/', async (req, res) => {
 router.get('/project/:projectId', async (req, res) => {
     try {
         const { projectId } = req.params;
-        const history = historyEntries
-            .filter(entry => entry.projectId === projectId)
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const historyRepository = database_1.AppDataSource.getRepository(History_1.History);
+        const history = await historyRepository.find({
+            where: { projectId },
+            order: { createdAt: 'DESC' }
+        });
         res.json(history);
     }
     catch (error) {

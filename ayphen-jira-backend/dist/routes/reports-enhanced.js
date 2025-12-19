@@ -4,6 +4,7 @@ const express_1 = require("express");
 const database_1 = require("../config/database");
 const Issue_1 = require("../entities/Issue");
 const Sprint_1 = require("../entities/Sprint");
+const workflow_service_1 = require("../services/workflow.service");
 const router = (0, express_1.Router)();
 const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
 const sprintRepo = database_1.AppDataSource.getRepository(Sprint_1.Sprint);
@@ -92,16 +93,34 @@ router.get('/burndown-chart', async (req, res) => {
         }
         const issues = await issueRepo.find({ where: { sprintId: sprintId } });
         const totalStoryPoints = issues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
-        const completedPoints = issues
-            .filter(i => i.status === 'done')
-            .reduce((sum, i) => sum + (i.storyPoints || 0), 0);
-        const chartData = {
-            totalPoints: totalStoryPoints,
-            completedPoints,
-            remainingPoints: totalStoryPoints - completedPoints,
-            idealBurndown: [],
-            actualBurndown: [],
-        };
+        // Calculate dates
+        const startDate = sprint.startDate ? new Date(sprint.startDate) : new Date(sprint.createdAt);
+        const endDate = sprint.endDate ? new Date(sprint.endDate) : new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000);
+        // Ensure we have a valid duration
+        const durationMs = endDate.getTime() - startDate.getTime();
+        const durationDays = Math.max(1, Math.ceil(durationMs / (1000 * 60 * 60 * 24)));
+        const burnRate = totalStoryPoints / durationDays;
+        const chartData = [];
+        const now = new Date();
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(sprint.projectId);
+        for (let i = 0; i <= durationDays; i++) {
+            const dayDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+            const dayLabel = dayDate.toISOString().split('T')[0].slice(5); // MM-DD
+            const point = {
+                name: i === 0 ? 'Start' : `Day ${i}`,
+                date: dayLabel,
+                ideal: Math.round(Math.max(0, totalStoryPoints - (i * burnRate))),
+            };
+            // Calculate actual only if day is in past/present
+            if (dayDate <= new Date(now.getTime() + 24 * 60 * 60 * 1000)) {
+                const resolvedIssues = issues.filter(issue => doneStatuses.includes(issue.status.toLowerCase()) &&
+                    issue.resolvedAt &&
+                    new Date(issue.resolvedAt) <= dayDate);
+                const resolvedPoints = resolvedIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
+                point.actual = totalStoryPoints - resolvedPoints;
+            }
+            chartData.push(point);
+        }
         res.json(chartData);
     }
     catch (error) {

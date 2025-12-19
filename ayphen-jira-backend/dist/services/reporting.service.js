@@ -4,6 +4,7 @@ exports.reportingService = exports.ReportingService = void 0;
 const database_1 = require("../config/database");
 const Issue_1 = require("../entities/Issue");
 const typeorm_1 = require("typeorm");
+const workflow_service_1 = require("./workflow.service");
 class ReportingService {
     /**
      * Sprint Burndown Chart Data
@@ -13,9 +14,14 @@ class ReportingService {
         const sprintIssues = await issueRepo.find({
             where: { sprintId },
         });
+        if (sprintIssues.length === 0) {
+            return { totalPoints: 0, completedPoints: 0, remainingPoints: 0, data: [] };
+        }
+        const projectId = sprintIssues[0].projectId;
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(projectId);
         const totalPoints = sprintIssues.reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
         const completedPoints = sprintIssues
-            .filter(i => i.status === 'Done')
+            .filter(i => doneStatuses.includes(i.status.toLowerCase()))
             .reduce((sum, issue) => sum + (issue.storyPoints || 0), 0);
         // Generate daily data points
         const days = 14; // 2-week sprint
@@ -44,11 +50,14 @@ class ReportingService {
             .andWhere('issue.sprintId IS NOT NULL')
             .limit(sprintCount)
             .getRawMany();
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(projectId);
         const velocityData = await Promise.all(sprints.map(async (sprint) => {
             const sprintIssues = await issueRepo.find({
-                where: { sprintId: sprint.sprintId, status: 'Done' },
+                where: { sprintId: sprint.sprintId },
             });
-            const completed = sprintIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
+            const completed = sprintIssues
+                .filter(i => doneStatuses.includes(i.status.toLowerCase()))
+                .reduce((sum, i) => sum + (i.storyPoints || 0), 0);
             const committed = sprintIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
             return {
                 sprint: sprint.sprintId,
@@ -222,9 +231,10 @@ class ReportingService {
      */
     async getResolutionTimeReport(projectId) {
         const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
-        const resolvedIssues = await issueRepo.find({
-            where: { projectId, status: 'Done' },
-        });
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(projectId);
+        const resolvedIssues = (await issueRepo.find({
+            where: { projectId },
+        })).filter(i => doneStatuses.includes(i.status.toLowerCase()));
         const resolutionTimes = resolvedIssues
             .filter(i => i.resolvedAt)
             .map(issue => {
@@ -291,8 +301,12 @@ class ReportingService {
     async getSprintReport(sprintId) {
         const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
         const issues = await issueRepo.find({ where: { sprintId } });
-        const completed = issues.filter(i => i.status === 'Done');
-        const incomplete = issues.filter(i => i.status !== 'Done');
+        if (issues.length === 0)
+            return { total: 0, completed: 0, incomplete: 0, completedPoints: 0, incompletePoints: 0, completionRate: 0, issues: { completed: [], incomplete: [] } };
+        const projectId = issues[0].projectId;
+        const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(projectId);
+        const completed = issues.filter(i => doneStatuses.includes(i.status.toLowerCase()));
+        const incomplete = issues.filter(i => !doneStatuses.includes(i.status.toLowerCase()));
         return {
             total: issues.length,
             completed: completed.length,

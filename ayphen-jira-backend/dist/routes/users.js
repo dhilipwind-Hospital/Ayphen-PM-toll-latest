@@ -39,13 +39,27 @@ const upload = (0, multer_1.default)({
         cb(new Error('Only image files are allowed'));
     }
 });
-// GET all users
+// GET all users (with optional project filtering)
 router.get('/', async (req, res) => {
     try {
-        const users = await userRepo.find();
+        const { projectId } = req.query;
+        if (projectId) {
+            // Enterprise-grade: Only fetch users belonging to the specific project
+            const users = await userRepo.createQueryBuilder('user')
+                .innerJoin('project_members', 'pm', 'pm.userId = user.id')
+                .where('pm.projectId = :projectId', { projectId })
+                .select(['user.id', 'user.name', 'user.email', 'user.avatar', 'user.role', 'user.isActive']) // Select only necessary fields for privacy
+                .getMany();
+            return res.json(users);
+        }
+        // Fallback: Return all users (Note: In a strict enterprise system, this should likely be restricted to Admins only)
+        const users = await userRepo.find({
+            select: ['id', 'name', 'email', 'avatar', 'role', 'isActive'] // Restrict fields
+        });
         res.json(users);
     }
     catch (error) {
+        console.error('Failed to fetch users:', error);
         res.status(500).json({ error: 'Failed to fetch users' });
     }
 });

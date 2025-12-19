@@ -5,6 +5,7 @@ const database_1 = require("../config/database");
 const Issue_1 = require("../entities/Issue");
 const Sprint_1 = require("../entities/Sprint");
 const User_1 = require("../entities/User");
+const workflow_service_1 = require("../services/workflow.service");
 const router = (0, express_1.Router)();
 const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
 const sprintRepo = database_1.AppDataSource.getRepository(Sprint_1.Sprint);
@@ -164,21 +165,23 @@ router.get('/:id/gadgets/:gadgetType/data', async (req, res) => {
                     data: Object.entries(statusCounts).map(([name, value]) => ({ name, value })),
                 };
                 break;
-            case 'created-vs-resolved':
+            case 'created-vs-resolved': {
                 const last30Days = new Date();
                 last30Days.setDate(last30Days.getDate() - 30);
                 const issues = await issueRepo.find({
                     where: { projectId: projectId },
                 });
+                const doneStatusesForProject = await workflow_service_1.workflowService.getDoneStatuses(projectId);
                 const created = issues.filter(i => new Date(i.createdAt) >= last30Days).length;
-                const resolved = issues.filter(i => i.status === 'done' && new Date(i.updatedAt) >= last30Days).length;
+                const resolved = issues.filter(i => doneStatusesForProject.includes(i.status.toLowerCase()) && new Date(i.updatedAt) >= last30Days).length;
                 data = {
                     created,
                     resolved,
                     trend: created > resolved ? 'increasing' : 'decreasing',
                 };
                 break;
-            case 'sprint-burndown':
+            }
+            case 'sprint-burndown': {
                 const activeSprint = await sprintRepo.findOne({
                     where: { projectId: projectId, status: 'active' },
                 });
@@ -186,9 +189,10 @@ router.get('/:id/gadgets/:gadgetType/data', async (req, res) => {
                     const sprintIssues = await issueRepo.find({
                         where: { sprintId: activeSprint.id },
                     });
+                    const doneStatusesForProject = await workflow_service_1.workflowService.getDoneStatuses(projectId);
                     const totalPoints = sprintIssues.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
                     const completedPoints = sprintIssues
-                        .filter(i => i.status === 'done')
+                        .filter(i => doneStatusesForProject.includes(i.status.toLowerCase()))
                         .reduce((sum, i) => sum + (i.storyPoints || 0), 0);
                     data = {
                         sprint: activeSprint.name,
@@ -202,6 +206,7 @@ router.get('/:id/gadgets/:gadgetType/data', async (req, res) => {
                     data = { message: 'No active sprint' };
                 }
                 break;
+            }
             case 'quick-links':
                 data = {
                     links: [
@@ -212,24 +217,29 @@ router.get('/:id/gadgets/:gadgetType/data', async (req, res) => {
                     ],
                 };
                 break;
-            case 'stats':
+            case 'stats': {
                 const statsIssues = await issueRepo.find({
                     where: { projectId: projectId },
                 });
+                const doneStatusesForProject = await workflow_service_1.workflowService.getDoneStatuses(projectId);
+                const todoStatuses = (await workflow_service_1.workflowService.getAll()).filter(w => w.projectIds.includes(projectId))[0]?.statuses.filter(s => s.category === 'TODO').map(s => s.id.toLowerCase()) || ['todo', 'backlog'];
                 data = {
                     total: statsIssues.length,
-                    open: statsIssues.filter(i => i.status !== 'done').length,
-                    inProgress: statsIssues.filter(i => i.status === 'in-progress').length,
-                    done: statsIssues.filter(i => i.status === 'done').length,
+                    open: statsIssues.filter(i => !doneStatusesForProject.includes(i.status.toLowerCase())).length,
+                    inProgress: statsIssues.filter(i => !doneStatusesForProject.includes(i.status.toLowerCase()) && !todoStatuses.includes(i.status.toLowerCase())).length,
+                    done: statsIssues.filter(i => doneStatusesForProject.includes(i.status.toLowerCase())).length,
                 };
                 break;
-            case 'in-progress':
-                const inProgressIssues = await issueRepo.find({
-                    where: { projectId: projectId, status: 'in-progress' },
+            }
+            case 'in-progress': {
+                const allWIPIssues = await issueRepo.find({
+                    where: { projectId: projectId },
                     take: parseInt(limit),
                 });
+                const projectWorkflow = (await workflow_service_1.workflowService.getAll()).filter(w => w.projectIds.includes(projectId))[0] || (await workflow_service_1.workflowService.getById('workflow-1'));
+                const inProgressStatuses = projectWorkflow.statuses.filter(s => s.category === 'IN_PROGRESS').map(s => s.id.toLowerCase());
                 data = {
-                    issues: inProgressIssues.map(i => ({
+                    issues: allWIPIssues.filter(i => inProgressStatuses.includes(i.status.toLowerCase())).map(i => ({
                         id: i.id,
                         key: i.key,
                         summary: i.summary,
@@ -238,6 +248,7 @@ router.get('/:id/gadgets/:gadgetType/data', async (req, res) => {
                     })),
                 };
                 break;
+            }
             case 'filter-results':
                 const filterIssues = await issueRepo.find({
                     where: { projectId: projectId },
@@ -256,19 +267,21 @@ router.get('/:id/gadgets/:gadgetType/data', async (req, res) => {
                     total: filterIssues.length,
                 };
                 break;
-            case 'user-workload':
-                const users = await userRepo.find();
-                const workloadIssues = await issueRepo.find({
-                    where: { projectId: projectId, status: (0, typeorm_1.Not)('done') },
+            case 'user-workload': {
+                const usersForWorkload = await userRepo.find();
+                const allIssuesForWorkload = await issueRepo.find({
+                    where: { projectId: projectId },
                 });
+                const doneStatusesForWorkload = await workflow_service_1.workflowService.getDoneStatuses(projectId);
                 data = {
-                    users: users.map(user => ({
+                    users: usersForWorkload.map(user => ({
                         id: user.id,
                         name: user.name,
-                        issueCount: workloadIssues.filter(i => i.assigneeId === user.id).length,
+                        issueCount: allIssuesForWorkload.filter(i => i.assigneeId === user.id && !doneStatusesForWorkload.includes(i.status.toLowerCase())).length,
                     })).filter(u => u.issueCount > 0),
                 };
                 break;
+            }
             default:
                 data = { message: 'Gadget type not implemented' };
         }
@@ -279,6 +292,4 @@ router.get('/:id/gadgets/:gadgetType/data', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// Import Not from typeorm for the user-workload gadget
-const typeorm_1 = require("typeorm");
 exports.default = router;

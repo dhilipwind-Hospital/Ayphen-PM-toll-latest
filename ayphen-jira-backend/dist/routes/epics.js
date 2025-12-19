@@ -4,6 +4,7 @@ const express_1 = require("express");
 const database_1 = require("../config/database");
 const Issue_1 = require("../entities/Issue");
 const History_1 = require("../entities/History");
+const workflow_service_1 = require("../services/workflow.service");
 const router = (0, express_1.Router)();
 const issueRepo = database_1.AppDataSource.getRepository(Issue_1.Issue);
 const historyRepo = database_1.AppDataSource.getRepository(History_1.History);
@@ -21,7 +22,8 @@ router.get('/', async (req, res) => {
             const children = await issueRepo.find({
                 where: { epicLink: epic.id },
             });
-            const completedChildren = children.filter(i => i.status === 'done');
+            const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(projectId);
+            const completedChildren = children.filter(i => doneStatuses.includes(i.status.toLowerCase()));
             const totalPoints = children.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
             const completedPoints = completedChildren.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
             return {
@@ -59,9 +61,13 @@ router.get('/:id', async (req, res) => {
             order: { createdAt: 'DESC' },
         });
         // Calculate statistics
-        const completedChildren = children.filter(i => i.status === 'done');
-        const inProgressChildren = children.filter(i => i.status === 'in-progress');
-        const todoChildren = children.filter(i => i.status === 'todo');
+        const doneStatusesDet = await workflow_service_1.workflowService.getDoneStatuses(epic.projectId);
+        const workflows = await workflow_service_1.workflowService.getAll();
+        const projectWorkflow = workflows.find(w => w.projectIds.includes(epic.projectId)) || await workflow_service_1.workflowService.getById('workflow-1');
+        const todoStatusesDet = projectWorkflow.statuses.filter(s => s.category === 'TODO').map(s => s.id.toLowerCase());
+        const completedChildren = children.filter(i => doneStatusesDet.includes(i.status.toLowerCase()));
+        const inProgressChildren = children.filter(i => !doneStatusesDet.includes(i.status.toLowerCase()) && !todoStatusesDet.includes(i.status.toLowerCase()));
+        const todoChildren = children.filter(i => todoStatusesDet.includes(i.status.toLowerCase()));
         const totalPoints = children.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
         const completedPoints = completedChildren.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
         const inProgressPoints = inProgressChildren.reduce((sum, i) => sum + (i.storyPoints || 0), 0);
@@ -128,9 +134,10 @@ router.get('/:id/timeline', async (req, res) => {
         const sortedChildren = [...children].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         let cumulativeTotal = 0;
         let cumulativeCompleted = 0;
+        const doneStatusesTimeline = await workflow_service_1.workflowService.getDoneStatuses(epic.projectId);
         for (const child of sortedChildren) {
             cumulativeTotal += child.storyPoints || 0;
-            if (child.status === 'done') {
+            if (doneStatusesTimeline.includes(child.status.toLowerCase())) {
                 cumulativeCompleted += child.storyPoints || 0;
             }
             timeline.push({
@@ -251,8 +258,9 @@ router.get('/:id/burndown', async (req, res) => {
         for (let day = 0; day <= Math.min(totalDays, 90); day += Math.ceil(totalDays / 30)) {
             const currentDate = new Date(startDate);
             currentDate.setDate(startDate.getDate() + day);
+            const doneStatuses = await workflow_service_1.workflowService.getDoneStatuses(epic.projectId);
             const completedByDate = children.filter(c => {
-                if (c.status === 'done' && c.updatedAt) {
+                if (doneStatuses.includes(c.status.toLowerCase()) && c.updatedAt) {
                     return new Date(c.updatedAt) <= currentDate;
                 }
                 return false;

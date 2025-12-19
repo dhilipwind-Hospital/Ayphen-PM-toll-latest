@@ -49,12 +49,17 @@ router.post('/', async (req, res) => {
             return res.status(404).json({ error: 'Project not found' });
         }
         // Check if user already a member
-        const existingMember = await projectMemberRepo.findOne({
-            where: { projectId, userId: email }, // Assuming email can match userId
-        });
-        if (existingMember) {
-            return res.status(400).json({ error: 'User is already a member' });
+        // First find the user by email to get their ID
+        const user = await userRepo.findOne({ where: { email } });
+        if (user) {
+            const existingMember = await projectMemberRepo.findOne({
+                where: { projectId, userId: user.id },
+            });
+            if (existingMember) {
+                return res.status(400).json({ error: 'User is already a member' });
+            }
         }
+        // If user doesn't exist, they can't be a member, so proceed to invite
         // Check if invitation already exists
         const existingInvitation = await invitationRepo.findOne({
             where: { projectId, email, status: 'pending' },

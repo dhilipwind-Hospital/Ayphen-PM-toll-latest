@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -10,13 +43,9 @@ const NotificationPreference_1 = require("../entities/NotificationPreference");
 const User_1 = require("../entities/User");
 class EmailService {
     constructor() {
-        // For development, use Ethereal (fake SMTP service)
-        // In production, replace with real SMTP credentials (Gmail, SendGrid, etc.)
         this.fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@jiraclone.com';
-        this.fromName = process.env.SMTP_FROM_NAME || 'Jira Clone';
-        this.initializeTransporter();
-    }
-    async initializeTransporter() {
+        this.fromName = process.env.SMTP_FROM_NAME || 'Ayphen Project Management';
+        // Initialize transporter synchronously
         if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
             // Real SMTP configuration (Gmail, etc.)
             this.transporter = nodemailer_1.default.createTransport({
@@ -27,25 +56,37 @@ class EmailService {
                     user: process.env.SMTP_USER,
                     pass: process.env.SMTP_PASSWORD,
                 },
+                pool: true, // Use connection pooling
+                maxConnections: 5,
+                maxMessages: 10,
+                rateDelta: 1000,
+                rateLimit: 5,
+                connectionTimeout: 60000, // 60 seconds
+                greetingTimeout: 30000,
+                socketTimeout: 60000,
+                tls: {
+                    rejectUnauthorized: false,
+                    ciphers: 'SSLv3'
+                },
+                debug: true, // Enable debug logging
+                logger: true
             });
-            console.log('📧 Email service initialized with Gmail SMTP');
+            console.log('📧 Email service initialized with SMTP');
             console.log('   Host:', process.env.SMTP_HOST);
+            console.log('   Port:', process.env.SMTP_PORT);
             console.log('   User:', process.env.SMTP_USER);
+            console.log('   From:', this.fromEmail);
+            console.log('   Connection timeout: 60s');
         }
         else {
-            // Development: Use Ethereal for testing
-            const testAccount = await nodemailer_1.default.createTestAccount();
+            console.warn('⚠️  SMTP credentials not configured! Emails will NOT be sent.');
+            console.warn('   Required env vars: SMTP_HOST, SMTP_USER, SMTP_PASSWORD');
+            // Create a dummy transporter that will fail gracefully
             this.transporter = nodemailer_1.default.createTransport({
-                host: 'smtp.ethereal.email',
+                host: 'localhost',
                 port: 587,
                 secure: false,
-                auth: {
-                    user: testAccount.user,
-                    pass: testAccount.pass,
-                },
             });
-            console.log('📧 Email service initialized with Ethereal (test mode)');
-            console.log('   User:', testAccount.user);
         }
     }
     // Generic send email method
@@ -244,23 +285,32 @@ class EmailService {
             }
             // Get email template
             const { subject, html } = this.getEmailTemplate(type, data);
-            // Send email
-            const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
-            const fromName = process.env.SMTP_FROM_NAME || 'Jira Clone';
-            const info = await this.transporter.sendMail({
-                from: `"${fromName}" <${fromEmail}>`,
-                to: user.email,
-                subject,
-                html,
-            });
-            console.log(`📧 Email sent to ${user.email}: ${info.messageId}`);
-            // In development, log preview URL
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('   Preview URL:', nodemailer_1.default.getTestMessageUrl(info));
+            // Try SendGrid Web API first (more reliable), fallback to SMTP
+            try {
+                const { sendGridService } = await Promise.resolve().then(() => __importStar(require('./sendgrid.service')));
+                await sendGridService.sendEmail(user.email, subject, html);
+                console.log(`📧 Email sent to ${user.email} via SendGrid`);
+            }
+            catch (sendGridError) {
+                console.warn('SendGrid failed, trying SMTP fallback:', sendGridError);
+                // Fallback to SMTP
+                const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
+                const fromName = process.env.SMTP_FROM_NAME || 'Ayphen Project Management';
+                const info = await this.transporter.sendMail({
+                    from: `"${fromName}" <${fromEmail}>`,
+                    to: user.email,
+                    subject,
+                    html,
+                });
+                console.log(`📧 Email sent to ${user.email} via SMTP: ${info.messageId}`);
+                // In development, log preview URL
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log('   Preview URL:', nodemailer_1.default.getTestMessageUrl(info));
+                }
             }
         }
         catch (error) {
-            console.error('Error sending email:', error);
+            console.error('Error sending notification email:', error);
         }
     }
     async sendDigestEmail(userId, notifications) {
@@ -312,30 +362,39 @@ class EmailService {
      * Send project invitation email
      */
     async sendProjectInvitation(data) {
+        const { to, projectName, inviterName, role, token, expiresAt } = data;
+        const acceptLink = `${process.env.FRONTEND_URL || 'http://localhost:1600'}/accept-invitation/${token}`;
+        const expiryDate = new Date(expiresAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const subject = `${inviterName} invited you to join "${projectName}"`;
+        const html = this.getInvitationEmailTemplate({
+            projectName,
+            inviterName,
+            role,
+            acceptLink,
+            expiryDate,
+        });
+        // Try SendGrid Web API first (same as registration), fallback to SMTP
         try {
-            const { to, projectName, inviterName, role, token, expiresAt } = data;
-            const acceptLink = `${process.env.FRONTEND_URL || 'http://localhost:1600'}/accept-invitation/${token}`;
-            const expiryDate = new Date(expiresAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            const subject = `${inviterName} invited you to join "${projectName}"`;
-            const html = this.getInvitationEmailTemplate({
-                projectName,
-                inviterName,
-                role,
-                acceptLink,
-                expiryDate,
-            });
-            const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
-            const fromName = process.env.SMTP_FROM_NAME || 'Ayphen Jira';
-            const info = await this.transporter.sendMail({
-                from: `"${fromName}" <${fromEmail}>`,
-                to,
-                subject,
-                html,
-                text: `
+            const { sendGridService } = await Promise.resolve().then(() => __importStar(require('./sendgrid.service')));
+            await sendGridService.sendEmail(to, subject, html);
+            console.log(`✅ Invitation email sent to ${to} via SendGrid`);
+        }
+        catch (sendGridError) {
+            console.warn('⚠️ SendGrid failed for invitation, trying SMTP fallback:', sendGridError);
+            // Fallback to SMTP
+            try {
+                const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ayphenjira.com';
+                const fromName = process.env.SMTP_FROM_NAME || 'Ayphen Project Management';
+                const info = await this.transporter.sendMail({
+                    from: `"${fromName}" <${fromEmail}>`,
+                    to,
+                    subject,
+                    html,
+                    text: `
 ${inviterName} has invited you to join the project "${projectName}" as a ${role}.
 
 Click the link below to accept the invitation:
@@ -344,20 +403,21 @@ ${acceptLink}
 This invitation will expire on ${expiryDate}.
 
 If you didn't expect this invitation, you can safely ignore this email.
-        `.trim(),
-            });
-            console.log(`✅ Invitation email sent to ${to}: ${info.messageId}`);
-            // In development, log preview URL
-            if (process.env.NODE_ENV !== 'production') {
-                const previewUrl = nodemailer_1.default.getTestMessageUrl(info);
-                if (previewUrl) {
-                    console.log('📧 Preview invitation email:', previewUrl);
+          `.trim(),
+                });
+                console.log(`✅ Invitation email sent to ${to} via SMTP: ${info.messageId}`);
+                // In development, log preview URL
+                if (process.env.NODE_ENV !== 'production') {
+                    const previewUrl = nodemailer_1.default.getTestMessageUrl(info);
+                    if (previewUrl) {
+                        console.log('📧 Preview invitation email:', previewUrl);
+                    }
                 }
             }
-        }
-        catch (error) {
-            console.error('❌ Failed to send invitation email:', error);
-            throw new Error('Failed to send invitation email');
+            catch (smtpError) {
+                console.error('❌ Both SendGrid and SMTP failed to send invitation email:', smtpError);
+                throw new Error('Failed to send invitation email');
+            }
         }
     }
     /**
