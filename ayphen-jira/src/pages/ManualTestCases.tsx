@@ -284,7 +284,7 @@ export default function ManualTestCases() {
             setEditId(null);
             setOpen(true);
           }}
-          style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', borderColor: '#0EA5E9' }}
+          style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', borderColor: '#0EA5E9', color: '#FFFFFF' }}
         >
           Create Test Case
         </Button>

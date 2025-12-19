@@ -158,6 +158,10 @@ const SendButton = styled(Button)`
   border: none;
   color: white;
   
+  span {
+    color: white !important;
+  }
+  
   &:hover {
     background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
     color: white !important;

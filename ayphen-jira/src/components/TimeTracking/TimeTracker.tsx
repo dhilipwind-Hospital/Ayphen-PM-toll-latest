@@ -27,7 +27,7 @@ const TimerDisplay = styled.div`
   font-family: 'Monaco', monospace;
 `;
 
-const ControlButton = styled(Button)<{ variant?: 'start' | 'pause' | 'stop' }>`
+const ControlButton = styled(Button) <{ variant?: 'start' | 'pause' | 'stop' }>`
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -46,9 +46,14 @@ const ControlButton = styled(Button)<{ variant?: 'start' | 'pause' | 'stop' }>`
   border: none;
   color: white;
   
+  span {
+    color: white !important;
+  }
+  
   &:hover {
     transform: scale(1.05);
     transition: transform 0.2s ease;
+    color: white !important;
   }
 `;
 
@@ -71,12 +76,12 @@ export const TimeTracker: React.FC = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [todayStats, setTodayStats] = useState({ total: 0, billable: 0, efficiency: 0 });
-  
+
   const { issues, currentUser, currentProject } = useStore();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (isRunning) {
       interval = setInterval(() => {
         setElapsedTime(prev => prev + 1);
@@ -90,7 +95,7 @@ export const TimeTracker: React.FC = () => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -101,10 +106,10 @@ export const TimeTracker: React.FC = () => {
 
   const loadTimeEntries = async () => {
     if (!currentProject || !currentUser) return;
-    
+
     try {
       const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/entries`, {
-        params: { 
+        params: {
           projectId: currentProject.id,
           userId: currentUser.id,
           date: new Date().toISOString().split('T')[0]
@@ -118,10 +123,10 @@ export const TimeTracker: React.FC = () => {
 
   const loadTodayStats = async () => {
     if (!currentProject || !currentUser) return;
-    
+
     try {
       const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/stats/today`, {
-        params: { 
+        params: {
           projectId: currentProject.id,
           userId: currentUser.id
         }
@@ -158,9 +163,9 @@ export const TimeTracker: React.FC = () => {
           duration: Math.floor(elapsedTime / 60), // minutes
           billable: true
         };
-        
+
         await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/entries', timeEntry);
-        
+
         message.success('Time entry saved successfully!');
         loadTimeEntries();
         loadTodayStats();
@@ -169,7 +174,7 @@ export const TimeTracker: React.FC = () => {
         message.error('Failed to save time entry');
       }
     }
-    
+
     setIsRunning(false);
     setElapsedTime(0);
     setCurrentIssue('');
@@ -180,14 +185,14 @@ export const TimeTracker: React.FC = () => {
   const exportTimesheet = async () => {
     try {
       const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/export`, {
-        params: { 
+        params: {
           projectId: currentProject?.id,
           userId: currentUser?.id,
           format: 'csv'
         },
         responseType: 'blob'
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -195,7 +200,7 @@ export const TimeTracker: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
+
       message.success('Timesheet exported successfully!');
     } catch (error) {
       console.error('Error exporting timesheet:', error);
@@ -245,7 +250,7 @@ export const TimeTracker: React.FC = () => {
         <TimerDisplay>
           {formatTime(elapsedTime)}
         </TimerDisplay>
-        
+
         <div style={{ marginBottom: 20 }}>
           <Select
             value={currentIssue}
@@ -263,7 +268,7 @@ export const TimeTracker: React.FC = () => {
               </Select.Option>
             ))}
           </Select>
-          
+
           <Input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -287,7 +292,7 @@ export const TimeTracker: React.FC = () => {
               onClick={pauseTimer}
             />
           )}
-          
+
           <ControlButton
             variant="stop"
             icon={<Square size={24} />}
@@ -332,8 +337,8 @@ export const TimeTracker: React.FC = () => {
       <Card
         title="Time Entries"
         extra={
-          <Button 
-            icon={<Download size={16} />} 
+          <Button
+            icon={<Download size={16} />}
             style={{ color: '#0EA5E9' }}
             onClick={exportTimesheet}
           >

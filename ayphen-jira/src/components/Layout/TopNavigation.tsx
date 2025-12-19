@@ -192,6 +192,10 @@ const CreateButton = styled(Button)`
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 
+  span {
+    color: white !important;
+  }
+
   &:hover {
     background: ${colors.primary[700]} !important;
     color: white !important;
