@@ -537,10 +537,15 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
         <Form.Item
           name="summary"
           label="Summary"
-          rules={[{ required: true, message: 'Please enter summary' }]}
+          rules={[
+            { required: true, message: 'Please enter summary' },
+            { max: 255, message: 'Summary cannot exceed 255 characters' }
+          ]}
         >
           <Input
             placeholder="What needs to be done?"
+            maxLength={255}
+            showCount
           />
         </Form.Item>
 

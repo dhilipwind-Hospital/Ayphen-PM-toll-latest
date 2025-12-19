@@ -498,9 +498,13 @@ export const LoginPage: React.FC = () => {
                   >
                     <Form.Item
                       name="name"
-                      rules={[{ required: true, message: 'Name is required' }]}
+                      rules={[
+                        { required: true, message: 'Name is required' },
+                        { min: 2, message: 'Name must be at least 2 characters' },
+                        { max: 50, message: 'Name cannot exceed 50 characters' }
+                      ]}
                     >
-                      <StyledInput prefix={<User size={18} color="#9ca3af" />} placeholder="Full Name" />
+                      <StyledInput prefix={<User size={18} color="#9ca3af" />} placeholder="Full Name" maxLength={50} />
                     </Form.Item>
 
                     <Form.Item
