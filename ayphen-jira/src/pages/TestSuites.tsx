@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Input, Modal, List, Typography, message } from 'antd';
+import { Card, Button, Input, Modal, List, Typography, message, Checkbox } from 'antd';
 import { PlusOutlined, PlayCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +40,8 @@ export default function TestSuites() {
   const [addTestOpen, setAddTestOpen] = useState(false);
   const [selectedSuite, setSelectedSuite] = useState(null);
   const [form, setForm] = useState({ name: '', description: '' });
+  const [selectedTestCases, setSelectedTestCases] = useState<number[]>([]);
+  const [existingTestIds, setExistingTestIds] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -99,14 +101,44 @@ export default function TestSuites() {
     }
   };
 
-  const handleAddTest = async (testCaseId: number) => {
+  const handleBulkAdd = async () => {
+    if (!selectedSuite || selectedTestCases.length === 0) return;
+
     try {
-      await api.post(`/test-suites/${selectedSuite}/test-cases`, { testCaseId });
+      // Loop to add multiple. Better to have bulk API, but this works for now.
+      for (const testCaseId of selectedTestCases) {
+        await api.post(`/test-suites/${selectedSuite}/test-cases`, { testCaseId });
+      }
+
+      message.success(`Added ${selectedTestCases.length} test cases to suite`);
       setAddTestOpen(false);
+      setSelectedTestCases([]);
       loadSuites();
     } catch (error) {
-      console.error('Failed to add test to suite:', error);
+      console.error('Failed to add tests to suite:', error);
+      message.error('Failed to add test cases');
     }
+  };
+
+  const onOpenAddTestModal = async (suiteId: number) => {
+    setSelectedSuite(suiteId);
+    setSelectedTestCases([]);
+
+    try {
+      // Fetch suite details to see what's already added
+      const res = await api.get(`/test-suites/${suiteId}`); // Ensure backend returns testCases
+      if (res.data && res.data.testCases) {
+        const ids = new Set<number>(res.data.testCases.map((tc: any) => tc.id));
+        setExistingTestIds(ids);
+      } else {
+        setExistingTestIds(new Set());
+      }
+    } catch (e) {
+      console.error("Failed to load suite details", e);
+      setExistingTestIds(new Set());
+    }
+
+    setAddTestOpen(true);
   };
 
   const handleRun = async (suiteId: number) => {
@@ -139,7 +171,7 @@ export default function TestSuites() {
             <Card key={suite.id} title={suite.name}>
               <Text type="secondary">{suite.description}</Text>
               <CardActions>
-                <Button size="small" icon={<PlusOutlined />} onClick={() => { setSelectedSuite(suite.id); setAddTestOpen(true); }}>
+                <Button size="small" icon={<PlusOutlined />} onClick={() => onOpenAddTestModal(suite.id)}>
                   Add Test
                 </Button>
                 <Button size="small" icon={<PlayCircleOutlined />} onClick={() => handleRun(suite.id)}>
@@ -175,45 +207,39 @@ export default function TestSuites() {
       </GridContainer>
 
       <Modal
-        title="Create Test Suite"
-        open={open}
-        onCancel={() => setOpen(false)}
-        onOk={handleCreate}
-        okText="Create"
-      >
-        <div style={{ marginBottom: 16 }}>
-          <Input
-            placeholder="Suite Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            style={{ marginBottom: 16 }}
-          />
-          <TextArea
-            rows={3}
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-        </div>
-      </Modal>
-
-      <Modal
-        title="Add Test Case"
+        title="Add Test Cases"
         open={addTestOpen}
-        onCancel={() => setAddTestOpen(false)}
-        footer={null}
+        onCancel={() => {
+          setAddTestOpen(false);
+          setSelectedTestCases([]);
+        }}
+        onOk={handleBulkAdd}
+        okText={`Add Selected (${selectedTestCases.length})`}
+        okButtonProps={{ disabled: selectedTestCases.length === 0 }}
       >
         <List
-          dataSource={testCases}
+          dataSource={testCases.filter((tc: any) => !existingTestIds.has(tc.id))}
+          locale={{ emptyText: "No available test cases to add." }}
           renderItem={(tc: any) => (
             <List.Item
               style={{ cursor: 'pointer' }}
-              onClick={() => handleAddTest(tc.id)}
+              onClick={() => {
+                const newSelected = selectedTestCases.includes(tc.id)
+                  ? selectedTestCases.filter(id => id !== tc.id)
+                  : [...selectedTestCases, tc.id];
+                setSelectedTestCases(newSelected);
+              }}
             >
-              <List.Item.Meta
-                title={tc.title}
-                description={tc.description}
-              />
+              <div style={{ display: 'flex', alignItems: 'start', gap: 12, width: '100%' }}>
+                <Checkbox
+                  checked={selectedTestCases.includes(tc.id)}
+                  style={{ marginTop: 4 }}
+                />
+                <div>
+                  <div style={{ fontWeight: 500 }}>{tc.title}</div>
+                  <div style={{ color: '#888', fontSize: 13 }}>{tc.description}</div>
+                </div>
+              </div>
             </List.Item>
           )}
         />
