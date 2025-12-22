@@ -174,6 +174,13 @@ interface ChildIssue {
   endDate?: string;
   dueDate?: string;
   assignee?: any;
+  sprint?: {
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+  };
+  _isInferred?: boolean;
 }
 
 interface Epic {
@@ -232,7 +239,25 @@ export const RoadmapView: React.FC = () => {
     setLoading(true);
     try {
       const response = await api.get(`/roadmap/${currentProject.id}`);
-      setEpics(response.data);
+
+      // Enhance with inferred dates logic
+      const enhancedEpics = response.data.map((epic: Epic) => ({
+        ...epic,
+        children: epic.children?.map(child => {
+          // If child lacks dates but has a sprint with dates, use sprint dates
+          if ((!child.startDate || !child.endDate) && child.sprint?.startDate && child.sprint?.endDate) {
+            return {
+              ...child,
+              startDate: child.startDate || child.sprint.startDate,
+              endDate: child.endDate || child.sprint.endDate,
+              _isInferred: true // Internal flag for UI if needed
+            };
+          }
+          return child;
+        })
+      }));
+
+      setEpics(enhancedEpics);
     } catch (error) {
       console.error('Failed to load roadmap:', error);
       message.error('Failed to load roadmap');
@@ -575,10 +600,19 @@ export const RoadmapView: React.FC = () => {
                               left={childPos.left}
                               width={childPos.width}
                               color={getTypeColor(child.type)}
-                              style={{ height: 24, opacity: 0.8 }}
+                              style={{
+                                height: 24,
+                                opacity: 0.8,
+                                border: child._isInferred ? '1px dashed rgba(255,255,255,0.8)' : 'none',
+                                background: child._isInferred
+                                  ? `repeating-linear-gradient(45deg, ${getTypeColor(child.type)}, ${getTypeColor(child.type)} 10px, ${getTypeColor(child.type)}cc 10px, ${getTypeColor(child.type)}cc 20px)`
+                                  : getTypeColor(child.type)
+                              }}
+                              title={child._isInferred ? `Dates inferred from Sprint: ${child.sprint?.name}` : `${dayjs(child.startDate).format('MMM D')} - ${dayjs(child.endDate).format('MMM D')}`}
                             >
                               <EpicBarContent style={{ fontSize: 10 }}>
                                 <span>{child.assignee ? child.assignee.name.split(' ')[0] : ''}</span>
+                                {child._isInferred && <span style={{ opacity: 0.8, fontSize: 9 }}>(Sprint)</span>}
                               </EpicBarContent>
                             </EpicBar>
                           )}
