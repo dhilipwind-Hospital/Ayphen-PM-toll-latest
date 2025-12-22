@@ -8,7 +8,7 @@ import { api } from '../../services/api';
 import { io, Socket } from 'socket.io-client';
 
 // WS_URL kept for socket connection
-const WS_URL = 'https://ayphen-pm-toll-latest.onrender.com';
+const WS_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const Container = styled.div`
   display: flex;
@@ -432,7 +432,7 @@ export const TeamChatEnhanced: React.FC = () => {
         });
 
         try {
-          const uploadRes = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple', {
+          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/attachments-v2/upload-multiple`, {
             method: 'POST',
             body: formData
           });
@@ -441,7 +441,7 @@ export const TeamChatEnhanced: React.FC = () => {
             const uploadData = await uploadRes.json();
             uploadedAttachments = uploadData.map((f: any) => ({
               filename: f.filename,
-              url: `https://ayphen-pm-toll-latest.onrender.com/uploads/${f.filename}`,
+              url: `${import.meta.env.VITE_API_URL}/uploads/${f.filename}`,
               type: f.mimetype,
               size: f.size
             }));
@@ -555,272 +555,159 @@ export const TeamChatEnhanced: React.FC = () => {
               <Avatar style={{ background: '#0EA5E9' }}>
                 {channel.name[0].toUpperCase()}
               </Avatar>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{channel.name}</div>
-                {channel.projectName && (
-                  <div style={{ fontSize: 11, color: '#999' }}>{channel.projectName}</div>
-                )}
-                {channel.lastMessage && (
-                  <div style={{ fontSize: 12, color: '#999' }}>
-                    {channel.lastMessage.content}
-                  </div>
-                )}
-              </div>
-              {channel.unreadCount && channel.unreadCount > 0 && (
-                <Badge count={channel.unreadCount} />
-              )}
-            </ChannelItem>
-          ))}
-        </ChannelList>
-      </Sidebar>
-
-      <ChatArea>
-        {activeChannel ? (
-          <>
-            <ChatHeader>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Avatar style={{ background: '#0EA5E9' }}>
-                  {activeChannel.name[0].toUpperCase()}
-                </Avatar>
-                <div>
-                  <div style={{ fontWeight: 600 }}>{activeChannel.name}</div>
-                  <div style={{ fontSize: 12, color: '#999' }}>
-                    {activeChannel.memberCount} members
-                    {activeChannel.projectName && ` • ${activeChannel.projectName}`}
-                  </div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Tooltip title="Members">
-                  <Button
-                    icon={<Users size={16} />}
-                    type="text"
-                    onClick={loadChannelMembers}
-                  />
+                  <IconButton onClick={() => fileInputRef.current?.click()}>
+                    <Paperclip size={18} />
+                  </IconButton>
                 </Tooltip>
-                <Dropdown
-                  overlay={
-                    <Menu onClick={({ key }) => handleMoreMenuClick(key)}>
-                      <Menu.Item key="settings">Channel Settings</Menu.Item>
-                      <Menu.Item key="notifications">Notifications</Menu.Item>
-                      <Menu.Divider />
-                      <Menu.Item key="leave" danger>Leave Channel</Menu.Item>
-                    </Menu>
-                  }
-                  trigger={['click']}
-                >
-                  <Button icon={<MoreVertical size={16} />} type="text" />
-                </Dropdown>
-              </div>
-            </ChatHeader>
+                <Tooltip title="Add emoji">
+                  <IconButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+                    <Smile size={18} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Insert image">
+                  <IconButton onClick={() => fileInputRef.current?.click()}>
+                    <ImageIcon size={18} />
+                  </IconButton>
+                </Tooltip>
+              </ActionButtons>
 
-            <MessagesContainer>
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: 40 }}>
-                  <Spin />
-                </div>
-              ) : error ? (
-                <div style={{ textAlign: 'center', padding: 40, color: '#ff4d4f' }}>
-                  <Users size={32} style={{ marginBottom: 16, opacity: 0.5 }} />
-                  <div>{error}</div>
-                </div>
-              ) : (
-                <>
-                  {messages.map(msg => (
-                    <Message key={msg.id} isOwn={msg.userId === user?.id}>
-                      <Avatar style={{ background: '#0EA5E9' }} src={msg.userAvatar}>
-                        {msg.userName[0]?.toUpperCase()}
-                      </Avatar>
-                      <div>
-                        <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>
-                          {msg.userName} • {new Date(msg.timestamp).toLocaleTimeString()}
-                        </div>
-                        <MessageBubble isOwn={msg.userId === user?.id}>
-                          {renderMessageContent(msg.content)}
-                        </MessageBubble>
-                      </div>
-                    </Message>
-                  ))}
-                  <div ref={messagesEndRef} />
-                </>
-              )}
-            </MessagesContainer>
+        <MentionsInput
+          value={inputValue ?? ''}
+          onChange={(_e: any, newValue: string) => setInputValue(newValue ?? '')}
+          placeholder="Type @ to mention, # for issues..."
+          style={{
+            control: {
+              fontSize: 14,
+              fontWeight: 'normal',
+            },
+            input: {
+              border: '1px solid #d9d9d9',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              minHeight: '40px',
+            },
+            highlighter: {
+              padding: '8px 12px',
+            },
+            suggestions: {
+              list: {
+                background: 'white',
+                border: '1px solid #f0f0f0',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                maxHeight: '200px',
+                overflowY: 'auto',
+              },
+              item: {
+                padding: '8px 12px',
+                cursor: 'pointer',
+                '&focused': {
+                  background: '#f5f5f5',
+                },
+              },
+            },
+          }}
+          onKeyPress={(e: any) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
+        >
+          <Mention
+            trigger="@"
+            data={fetchMembers}
+            markup="@[__display__](__id__)"
+            renderSuggestion={(entry: any) => (
+              <SuggestionItem>
+                <Avatar size="small" src={entry.avatar}>
+                  {entry.name[0]}
+                </Avatar>
+                <span>{entry.name}</span>
+              </SuggestionItem>
+            )}
+            displayTransform={(_id: string, display: string) => `@${display}`}
+          />
+          <Mention
+            trigger="#"
+            data={fetchIssues}
+            markup="#[__display__](__id__)"
+            renderSuggestion={(entry: any) => (
+              <SuggestionItem>
+                <Tag color="blue">{entry.key}</Tag>
+                <span>{entry.title}</span>
+              </SuggestionItem>
+            )}
+            displayTransform={(_id: string, display: string) => `#${display}`}
+          />
+        </MentionsInput>
 
-            <MessageInput>
-              {attachments.length > 0 && (
-                <AttachmentPreview>
-                  {attachments.map((file, index) => (
-                    <AttachmentItem key={index}>
-                      <File size={14} />
-                      <span>{file.name}</span>
-                      <span className="remove" onClick={() => handleRemoveAttachment(index)}>×</span>
-                    </AttachmentItem>
-                  ))}
-                </AttachmentPreview>
-              )}
+        <SendButton
+          onClick={sendMessage}
+          disabled={!inputValue.trim() && attachments.length === 0}
+        >
+          <Send size={16} />
+        </SendButton>
+      </InputRow>
 
-              <InputRow>
-                <ActionButtons>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    style={{ display: 'none' }}
-                    onChange={handleFileSelect}
-                  />
-                  <Tooltip title="Attach file">
-                    <IconButton onClick={() => fileInputRef.current?.click()}>
-                      <Paperclip size={18} />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Add emoji">
-                    <IconButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
-                      <Smile size={18} />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Insert image">
-                    <IconButton onClick={() => fileInputRef.current?.click()}>
-                      <ImageIcon size={18} />
-                    </IconButton>
-                  </Tooltip>
-                </ActionButtons>
+      {showEmojiPicker && (
+        <div style={{ padding: '8px', background: '#fafafa', borderRadius: '4px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          {['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '👍', '👎', '👏', '🙌', '🤝', '💪', '🎉', '🎊', '🔥', '✨', '⭐', '💯', '✅', '❌', '⚠️', '📌', '🚀', '💡', '🎯'].map(emoji => (
+            <span
+              key={emoji}
+              onClick={() => handleEmojiSelect(emoji)}
+              style={{ cursor: 'pointer', fontSize: '20px', padding: '4px' }}
+            >
+              {emoji}
+            </span>
+          ))}
+        </div>
+      )}
+    </MessageInput>
+        </>
+      ) : (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+    <div style={{ textAlign: 'center', color: '#999' }}>
+      <Users size={48} style={{ marginBottom: 16 }} />
+      <div>Select a channel to start chatting</div>
+    </div>
+  </div>
+)}
+    </ChatArea >
 
-                <MentionsInput
-                  value={inputValue ?? ''}
-                  onChange={(_e: any, newValue: string) => setInputValue(newValue ?? '')}
-                  placeholder="Type @ to mention, # for issues..."
-                  style={{
-                    control: {
-                      fontSize: 14,
-                      fontWeight: 'normal',
-                    },
-                    input: {
-                      border: '1px solid #d9d9d9',
-                      borderRadius: '8px',
-                      padding: '8px 12px',
-                      minHeight: '40px',
-                    },
-                    highlighter: {
-                      padding: '8px 12px',
-                    },
-                    suggestions: {
-                      list: {
-                        background: 'white',
-                        border: '1px solid #f0f0f0',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                      },
-                      item: {
-                        padding: '8px 12px',
-                        cursor: 'pointer',
-                        '&focused': {
-                          background: '#f5f5f5',
-                        },
-                      },
-                    },
-                  }}
-                  onKeyPress={(e: any) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                >
-                  <Mention
-                    trigger="@"
-                    data={fetchMembers}
-                    markup="@[__display__](__id__)"
-                    renderSuggestion={(entry: any) => (
-                      <SuggestionItem>
-                        <Avatar size="small" src={entry.avatar}>
-                          {entry.name[0]}
-                        </Avatar>
-                        <span>{entry.name}</span>
-                      </SuggestionItem>
-                    )}
-                    displayTransform={(_id: string, display: string) => `@${display}`}
-                  />
-                  <Mention
-                    trigger="#"
-                    data={fetchIssues}
-                    markup="#[__display__](__id__)"
-                    renderSuggestion={(entry: any) => (
-                      <SuggestionItem>
-                        <Tag color="blue">{entry.key}</Tag>
-                        <span>{entry.title}</span>
-                      </SuggestionItem>
-                    )}
-                    displayTransform={(_id: string, display: string) => `#${display}`}
-                  />
-                </MentionsInput>
-
-                <SendButton
-                  onClick={sendMessage}
-                  disabled={!inputValue.trim() && attachments.length === 0}
-                >
-                  <Send size={16} />
-                </SendButton>
-              </InputRow>
-
-              {showEmojiPicker && (
-                <div style={{ padding: '8px', background: '#fafafa', borderRadius: '4px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                  {['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '👍', '👎', '👏', '🙌', '🤝', '💪', '🎉', '🎊', '🔥', '✨', '⭐', '💯', '✅', '❌', '⚠️', '📌', '🚀', '💡', '🎯'].map(emoji => (
-                    <span
-                      key={emoji}
-                      onClick={() => handleEmojiSelect(emoji)}
-                      style={{ cursor: 'pointer', fontSize: '20px', padding: '4px' }}
-                    >
-                      {emoji}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </MessageInput>
-          </>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <div style={{ textAlign: 'center', color: '#999' }}>
-              <Users size={48} style={{ marginBottom: 16 }} />
-              <div>Select a channel to start chatting</div>
+  {/* Members Modal */ }
+  < Modal
+title = {`${activeChannel?.name} Members`}
+open = { showMembersModal }
+onCancel = {() => setShowMembersModal(false)}
+footer = {
+  [
+  <Button key="close" onClick={() => setShowMembersModal(false)}>
+    Close
+  </Button>
+  ]}
+width = { 500}
+  >
+  <List
+    dataSource={channelMembers}
+    renderItem={(member: any) => (
+      <List.Item>
+        <List.Item.Meta
+          avatar={<Avatar src={member.userAvatar}>{member.userName?.[0]}</Avatar>}
+          title={member.userName}
+          description={
+            <div>
+              <Tag color={member.role === 'owner' ? 'gold' : 'blue'}>
+                {member.role}
+              </Tag>
+              {member.userEmail}
             </div>
-          </div>
-        )}
-      </ChatArea>
-
-      {/* Members Modal */}
-      <Modal
-        title={`${activeChannel?.name} Members`}
-        open={showMembersModal}
-        onCancel={() => setShowMembersModal(false)}
-        footer={[
-          <Button key="close" onClick={() => setShowMembersModal(false)}>
-            Close
-          </Button>
-        ]}
-        width={500}
-      >
-        <List
-          dataSource={channelMembers}
-          renderItem={(member: any) => (
-            <List.Item>
-              <List.Item.Meta
-                avatar={<Avatar src={member.userAvatar}>{member.userName?.[0]}</Avatar>}
-                title={member.userName}
-                description={
-                  <div>
-                    <Tag color={member.role === 'owner' ? 'gold' : 'blue'}>
-                      {member.role}
-                    </Tag>
-                    {member.userEmail}
-                  </div>
-                }
-              />
-            </List.Item>
-          )}
+          }
         />
-      </Modal>
-    </Container>
-  );
+      </List.Item>
+    )}
+  />
+    </Modal >
+  </Container >
+);
 };

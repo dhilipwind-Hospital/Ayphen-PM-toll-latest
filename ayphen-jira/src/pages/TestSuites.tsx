@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Input, Modal, List, Typography } from 'antd';
-import { PlusOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { Card, Button, Input, Modal, List, Typography, message } from 'antd';
+import { PlusOutlined, PlayCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -129,6 +129,29 @@ export default function TestSuites() {
                 <Button size="small" icon={<PlayCircleOutlined />} onClick={() => handleRun(suite.id)}>
                   Run Suite
                 </Button>
+                <Button
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => {
+                    Modal.confirm({
+                      title: 'Delete Test Suite',
+                      content: 'Are you sure you want to delete this test suite? This cannot be undone.',
+                      okText: 'Delete',
+                      okType: 'danger',
+                      onOk: async () => {
+                        try {
+                          const userId = localStorage.getItem('userId');
+                          await api.delete(`/test-suites/${suite.id}`, { params: { userId } });
+                          loadSuites();
+                          message.success('Test suite deleted');
+                        } catch (error) {
+                          message.error('Failed to delete suite');
+                        }
+                      }
+                    });
+                  }}
+                />
               </CardActions>
             </Card>
           ))

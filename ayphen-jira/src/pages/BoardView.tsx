@@ -913,7 +913,6 @@ export const BoardView: React.FC = () => {
               category: 'IN_PROGRESS'
             });
           }
-          console.log(`Synced ${newStatuses.length} new statuses to workflow`);
         }
       } catch (e) {
         console.error('Failed to sync workflow statuses:', e);

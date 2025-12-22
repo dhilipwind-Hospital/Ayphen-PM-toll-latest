@@ -56,9 +56,16 @@ export default function TestRuns() {
         dataSource={runs}
         rowKey="id"
         locale={{ emptyText: 'No test runs yet. Run a test suite to see results here.' }}
-        onRow={(record) => ({
-          onClick: () => navigate(`/test-runs/${record.id}`),
-          style: { cursor: 'pointer' }
+        onRow={(record: any) => ({
+          // Fix: navigate to suite details or handle non-existent route
+          // Since /test-runs/:id doesn't exist, we'll just show a message or prevent navigation for now
+          // Ideally, we should have a TestRunDetail page
+          onClick: () => {
+            // For now, just show a message since the page doesn't exist
+            // navigate(`/test-runs/${record.id}`) 
+            console.log('Test run details not implemented yet');
+          },
+          style: { cursor: 'default' }
         })}
       />
     </div>

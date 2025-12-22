@@ -139,17 +139,20 @@ export const CalendarView: React.FC = () => {
   const [issues, setIssues] = useState<any[]>([]);
   const [sprints, setSprints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
   // Fetch fresh data from API
   useEffect(() => {
-    const loadData = async () => {
+    const loadData = async (isBackground = false) => {
       if (!currentProject?.id) {
         setLoading(false);
         return;
       }
 
-      setLoading(true);
+      if (!isBackground) setLoading(true);
+      else setIsRefreshing(true);
+
       try {
         const userId = localStorage.getItem('userId');
 
@@ -169,13 +172,14 @@ export const CalendarView: React.FC = () => {
         console.error('Failed to load calendar data:', error);
       } finally {
         setLoading(false);
+        setIsRefreshing(false);
       }
     };
 
     loadData();
 
-    // Refresh data every 30 seconds
-    const interval = setInterval(loadData, 30000);
+    // Refresh data every 30 seconds silently
+    const interval = setInterval(() => loadData(true), 30000);
     return () => clearInterval(interval);
   }, [currentProject?.id]);
 
@@ -279,6 +283,11 @@ export const CalendarView: React.FC = () => {
         <Title>
           <Calendar size={28} color="#0EA5E9" />
           Calendar
+          {isRefreshing && (
+            <span style={{ fontSize: '12px', fontWeight: 'normal', color: '#999', marginLeft: '8px' }}>
+              (Refreshing...)
+            </span>
+          )}
         </Title>
         <Controls>
           <Select

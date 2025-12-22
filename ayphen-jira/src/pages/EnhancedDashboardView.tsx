@@ -117,7 +117,6 @@ export const EnhancedDashboardView: React.FC = () => {
 
   const handleLayoutChange = (layout: any) => {
     // Mock layout change
-    console.log('Layout changed', layout);
   };
 
   const renderGadget = (gadget: any) => {
