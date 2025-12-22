@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Table, Tag, Button, Select, Space, message, Spin } from 'antd';
+import { Table, Tag, Button, Select, Space, message, Spin, Empty, Tooltip } from 'antd';
 import { Plus, Download, Bug } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
@@ -294,14 +294,16 @@ export const BugsListView: React.FC = () => {
           <Button icon={<Download size={16} />}>
             Export
           </Button>
-          <Button
-            type="primary"
-            icon={<Plus size={16} />}
-            onClick={() => setCreateModalOpen(true)}
-            style={{ color: '#FFFFFF' }}
-          >
-            Report Bug
-          </Button>
+          <Tooltip title="Report a new bug">
+            <Button
+              type="primary"
+              icon={<Plus size={16} />}
+              onClick={() => setCreateModalOpen(true)}
+              style={{ color: '#FFFFFF' }}
+            >
+              Report Bug
+            </Button>
+          </Tooltip>
         </Space>
       </Header>
 
@@ -355,6 +357,14 @@ export const BugsListView: React.FC = () => {
               onClick: () => navigate(`/issue/${record.key}`),
               style: { cursor: 'pointer' }
             })}
+            locale={{
+              emptyText: <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="No Bugs reported"
+              >
+                <Button type="primary" onClick={() => setCreateModalOpen(true)}>Report Bug</Button>
+              </Empty>
+            }}
             summary={() => (
               <Table.Summary>
                 <Table.Summary.Row>

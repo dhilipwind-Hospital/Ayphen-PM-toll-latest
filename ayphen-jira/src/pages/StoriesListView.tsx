@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Table, Tag, Button, Select, Space, message, Spin, Progress, Badge } from 'antd';
+import { Table, Tag, Button, Select, Space, message, Spin, Progress, Badge, Empty, Tooltip } from 'antd';
 import { Search, Plus, Filter, Download, FileText, TestTube, Bug } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
@@ -382,14 +382,16 @@ export const StoriesListView: React.FC = () => {
           <Button icon={<Download size={16} />}>
             Export
           </Button>
-          <Button
-            type="primary"
-            icon={<Plus size={16} />}
-            onClick={() => setCreateModalOpen(true)}
-            style={{ color: '#FFFFFF' }}
-          >
-            Create Story
-          </Button>
+          <Tooltip title="Create a new user story">
+            <Button
+              type="primary"
+              icon={<Plus size={16} />}
+              onClick={() => setCreateModalOpen(true)}
+              style={{ color: '#FFFFFF' }}
+            >
+              Create Story
+            </Button>
+          </Tooltip>
         </Space>
       </Header>
 
@@ -443,6 +445,14 @@ export const StoriesListView: React.FC = () => {
               pageSize: 20,
               showTotal: (total) => `Total ${total} stories`,
               showSizeChanger: true,
+            }}
+            locale={{
+              emptyText: <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="No User Stories found"
+              >
+                <Button type="primary" onClick={() => setCreateModalOpen(true)}>Create User Story</Button>
+              </Empty>
             }}
             summary={() => (
               <Table.Summary>
