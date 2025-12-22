@@ -811,6 +811,7 @@ export const TeamChatEnhanced: React.FC = () => {
               />
             </List.Item>
           )}
+        />
       </Modal>
     </Container>
   );
