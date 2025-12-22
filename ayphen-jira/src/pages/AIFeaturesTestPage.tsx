@@ -7,7 +7,7 @@ import { SmartPrioritySelector } from '../components/AI/SmartPrioritySelector';
 import { AutoTagButton } from '../components/AI/AutoTagButton';
 import axios from 'axios';
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const Container = styled.div`
   padding: 24px;
@@ -156,7 +156,7 @@ export const AIFeaturesTestPage: React.FC = () => {
         status: 'todo',
         labels: []
       });
-      
+
       const issueId = response.data.id;
       setTestIssueId(issueId);
       setResult('create', response.data);
@@ -219,18 +219,18 @@ export const AIFeaturesTestPage: React.FC = () => {
               size="large"
             />
           </div>
-          
+
           <Space>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={createTestIssue}
               loading={loading.create}
               icon={<RobotOutlined />}
             >
               Create Test Issue
             </Button>
-            <Button 
-              type="default" 
+            <Button
+              type="default"
               onClick={testAllFeatures}
               disabled={!testIssueId}
             >
@@ -248,7 +248,7 @@ export const AIFeaturesTestPage: React.FC = () => {
       </TestSection>
 
       {/* Test 1: Auto-Assignment */}
-      <TestSection 
+      <TestSection
         title={
           <Space>
             <UserAddOutlined />
@@ -258,12 +258,12 @@ export const AIFeaturesTestPage: React.FC = () => {
       >
         <Space direction="vertical" style={{ width: '100%' }}>
           <p>
-            Tests the AI-powered automatic assignment feature. Analyzes team member expertise, 
+            Tests the AI-powered automatic assignment feature. Analyzes team member expertise,
             workload, and availability to suggest the best assignee.
           </p>
-          
+
           <Space>
-            <Button 
+            <Button
               type="primary"
               onClick={testAutoAssignment}
               loading={loading.assignment}
@@ -271,7 +271,7 @@ export const AIFeaturesTestPage: React.FC = () => {
             >
               Test Auto-Assignment API
             </Button>
-            
+
             {testIssueId && (
               <AutoAssignButton
                 issueId={testIssueId}
@@ -292,7 +292,7 @@ export const AIFeaturesTestPage: React.FC = () => {
       </TestSection>
 
       {/* Test 2: Smart Prioritization */}
-      <TestSection 
+      <TestSection
         title={
           <Space>
             <ThunderboltOutlined />
@@ -302,12 +302,12 @@ export const AIFeaturesTestPage: React.FC = () => {
       >
         <Space direction="vertical" style={{ width: '100%' }}>
           <p>
-            Tests the AI-powered priority analysis. Evaluates urgency, impact, and business 
+            Tests the AI-powered priority analysis. Evaluates urgency, impact, and business
             value to suggest optimal priority level.
           </p>
-          
+
           <Space>
-            <Button 
+            <Button
               type="primary"
               onClick={testPrioritization}
               loading={loading.prioritization}
@@ -315,7 +315,7 @@ export const AIFeaturesTestPage: React.FC = () => {
             >
               Test Prioritization API
             </Button>
-            
+
             {testIssueId && (
               <SmartPrioritySelector
                 issueId={testIssueId}
@@ -336,7 +336,7 @@ export const AIFeaturesTestPage: React.FC = () => {
       </TestSection>
 
       {/* Test 3: Auto-Tagging */}
-      <TestSection 
+      <TestSection
         title={
           <Space>
             <TagsOutlined />
@@ -346,12 +346,12 @@ export const AIFeaturesTestPage: React.FC = () => {
       >
         <Space direction="vertical" style={{ width: '100%' }}>
           <p>
-            Tests the AI-powered tag suggestion feature. Analyzes issue content to suggest 
+            Tests the AI-powered tag suggestion feature. Analyzes issue content to suggest
             relevant tags across technical, functional, and priority categories.
           </p>
-          
+
           <Space>
-            <Button 
+            <Button
               type="primary"
               onClick={testAutoTagging}
               loading={loading.tagging}
@@ -359,7 +359,7 @@ export const AIFeaturesTestPage: React.FC = () => {
             >
               Test Auto-Tagging API
             </Button>
-            
+
             {testIssueId && (
               <AutoTagButton
                 issueId={testIssueId}
@@ -391,14 +391,14 @@ export const AIFeaturesTestPage: React.FC = () => {
           <div>
             <strong>Current Issue ID:</strong> {testIssueId || 'None'}
           </div>
-          
+
           <Divider />
-          
+
           <Alert
             message="Testing Tips"
             description={
               <ul>
-                <li>Make sure backend server is running on port 8500</li>
+                <li>Make sure backend server is running (usually port 3001)</li>
                 <li>Create a test issue first or use an existing issue ID</li>
                 <li>Each test can be run individually or all together</li>
                 <li>Check the API responses in the result boxes below each test</li>
