@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button, Table, Modal, Form, Input, Select, Space, message, Tag, Tooltip, Avatar } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined, BugOutlined, FileTextOutlined, CheckSquareOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined, BugOutlined, FileTextOutlined, CheckSquareOutlined, UserOutlined } from '@ant-design/icons';
 import { api } from '../services/api';
 import styled from 'styled-components';
 import { useStore } from '../store/useStore';
@@ -69,6 +69,7 @@ const getIssueTypeColor = (type: string) => {
 export default function ManualTestCases() {
   const [testCases, setTestCases] = useState<any[]>([]);
   const [issues, setIssues] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
   const [editId, setEditId] = useState<number | null>(null);
@@ -80,6 +81,7 @@ export default function ManualTestCases() {
   useEffect(() => {
     loadTestCases();
     loadIssues();
+    loadUsers();
   }, [currentProject]);
 
   const loadTestCases = async () => {
@@ -107,6 +109,15 @@ export default function ManualTestCases() {
       setIssues(res.data || []);
     } catch (error) {
       setIssues([]);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const res = await api.get('/users');
+      setUsers(res.data || []);
+    } catch (error) {
+      console.error('Failed to load users', error);
     }
   };
 
@@ -166,6 +177,22 @@ export default function ManualTestCases() {
   };
 
   const columns = [
+    {
+      title: 'Created By',
+      key: 'createdBy',
+      width: 150,
+      render: (_: any, record: any) => {
+        const user = users.find(u => u.id === record.created_by);
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Avatar size="small" src={user?.avatar} icon={!user?.avatar && <UserOutlined />}>
+              {user?.name?.[0]}
+            </Avatar>
+            <span style={{ fontSize: 13 }}>{user?.name || 'Unknown'}</span>
+          </div>
+        );
+      }
+    },
     {
       title: 'Title',
       dataIndex: 'title',

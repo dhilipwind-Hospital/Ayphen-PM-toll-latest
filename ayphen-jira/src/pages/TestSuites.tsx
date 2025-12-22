@@ -124,6 +124,9 @@ export default function TestSuites() {
     setSelectedSuite(suiteId);
     setSelectedTestCases([]);
 
+    // Refresh available test cases
+    loadTestCases();
+
     try {
       // Fetch suite details to see what's already added
       const res = await api.get(`/test-suites/${suiteId}`); // Ensure backend returns testCases
