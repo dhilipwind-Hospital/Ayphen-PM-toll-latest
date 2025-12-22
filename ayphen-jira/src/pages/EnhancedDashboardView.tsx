@@ -119,18 +119,60 @@ export const EnhancedDashboardView: React.FC = () => {
     // Mock layout change
   };
 
-  const renderGadget = (gadget: any) => {
-    switch (gadget.type) {
-      case 'filter-results': return <FilterResultsGadget config={gadget.config} />;
-      case 'assigned-to-me': return <AssignedToMeGadget config={gadget.config} />;
-      case 'activity-stream': return <ActivityStreamGadget config={gadget.config} />;
-      case 'pie-chart': return <PieChartGadget config={gadget.config} />;
-      case 'created-vs-resolved': return <CreatedVsResolvedGadget config={gadget.config} />;
-      case 'sprint-burndown': return <SprintBurndownGadget config={gadget.config} />;
-      case 'heat-map': return <HeatMapGadget config={gadget.config} />;
-      case 'velocity-chart': return <VelocityChartGadget config={gadget.config} />;
-      default: return <div>Unknown Gadget</div>;
+  // Basic Error Boundary Component
+  class ErrorBoundary extends React.Component<
+    { children: React.ReactNode; fallback: React.ReactNode },
+    { hasError: boolean }
+  > {
+    constructor(props: any) {
+      super(props);
+      this.state = { hasError: false };
     }
+
+    static getDerivedStateFromError() {
+      return { hasError: true };
+    }
+
+    componentDidCatch(error: any, errorInfo: any) {
+      console.error("Gadget Error:", error, errorInfo);
+    }
+
+    render() {
+      if (this.state.hasError) {
+        return this.props.fallback;
+      }
+
+      return this.props.children;
+    }
+  }
+
+  // ... existing code ...
+
+  const renderGadget = (gadget: any) => {
+    return (
+      <ErrorBoundary
+        fallback={
+          <div style={{ padding: 20, textAlign: 'center', color: '#ff4d4f' }}>
+            <span style={{ fontSize: 24, marginBottom: 8, display: 'block' }}>⚠️</span>
+            Something went wrong with this gadget.
+          </div>
+        }
+      >
+        {(() => {
+          switch (gadget.type) {
+            case 'filter-results': return <FilterResultsGadget config={gadget.config} />;
+            case 'assigned-to-me': return <AssignedToMeGadget config={gadget.config} />;
+            case 'activity-stream': return <ActivityStreamGadget config={gadget.config} />;
+            case 'pie-chart': return <PieChartGadget config={gadget.config} />;
+            case 'created-vs-resolved': return <CreatedVsResolvedGadget config={gadget.config} />;
+            case 'sprint-burndown': return <SprintBurndownGadget config={gadget.config} />;
+            case 'heat-map': return <HeatMapGadget config={gadget.config} />;
+            case 'velocity-chart': return <VelocityChartGadget config={gadget.config} />;
+            default: return <div>Unknown Gadget</div>;
+          }
+        })()}
+      </ErrorBoundary>
+    );
   };
 
   if (!currentDashboard) {
@@ -188,7 +230,7 @@ export const EnhancedDashboardView: React.FC = () => {
         renderGadget={renderGadget}
         onAddGadget={handleAddGadget}
         onRemoveGadget={(id) => setGadgets(gadgets.filter(g => g.id !== id))}
-        onConfigureGadget={() => {}}
+        onConfigureGadget={() => { }}
       />
 
       <div style={{ marginTop: 24, padding: 20, background: 'white', borderRadius: 8 }}>
