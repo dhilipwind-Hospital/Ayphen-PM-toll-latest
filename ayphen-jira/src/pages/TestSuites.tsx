@@ -210,6 +210,27 @@ export default function TestSuites() {
       </GridContainer>
 
       <Modal
+        title="Create Test Suite"
+        open={open}
+        onCancel={() => setOpen(false)}
+        onOk={handleCreate}
+        okText="Create"
+      >
+        <Input
+          placeholder="Suite Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          style={{ marginBottom: 16 }}
+        />
+        <TextArea
+          placeholder="Description"
+          rows={4}
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+        />
+      </Modal>
+
+      <Modal
         title="Add Test Cases"
         open={addTestOpen}
         onCancel={() => {
