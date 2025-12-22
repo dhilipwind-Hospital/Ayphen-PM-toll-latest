@@ -47,6 +47,7 @@ import { AdvancedReports } from './pages/AdvancedReports';
 import ManualTestCases from './pages/ManualTestCases';
 import TestSuites from './pages/TestSuites';
 import TestRuns from './pages/TestRuns';
+import TestRunExecution from './pages/TestRunExecution';
 import ProjectDetailView from './pages/ProjectDetailView';
 import { OfflineIndicator } from './components/Network/OfflineIndicator';
 import HierarchyView from './pages/HierarchyView';
@@ -310,6 +311,7 @@ function App() {
                           <Route path="/test-cases" element={<ManualTestCases />} />
                           <Route path="/test-suites" element={<TestSuites />} />
                           <Route path="/test-runs" element={<TestRuns />} />
+                          <Route path="/test-runs/:id" element={<TestRunExecution />} />
                           <Route path="/hierarchy" element={<HierarchyView />} />
                           <Route path="/automation" element={<AutomationRules />} />
                           <Route path="/calendar" element={<CalendarView />} />
