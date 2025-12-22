@@ -6,6 +6,7 @@ import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
 import { api, issuesApi } from '../services/api';
 import dayjs from 'dayjs';
+import { formatDate } from '../utils/dateUtils';
 
 const Container = styled.div`
   padding: 24px;
@@ -661,10 +662,10 @@ export const RoadmapView: React.FC = () => {
                 <strong>Status:</strong> <Tag color={getEpicColor(selectedEpic.status)}>{selectedEpic.status}</Tag>
               </div>
               <div style={{ marginBottom: 8 }}>
-                <strong>Start Date:</strong> {selectedEpic.startDate ? dayjs(selectedEpic.startDate).format('MMM DD, YYYY') : 'Not set'}
+                <strong>Start Date:</strong> {formatDate(selectedEpic.startDate)}
               </div>
               <div style={{ marginBottom: 8 }}>
-                <strong>End Date:</strong> {selectedEpic.endDate ? dayjs(selectedEpic.endDate).format('MMM DD, YYYY') : 'Not set'}
+                <strong>End Date:</strong> {formatDate(selectedEpic.endDate)}
               </div>
               <div>
                 <strong>Assignee:</strong> {selectedEpic.assignee?.name || 'Unassigned'}
