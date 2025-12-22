@@ -5,9 +5,10 @@ import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
+import { useStore } from '../store/useStore';
+
 const { TextArea } = Input;
 const { Title, Text } = Typography;
-
 const Container = styled.div`
   padding: 24px;
 `;
@@ -32,6 +33,7 @@ const CardActions = styled.div`
 `;
 
 export default function TestSuites() {
+  const { currentProject } = useStore(); // Get current project
   const [suites, setSuites] = useState([]);
   const [testCases, setTestCases] = useState([]);
   const [open, setOpen] = useState(false);
@@ -41,15 +43,18 @@ export default function TestSuites() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadSuites();
-    loadTestCases();
-  }, []);
+    if (currentProject) {
+      loadSuites();
+      loadTestCases();
+    }
+  }, [currentProject?.id]); // Re-load when project changes
 
   const loadSuites = async () => {
+    if (!currentProject) return;
     try {
       const userId = localStorage.getItem('userId');
       const res = await api.get('/test-suites', {
-        params: { userId }
+        params: { userId, projectId: currentProject.id } // Pass projectId
       });
       setSuites(res.data || []);
     } catch (error) {
@@ -59,10 +64,11 @@ export default function TestSuites() {
   };
 
   const loadTestCases = async () => {
+    // ... (existing logic, maybe filter by project if API supports it, but keeping as is for now)
     try {
       const userId = localStorage.getItem('userId');
       const res = await api.get('/manual-test-cases', {
-        params: { userId }
+        params: { userId, projectId: currentProject?.id } // Pass projectId just in case
       });
       setTestCases(res.data || []);
     } catch (error) {
@@ -72,14 +78,24 @@ export default function TestSuites() {
   };
 
   const handleCreate = async () => {
+    if (!currentProject) {
+      message.error("No project selected");
+      return;
+    }
     try {
       const userId = localStorage.getItem('userId');
-      await api.post('/test-suites', { ...form, userId });
+      await api.post('/test-suites', {
+        ...form,
+        userId,
+        projectId: currentProject.id  // Pass projectId
+      });
       setOpen(false);
       setForm({ name: '', description: '' });
       loadSuites();
+      message.success("Test Suite created");
     } catch (error) {
       console.error('Failed to create suite:', error);
+      message.error("Failed to create suite");
     }
   };
 
