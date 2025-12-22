@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Button, Tag, Avatar, Badge, Tooltip, message, Dropdown, Modal } from 'antd';
+import { Card, Button, Tag, Avatar, Badge, Tooltip, message, Dropdown, Modal, Empty } from 'antd';
 import { Plus, MoreHorizontal, GripVertical, Bug, BookOpen, CheckSquare, Zap, X } from 'lucide-react';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
@@ -374,7 +374,7 @@ export const BacklogView: React.FC = () => {
     if (!activeIssue) return;
 
     let newSprintId = activeIssue.sprintId;
-    let overIssue = issues.find(i => i.id === overId);
+    const overIssue = issues.find(i => i.id === overId);
 
     // Determine target container
     // If overId is a container (sprint or 'backlog')
@@ -529,15 +529,26 @@ export const BacklogView: React.FC = () => {
               </SprintCard>
             ))
           ) : (
-            <div style={{ padding: '16px', background: '#f0f9ff', borderRadius: 8, marginBottom: 16, textAlign: 'center', color: '#0369a1' }}>
-              No sprints yet. Click "+ Create Sprint" below to add one.
+            <div style={{ padding: '32px', background: '#fff', borderRadius: 8, marginBottom: 16, border: `1px dashed ${colors.border.light}` }}>
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  <span style={{ color: colors.text.secondary }}>
+                    There are no active or future sprints.
+                  </span>
+                }
+              >
+                <Button type="primary" onClick={() => setIsCreateSprintModalOpen(true)}>Create Sprint</Button>
+              </Empty>
             </div>
           )}
 
           {/* Backlog */}
           <SprintCard title={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <span style={{ fontWeight: 600 }}>Backlog ({backlogIssues.length} issues)</span>
-            <Button size="small" type="primary" onClick={() => setIsCreateSprintModalOpen(true)} style={{ color: '#FFFFFF' }}>+ Create Sprint</Button>
+            <Tooltip title="Create a new sprint container">
+              <Button size="small" type="primary" onClick={() => setIsCreateSprintModalOpen(true)} style={{ color: '#FFFFFF' }}>+ Create Sprint</Button>
+            </Tooltip>
           </div>}>
             <DroppableSprint
               sprintId="backlog"
