@@ -2,20 +2,24 @@ import { useState, useEffect } from 'react';
 import { Table, Tag } from 'antd';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { useStore } from '../store/useStore';
 
 export default function TestRuns() {
   const [runs, setRuns] = useState([]);
   const navigate = useNavigate();
+  const { currentProject } = useStore();
 
   useEffect(() => {
-    loadRuns();
-  }, []);
+    if (currentProject) {
+      loadRuns();
+    }
+  }, [currentProject?.id]);
 
   const loadRuns = async () => {
     try {
       const userId = localStorage.getItem('userId');
       const res = await api.get('/test-runs', {
-        params: { userId }
+        params: { userId, projectId: currentProject?.id }
       });
       setRuns(res.data || []);
     } catch (error) {
