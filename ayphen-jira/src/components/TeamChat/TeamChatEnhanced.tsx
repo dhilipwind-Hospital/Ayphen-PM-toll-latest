@@ -8,7 +8,7 @@ import { api } from '../../services/api';
 import { io, Socket } from 'socket.io-client';
 
 // WS_URL kept for socket connection
-const WS_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const WS_URL = import.meta.env.VITE_API_URL || 'https://ayphen-pm-toll-latest.onrender.com';
 
 const Container = styled.div`
   display: flex;

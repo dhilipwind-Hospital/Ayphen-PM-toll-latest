@@ -6,7 +6,7 @@ import { ChannelMember } from '../entities/ChannelMember';
 import { User } from '../entities/User';
 import { Issue } from '../entities/Issue';
 import { Project } from '../entities/Project';
-import { In } from 'typeorm';
+import { In, MoreThan } from 'typeorm';
 import { websocketService } from '../services/websocket.service';
 
 const router = Router();
@@ -21,7 +21,7 @@ const projectRepo = AppDataSource.getRepository(Project);
 router.get('/channels', async (req, res) => {
   try {
     const userId = req.query.userId as string || '1c9d344e-14db-44ec-9dee-3ad8661a0ca0';
-    
+
     // Get channels where user is a member
     const memberChannels = await memberRepo.find({
       where: { userId },
@@ -30,7 +30,7 @@ router.get('/channels', async (req, res) => {
 
     const channels = await Promise.all(memberChannels.map(async (member) => {
       const channel = member.channel;
-      
+
       // Get last message
       const lastMessage = await messageRepo.findOne({
         where: { channelId: channel.id },
@@ -42,7 +42,7 @@ router.get('/channels', async (req, res) => {
       const unreadCount = await messageRepo.count({
         where: {
           channelId: channel.id,
-          createdAt: member.lastReadAt ? { $gt: member.lastReadAt } as any : undefined
+          createdAt: member.lastReadAt ? MoreThan(member.lastReadAt) : undefined
         }
       });
 
@@ -85,7 +85,7 @@ router.get('/channels/:channelId/messages', async (req, res) => {
     const offset = parseInt(req.query.offset as string) || 0;
 
     const messages = await messageRepo.find({
-      where: { 
+      where: {
         channelId,
         deletedAt: null as any
       },
@@ -210,7 +210,7 @@ router.post('/channels', async (req, res) => {
 
     // Add other members
     if (memberIds && memberIds.length > 0) {
-      const members = memberIds.map((userId: string) => 
+      const members = memberIds.map((userId: string) =>
         memberRepo.create({
           channelId: channel.id,
           userId,
@@ -257,7 +257,7 @@ router.get('/members/suggestions', async (req, res) => {
 
     // Filter by query
     if (query) {
-      users = users.filter(u => 
+      users = users.filter(u =>
         u.name.toLowerCase().includes(query.toLowerCase()) ||
         u.email.toLowerCase().includes(query.toLowerCase())
       );
@@ -303,7 +303,7 @@ router.get('/issues/suggestions', async (req, res) => {
 
     // Filter by query
     if (query) {
-      issues = issues.filter(i => 
+      issues = issues.filter(i =>
         i.key?.toLowerCase().includes(query.toLowerCase()) ||
         i.summary.toLowerCase().includes(query.toLowerCase())
       );
@@ -378,7 +378,7 @@ router.get('/channels/:channelId/members', async (req, res) => {
 router.post('/initialize', async (req, res) => {
   try {
     const { userId } = req.body;
-    
+
     if (!userId) {
       return res.status(400).json({ error: 'userId is required' });
     }
@@ -438,7 +438,7 @@ router.post('/initialize', async (req, res) => {
 
     // Get all projects and create project channels
     const projects = await projectRepo.find();
-    
+
     for (const project of projects) {
       const projectChannel = channelRepo.create({
         name: `${project.name}`,
@@ -458,7 +458,7 @@ router.post('/initialize', async (req, res) => {
       await memberRepo.save(projectMember);
     }
 
-    res.json({ 
+    res.json({
       message: 'Channels initialized successfully',
       channelCount: 2 + projects.length
     });
