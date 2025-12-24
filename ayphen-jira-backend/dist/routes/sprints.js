@@ -37,6 +37,7 @@ const express_1 = require("express");
 const database_1 = require("../config/database");
 const Sprint_1 = require("../entities/Sprint");
 const workflow_service_1 = require("../services/workflow.service");
+const websocket_service_1 = require("../services/websocket.service");
 const router = (0, express_1.Router)();
 const sprintRepo = database_1.AppDataSource.getRepository(Sprint_1.Sprint);
 // GET all sprints
@@ -77,7 +78,12 @@ router.post('/', async (req, res) => {
     try {
         const sprint = sprintRepo.create(req.body);
         const savedSprint = await sprintRepo.save(sprint);
-        res.status(201).json(savedSprint);
+        const result = Array.isArray(savedSprint) ? savedSprint[0] : savedSprint;
+        // Emit WebSocket event for real-time updates
+        if (websocket_service_1.websocketService && result.projectId) {
+            websocket_service_1.websocketService.emitToProject(result.projectId, 'sprint_created', result);
+        }
+        res.status(201).json(result);
     }
     catch (error) {
         res.status(500).json({ error: 'Failed to create sprint' });
@@ -88,6 +94,10 @@ router.put('/:id', async (req, res) => {
     try {
         await sprintRepo.update(req.params.id, req.body);
         const sprint = await sprintRepo.findOne({ where: { id: req.params.id } });
+        // Emit WebSocket event for real-time updates
+        if (websocket_service_1.websocketService && sprint?.projectId) {
+            websocket_service_1.websocketService.emitToProject(sprint.projectId, 'sprint_updated', sprint);
+        }
         res.json(sprint);
     }
     catch (error) {

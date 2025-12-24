@@ -315,6 +315,26 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     if (issueKey) loadIssueData();
   }, [issueKey]);
 
+  // Listen for real-time comment updates via WebSocket
+  useEffect(() => {
+    const handleCommentAdded = async (event: CustomEvent) => {
+      if (issue && event.detail?.comment?.issueId === issue.id) {
+        // Refresh comments when a new comment is added
+        try {
+          const res = await commentsApi.getByIssue(issue.id);
+          setComments(res.data || []);
+        } catch (e) {
+          console.error('Failed to refresh comments:', e);
+        }
+      }
+    };
+
+    window.addEventListener('comment_added', handleCommentAdded as EventListener);
+    return () => {
+      window.removeEventListener('comment_added', handleCommentAdded as EventListener);
+    };
+  }, [issue?.id]);
+
   const loadIssueData = async () => {
     try {
       setLoading(true);

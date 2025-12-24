@@ -114,9 +114,33 @@ class SocketService {
       updateSprint(sprint.id, sprint);
     });
 
-    // Assignment Changed (handled via notifications usually, but good for board update)
-    // The 'issue_updated' event usually carries the new assignee, so this might be redundant for state update,
-    // but useful for specific UI alerts if needed.
+    // Sprint Created
+    this.socket.on('sprint_created', (sprint: any) => {
+      const { addSprint, currentProject } = useStore.getState();
+      if (currentProject && sprint.projectId === currentProject.id) {
+        addSprint(sprint);
+      }
+    });
+
+    // Sprint Updated
+    this.socket.on('sprint_updated', (sprint: any) => {
+      const { updateSprint, currentProject } = useStore.getState();
+      if (currentProject && sprint.projectId === currentProject.id) {
+        updateSprint(sprint.id, sprint);
+      }
+    });
+
+    // Sprint Deleted
+    this.socket.on('sprint_deleted', (data: { sprintId: string }) => {
+      const { deleteSprint } = useStore.getState();
+      deleteSprint(data.sprintId);
+    });
+
+    // Comment Added - dispatch custom event for IssueDetail to handle
+    this.socket.on('comment_added', (data: { comment: any, commenterId: string }) => {
+      const event = new CustomEvent('comment_added', { detail: data });
+      window.dispatchEvent(event);
+    });
   }
 }
 

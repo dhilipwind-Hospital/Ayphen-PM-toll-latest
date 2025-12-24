@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AppDataSource } from '../config/database';
 import { Sprint } from '../entities/Sprint';
 import { workflowService } from '../services/workflow.service';
+import { websocketService } from '../services/websocket.service';
 
 const router = Router();
 const sprintRepo = AppDataSource.getRepository(Sprint);
@@ -48,7 +49,14 @@ router.post('/', async (req, res) => {
   try {
     const sprint = sprintRepo.create(req.body);
     const savedSprint = await sprintRepo.save(sprint);
-    res.status(201).json(savedSprint);
+    const result = Array.isArray(savedSprint) ? savedSprint[0] : savedSprint;
+    
+    // Emit WebSocket event for real-time updates
+    if (websocketService && result.projectId) {
+      websocketService.emitToProject(result.projectId, 'sprint_created', result);
+    }
+    
+    res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create sprint' });
   }
@@ -59,6 +67,12 @@ router.put('/:id', async (req, res) => {
   try {
     await sprintRepo.update(req.params.id, req.body);
     const sprint = await sprintRepo.findOne({ where: { id: req.params.id } });
+    
+    // Emit WebSocket event for real-time updates
+    if (websocketService && sprint?.projectId) {
+      websocketService.emitToProject(sprint.projectId, 'sprint_updated', sprint);
+    }
+    
     res.json(sprint);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update sprint' });

@@ -5,6 +5,7 @@ const database_1 = require("../config/database");
 const Issue_1 = require("../entities/Issue");
 const User_1 = require("../entities/User");
 const email_service_1 = require("../services/email.service");
+const websocket_service_1 = require("../services/websocket.service");
 const router = (0, express_1.Router)();
 // In-memory comments storage (you can create a Comment entity later)
 let comments = [];
@@ -117,6 +118,13 @@ router.post('/', async (req, res) => {
         catch (emailError) {
             console.error('Failed to send comment email notification:', emailError);
             // Don't fail the request if email fails
+        }
+        // Emit WebSocket event for real-time updates
+        if (websocket_service_1.websocketService) {
+            const issue = await database_1.AppDataSource.getRepository(Issue_1.Issue).findOne({ where: { id: issueId } });
+            if (issue) {
+                websocket_service_1.websocketService.notifyCommentAdded(comment, issue, actualUserId);
+            }
         }
         res.status(201).json(comment);
     }

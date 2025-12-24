@@ -8,6 +8,7 @@ const ChannelMember_1 = require("../entities/ChannelMember");
 const User_1 = require("../entities/User");
 const Issue_1 = require("../entities/Issue");
 const Project_1 = require("../entities/Project");
+const typeorm_1 = require("typeorm");
 const websocket_service_1 = require("../services/websocket.service");
 const router = (0, express_1.Router)();
 const channelRepo = database_1.AppDataSource.getRepository(ChatChannel_1.ChatChannel);
@@ -37,7 +38,7 @@ router.get('/channels', async (req, res) => {
             const unreadCount = await messageRepo.count({
                 where: {
                     channelId: channel.id,
-                    createdAt: member.lastReadAt ? { $gt: member.lastReadAt } : undefined
+                    createdAt: member.lastReadAt ? (0, typeorm_1.MoreThan)(member.lastReadAt) : undefined
                 }
             });
             // Get member count

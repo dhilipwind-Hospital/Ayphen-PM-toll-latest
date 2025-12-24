@@ -6,7 +6,7 @@ const router = (0, express_1.Router)();
 // GET all test runs
 router.get('/', async (req, res) => {
     try {
-        const { userId } = req.query;
+        const { userId, projectId } = req.query;
         try {
             let query = `
         SELECT tr.*, ts.name as suite_name 
@@ -19,6 +19,10 @@ router.get('/', async (req, res) => {
             if (userId) {
                 query += ` AND tr.started_by = $${paramIndex++}`;
                 params.push(userId);
+            }
+            if (projectId) {
+                query += ` AND ts.project_id = $${paramIndex++}`;
+                params.push(projectId);
             }
             query += ` ORDER BY tr.started_at DESC`;
             const runs = await database_1.AppDataSource.query(query, params);

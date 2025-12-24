@@ -3,6 +3,7 @@ import { AppDataSource } from '../config/database';
 import { Issue } from '../entities/Issue';
 import { User } from '../entities/User';
 import { emailService } from '../services/email.service';
+import { websocketService } from '../services/websocket.service';
 
 const router = Router();
 
@@ -130,6 +131,14 @@ router.post('/', async (req, res) => {
     } catch (emailError) {
       console.error('Failed to send comment email notification:', emailError);
       // Don't fail the request if email fails
+    }
+
+    // Emit WebSocket event for real-time updates
+    if (websocketService) {
+      const issue = await AppDataSource.getRepository(Issue).findOne({ where: { id: issueId } });
+      if (issue) {
+        websocketService.notifyCommentAdded(comment, issue, actualUserId);
+      }
     }
 
     res.status(201).json(comment);
