@@ -163,38 +163,20 @@ export const PMBotDashboard: React.FC<PMBotDashboardProps> = ({ projectId }) => 
             const response = await axios.get(`${ENV.API_URL}/pmbot/activity/${projectId}?days=7`);
             if (response.data.success) {
                 setStats(response.data.summary);
-            }
-
-            // Mock activities - in real implementation, fetch from backend
-            setActivities([
-                {
-                    type: 'assignment',
-                    message: 'Assigned PROJ-123 to John Doe based on expertise match',
-                    timestamp: '2 minutes ago',
-                    issueKey: 'PROJ-123'
-                },
-                {
-                    type: 'stale',
-                    message: 'Detected 3 stale issues and posted reminders',
-                    timestamp: '1 hour ago'
-                },
-                {
-                    type: 'triage',
-                    message: 'Auto-triaged PROJ-124 with labels: frontend, security',
-                    timestamp: '3 hours ago',
-                    issueKey: 'PROJ-124'
-                },
-                {
-                    type: 'assignment',
-                    message: 'Assigned PROJ-125 to Sarah Smith (low workload)',
-                    timestamp: '5 hours ago',
-                    issueKey: 'PROJ-125'
+                // Use real activities from backend if available
+                if (response.data.activities && response.data.activities.length > 0) {
+                    setActivities(response.data.activities);
+                } else {
+                    // Fallback to empty array if no activities yet
+                    setActivities([]);
                 }
-            ]);
+            }
 
             setLoading(false);
         } catch (error) {
             console.error('Failed to fetch PMBot data:', error);
+            // Set empty activities on error
+            setActivities([]);
             setLoading(false);
         }
     };
