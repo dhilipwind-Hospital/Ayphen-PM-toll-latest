@@ -366,7 +366,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       setHistory(historyRes.data || []);
 
       loadAttachments(res.data.id);
-      loadSubtasks(res.data.id);
+      loadSubtasks(res.data.id, res.data);
       loadEpics(res.data.projectId);
       loadWorkflow(res.data.projectId, res.data.workflowId);
       // loadLinkedIssues(res.data.id); // Handled by React Query
@@ -397,10 +397,12 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     } catch (e) { setAttachments([]); }
   };
 
-  const loadSubtasks = async (issueId: string) => {
+  const loadSubtasks = async (issueId: string, issueData?: any) => {
     try {
-      const getUrl = issue?.type === 'epic'
-        ? `/issues?epicLink=${issue.key}&userId=${localStorage.getItem('userId')}`
+      // Use passed issueData if available (for initial load), otherwise fall back to state
+      const currentIssue = issueData || issue;
+      const getUrl = currentIssue?.type === 'epic'
+        ? `/issues?epicLink=${currentIssue.key}&userId=${localStorage.getItem('userId')}`
         : `/issues?parentId=${issueId}&userId=${localStorage.getItem('userId')}`;
 
       const subRes = await api.get(getUrl);
