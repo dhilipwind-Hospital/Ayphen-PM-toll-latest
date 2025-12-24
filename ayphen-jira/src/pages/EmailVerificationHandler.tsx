@@ -4,6 +4,7 @@ import { Button, Typography, Card, Spin, Result } from 'antd';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import styled, { keyframes } from 'styled-components';
 import axios from 'axios';
+import { ENV } from '../config/env';
 
 const { Title, Text } = Typography;
 
@@ -34,7 +35,7 @@ const StyledCard = styled(Card)`
   }
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 export const EmailVerificationHandler: React.FC = () => {
   const navigate = useNavigate();

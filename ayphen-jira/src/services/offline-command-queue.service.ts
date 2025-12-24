@@ -2,6 +2,7 @@
  * Offline Command Queue Service
  * Queues voice commands when offline and syncs when back online
  */
+import { ENV } from '../config/env';
 
 export interface QueuedCommand {
   id: string;
@@ -84,7 +85,7 @@ export class OfflineCommandQueueService {
     this.notifyListeners();
 
     try {
-      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/voice-assistant/process-enhanced', {
+      const response = await fetch(`${ENV.API_URL}/voice-assistant/process-enhanced`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

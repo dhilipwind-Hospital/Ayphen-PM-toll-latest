@@ -6,9 +6,10 @@ import { Send, Users, Search, MoreVertical, Paperclip, Smile, Image as ImageIcon
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import { io, Socket } from 'socket.io-client';
+import { ENV } from '../../config/env';
 
-// WS_URL kept for socket connection
-const WS_URL = import.meta.env.VITE_API_URL || 'https://ayphen-pm-toll-latest.onrender.com';
+// WS_URL from centralized config
+const WS_URL = ENV.WS_URL;
 
 const Container = styled.div`
   display: flex;

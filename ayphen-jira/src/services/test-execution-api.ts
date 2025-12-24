@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { ENV } from '../config/env';
 
-const API_BASE = 'https://ayphen-pm-toll-latest.onrender.com/api/test-execution';
+const API_BASE = `${ENV.API_URL}/test-execution`;
 
 // Test Runs API
 export const testRunsApi = {

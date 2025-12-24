@@ -4,6 +4,7 @@ import { ThunderboltOutlined, MailOutlined, BellOutlined, ExperimentOutlined, Ch
 import { EmailIntegrationPanel } from '../components/AI/EmailIntegrationPanel';
 import { SprintAutoPopulateButton } from '../components/AI/SprintAutoPopulateButton';
 import { TestCaseGeneratorButton } from '../components/AI/TestCaseGeneratorButton';
+import { ENV } from '../config/env';
 
 const Phase2TestPage: React.FC = () => {
   const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'offline'>('checking');
@@ -14,7 +15,7 @@ const Phase2TestPage: React.FC = () => {
 
   const checkServerStatus = async () => {
     try {
-      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/health');
+      const response = await fetch(`${ENV.API_BASE_URL}/health`);
       if (response.ok) {
         setServerStatus('online');
       } else {

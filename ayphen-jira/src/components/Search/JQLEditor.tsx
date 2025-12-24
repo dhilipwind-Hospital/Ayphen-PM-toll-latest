@@ -3,6 +3,7 @@ import { Input, Button, message, Tag, Tooltip } from 'antd';
 import { Search, BookOpen, History } from 'lucide-react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const EditorContainer = styled.div`
   background: white;
@@ -92,7 +93,7 @@ export const JQLEditor: React.FC<JQLEditorProps> = ({ onSearch }) => {
 
     setLoading(true);
     try {
-      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/search/jql', {
+      const response = await axios.post(`${ENV.API_URL}/search/jql`, {
         jql,
         userId: 'current-user-id',
       });

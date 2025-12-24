@@ -1,8 +1,9 @@
 import { io, Socket } from 'socket.io-client';
 import { useStore } from '../store/useStore';
 import { message } from 'antd';
+import { ENV } from '../config/env';
 
-const SOCKET_URL = 'https://ayphen-pm-toll-latest.onrender.com'; // Should be env var in prod
+const SOCKET_URL = ENV.WS_URL;
 
 class SocketService {
   private socket: Socket | null = null;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Select, Modal, message, Space, Tag, Popconfirm } from 'antd';
 import { UserAddOutlined, DeleteOutlined, CrownOutlined, MailOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 import { InviteModal } from '../../components/InviteModal';
 import { PendingInvitations } from '../../components/PendingInvitations';
 
@@ -29,7 +30,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
     setLoading(true);
     try {
       const { data } = await axios.get(
-        `https://ayphen-pm-toll-latest.onrender.com/api/project-members/project/${projectId}`
+        `${ENV.API_URL}/project-members/project/${projectId}`
       );
       setMembers(data);
     } catch (error) {
@@ -41,7 +42,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
 
   const loadAllUsers = async () => {
     try {
-      const { data } = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/auth/users');
+      const { data } = await axios.get(`${ENV.API_URL}/auth/users`);
       setUsers(data);
     } catch (error) {
       console.error('Failed to load users');
@@ -55,7 +56,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
     }
 
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/project-members', {
+      await axios.post(`${ENV.API_URL}/project-members`, {
         projectId,
         userId: selectedUser,
         role: selectedRole,
@@ -74,7 +75,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
 
   const handleRemoveMember = async (memberId: string) => {
     try {
-      await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/project-members/${memberId}`);
+      await axios.delete(`${ENV.API_URL}/project-members/${memberId}`);
       message.success('Member removed from project');
       loadMembers();
     } catch (error) {
@@ -84,7 +85,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({ projectId 
 
   const handleChangeRole = async (memberId: string, newRole: string) => {
     try {
-      await axios.patch(`https://ayphen-pm-toll-latest.onrender.com/api/project-members/${memberId}`, {
+      await axios.patch(`${ENV.API_URL}/project-members/${memberId}`, {
         role: newRole,
       });
       message.success('Role updated successfully');

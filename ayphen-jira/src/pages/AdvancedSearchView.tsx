@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import axios from 'axios';
+import { ENV } from '../config/env';
 import dayjs from 'dayjs';
 
 const Container = styled.div`
@@ -66,7 +67,7 @@ const ResultsCard = styled(Card)`
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 interface SearchFilter {
   field: string;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { List, Tag, Button, Space, Typography, Tooltip, Collapse, message, Badge } from 'antd';
 import { FlaskConical, CheckCircle, XCircle, Clock, Plus, Play, RotateCw } from 'lucide-react';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -34,7 +35,7 @@ export const TestCaseList: React.FC<TestCaseListProps> = ({ issueId, refreshTrig
   const fetchTestCases = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/test-cases/issue/${issueId}`);
+      const response = await axios.get(`${ENV.API_URL}/test-cases/issue/${issueId}`);
       if (response.data.success) {
         setTestCases(response.data.data);
       }
@@ -47,7 +48,7 @@ export const TestCaseList: React.FC<TestCaseListProps> = ({ issueId, refreshTrig
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      await axios.patch(`https://ayphen-pm-toll-latest.onrender.com/api/test-cases/${id}/status`, { status });
+      await axios.patch(`${ENV.API_URL}/test-cases/${id}/status`, { status });
       message.success(`Test case marked as ${status}`);
       fetchTestCases();
     } catch (error) {

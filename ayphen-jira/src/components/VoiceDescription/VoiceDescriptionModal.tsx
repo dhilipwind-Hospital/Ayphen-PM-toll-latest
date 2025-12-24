@@ -3,6 +3,7 @@ import { Modal, Button, Input, Card, Tag, Spin, message } from 'antd';
 import { Mic, MicOff, Sparkles, Check, RefreshCw } from 'lucide-react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const { TextArea } = Input;
 
@@ -239,7 +240,7 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
   const loadContext = async () => {
     setIsLoadingContext(true);
     try {
-      const response = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/ai-description/context', {
+      const response = await axios.get(`${ENV.API_URL}/ai-description/context`, {
         params: {
           projectId,
           epicId,
@@ -281,7 +282,7 @@ export const VoiceDescriptionModal: React.FC<VoiceDescriptionModalProps> = ({
 
     setIsGenerating(true);
     try {
-      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/ai-description/generate', {
+      const response = await axios.post(`${ENV.API_URL}/ai-description/generate`, {
         issueType,
         issueSummary,
         userInput: transcript || currentDescription || 'Generate a description',

@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { ENV } from '../config/env';
 
-export const BASE_URL = 'https://ayphen-pm-toll-latest.onrender.com';
-export const API_BASE_URL = `${BASE_URL}/api`;
+export const BASE_URL = ENV.API_BASE_URL;
+export const API_BASE_URL = ENV.API_URL;
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,9 +14,9 @@ export const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const sessionId = localStorage.getItem('sessionId');
+    if (sessionId) {
+      config.headers.Authorization = `Bearer ${sessionId}`;
     }
     return config;
   },
@@ -35,8 +36,9 @@ api.interceptors.response.use(
         if (!window.location.pathname.startsWith('/auth') &&
           !window.location.pathname.startsWith('/login') &&
           !window.location.pathname.startsWith('/register')) {
-          localStorage.removeItem('token');
+          localStorage.removeItem('sessionId');
           localStorage.removeItem('userId');
+          localStorage.removeItem('user');
           if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }

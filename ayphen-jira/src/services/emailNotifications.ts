@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { ENV } from '../config/env';
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 export const emailNotifications = {
   // Send issue assignment notification

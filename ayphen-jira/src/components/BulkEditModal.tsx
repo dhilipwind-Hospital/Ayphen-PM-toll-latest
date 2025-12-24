@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Select, Button, message } from 'antd';
 import axios from 'axios';
+import { ENV } from '../config/env';
 
 interface BulkEditModalProps {
   visible: boolean;
@@ -25,7 +26,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
 
   const loadUsers = async () => {
     try {
-      const { data } = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/auth/users');
+      const { data } = await axios.get(`${ENV.API_URL}/auth/users`);
       setUsers(data);
     } catch (error) {
       console.error('Failed to load users:', error);
@@ -45,7 +46,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
 
     setLoading(true);
     try {
-      await axios.patch('https://ayphen-pm-toll-latest.onrender.com/api/issues/bulk/update', {
+      await axios.patch(`${ENV.API_URL}/issues/bulk/update`, {
         issueIds: selectedIssues.map(i => i.id),
         updates,
       });

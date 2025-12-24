@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Spin, Empty } from 'antd';
 import axios from 'axios';
 import styled from 'styled-components';
+import { ENV } from '../../../config/env';
 
 const HeatMapContainer = styled.div`
   width: 100%;
@@ -72,7 +73,7 @@ export const HeatMapGadget: React.FC<HeatMapGadgetProps> = ({ gadgetId, config }
     const fetchData = async () => {
       try {
         const projectId = localStorage.getItem('currentProjectId');
-        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/heat-map`, {
+        const response = await axios.get(`${ENV.API_URL}/gadgets/${gadgetId}/data/heat-map`, {
           params: { projectId },
         });
         setData(response.data);

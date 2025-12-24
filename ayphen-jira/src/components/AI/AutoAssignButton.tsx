@@ -3,8 +3,9 @@ import { Button, Tooltip, Modal, Tag, Space, message } from 'antd';
 import { UserAddOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import styled from 'styled-components';
+import { ENV } from '../../config/env';
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 interface AutoAssignButtonProps {
   issueId: string;

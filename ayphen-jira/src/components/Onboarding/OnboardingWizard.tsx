@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Steps, Button, Form, Input, Select, message } from 'antd';
 import { UserOutlined, ProjectOutlined, CheckOutlined, RocketOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const { Step } = Steps;
 
@@ -160,7 +161,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ visible, onC
       const values = await form.validateFields();
       const userId = localStorage.getItem('userId');
       
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/projects', {
+      await axios.post(`${ENV.API_URL}/projects`, {
         ...values,
         key: values.key.toUpperCase(),
         leadId: userId,

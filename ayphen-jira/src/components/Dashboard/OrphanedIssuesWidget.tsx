@@ -6,8 +6,9 @@ import styled from 'styled-components';
 import { issuesApi } from '../../services/api';
 import { useStore } from '../../store/useStore';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 const WidgetCard = styled(Card)`
   border-radius: 12px;

@@ -5,6 +5,7 @@ import { Zap, Bookmark, CheckSquare, List, ChevronRight, ChevronDown } from 'luc
 import styled from 'styled-components';
 import { issuesApi } from '../../services/api';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const { Text } = Typography;
 
@@ -84,7 +85,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ issue }) => {
 
   const fetchSubtasks = async (parentId: string) => {
     try {
-      const res = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/subtasks/parent/${parentId}`);
+      const res = await axios.get(`${ENV.API_URL}/subtasks/parent/${parentId}`);
       return res.data || [];
     } catch (e) {
       return [];

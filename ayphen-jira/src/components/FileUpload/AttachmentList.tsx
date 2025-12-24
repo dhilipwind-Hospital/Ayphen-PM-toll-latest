@@ -4,6 +4,7 @@ import { Download, Eye, Trash2, Paperclip } from 'lucide-react';
 import styled from 'styled-components';
 import axios from 'axios';
 import { FilePreviewModal } from './FilePreviewModal';
+import { ENV } from '../../config/env';
 
 const AttachmentItem = styled.div`
   display: flex;
@@ -86,7 +87,7 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
   const handleDownload = async (attachment: any) => {
     try {
       const response = await axios.get(
-        `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/download/${attachment.id}`,
+        `${ENV.API_URL}/attachments-v2/download/${attachment.id}`,
         { responseType: 'blob' }
       );
       
@@ -118,7 +119,7 @@ export const AttachmentList: React.FC<AttachmentListProps> = ({
         try {
           
           const response = await axios.delete(
-            `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/${attachment.id}`
+            `${ENV.API_URL}/attachments-v2/${attachment.id}`
           );
           
           message.success('Attachment deleted successfully');

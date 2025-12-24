@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { message as antdMessage } from 'antd';
+import { ENV } from '../config/env';
 
 interface Notification {
   id: string;
@@ -69,7 +70,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!currentUserId) return;
 
     // Connect to WebSocket server
-    const newSocket = io('https://ayphen-pm-toll-latest.onrender.com', {
+    const newSocket = io(ENV.WS_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,

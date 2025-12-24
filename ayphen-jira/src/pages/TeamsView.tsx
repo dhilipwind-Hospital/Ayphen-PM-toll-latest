@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { usersApi } from '../services/api';
 import axios from 'axios';
+import { ENV } from '../config/env';
 
 const Container = styled.div`
   padding: 0;
@@ -37,7 +38,7 @@ const TableContainer = styled.div`
   background: #fff;
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 export const TeamsView: React.FC = () => {
   const navigate = useNavigate();

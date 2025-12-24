@@ -11,6 +11,7 @@ import {
     LinkOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const { Panel } = Collapse;
 
@@ -120,7 +121,7 @@ export const BugAIPanel: React.FC<Props> = ({ issueId, issueKey }) => {
 
         try {
             const response = await axios.post(
-                `https://ayphen-pm-toll-latest.onrender.com/api/bug-ai/full-analysis/${issueId}`
+                `${ENV.API_URL}/bug-ai/full-analysis/${issueId}`
             );
 
             if (response.data.success) {

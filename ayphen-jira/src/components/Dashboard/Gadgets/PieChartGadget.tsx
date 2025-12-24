@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Spin } from 'antd';
 import axios from 'axios';
+import { ENV } from '../../../config/env';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -17,7 +18,7 @@ export const PieChartGadget: React.FC<PieChartGadgetProps> = ({ gadgetId, config
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/pie-chart`);
+        const response = await axios.get(`${ENV.API_URL}/gadgets/${gadgetId}/data/pie-chart`);
         setData(response.data);
       } catch (error) {
         console.error('Error fetching pie chart data:', error);

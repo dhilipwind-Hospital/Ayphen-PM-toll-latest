@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Spin } from 'antd';
 import axios from 'axios';
+import { ENV } from '../../../config/env';
 
 interface CreatedVsResolvedGadgetProps {
   gadgetId: string;
@@ -15,7 +16,7 @@ export const CreatedVsResolvedGadget: React.FC<CreatedVsResolvedGadgetProps> = (
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/created-vs-resolved`);
+        const response = await axios.get(`${ENV.API_URL}/gadgets/${gadgetId}/data/created-vs-resolved`);
         setData(response.data);
       } catch (error) {
         console.error('Error fetching created vs resolved data:', error);

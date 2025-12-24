@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { message } from 'antd';
 import { useStore } from '../store/useStore';
+import { ENV } from '../config/env';
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 interface User {
   id: string;

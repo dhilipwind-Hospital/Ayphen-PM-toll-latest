@@ -3,8 +3,9 @@ import styled, { keyframes } from 'styled-components';
 import { Input, Spin, message as antMessage } from 'antd';
 import { Bot, Mic, Send, X } from 'lucide-react';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 const pulse = keyframes`
   0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }

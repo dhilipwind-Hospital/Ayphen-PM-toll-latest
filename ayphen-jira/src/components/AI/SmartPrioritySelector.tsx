@@ -3,8 +3,9 @@ import { Button, Tooltip, Modal, Tag, Space, Progress, message } from 'antd';
 import { ThunderboltOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import styled from 'styled-components';
+import { ENV } from '../../config/env';
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 interface SmartPrioritySelectorProps {
   issueId: string;

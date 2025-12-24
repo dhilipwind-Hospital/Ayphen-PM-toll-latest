@@ -4,6 +4,7 @@ import { RocketOutlined, AlertOutlined, CheckCircleOutlined } from '@ant-design/
 import { isFeatureEnabled } from '../../config/features';
 import { useStore } from '../../store/useStore';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 import styled from 'styled-components';
 
 const AlertItem = styled(List.Item)`
@@ -39,7 +40,7 @@ export const PredictiveAnalytics: React.FC = () => {
     if (!currentProject) return;
     setLoading(true);
     try {
-      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/predictive-alerts/${currentProject.id}`);
+      const response = await axios.get(`${ENV.API_URL}/predictive-alerts/${currentProject.id}`);
       if (response.data.success) {
         const fetchedAlerts: AlertData[] = response.data.alerts;
         setAlerts(fetchedAlerts);

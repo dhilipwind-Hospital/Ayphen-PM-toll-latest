@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { message } from 'antd';
+import { ENV } from '../config/env';
 
 interface CollaborationEvent {
   type: 'user_joined' | 'user_left' | 'issue_updated' | 'comment_added' | 'status_changed';
@@ -15,7 +16,7 @@ export const useRealTimeCollaboration = (issueId?: string) => {
   const [events, setEvents] = useState<CollaborationEvent[]>([]);
 
   useEffect(() => {
-    const newSocket = io('https://ayphen-pm-toll-latest.onrender.com', {
+    const newSocket = io(ENV.WS_URL, {
       transports: ['websocket'],
       auth: {
         token: localStorage.getItem('sessionId'),

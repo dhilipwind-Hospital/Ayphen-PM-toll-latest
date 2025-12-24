@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Card, Tag, message, Button, Spin, Popconfirm, Space, Modal, Form, Input, Select } from 'antd';
 import { DownOutlined, UpOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 import { aiTestSuitesApi } from '../../services/ai-test-automation-api';
 import { colors } from '../../theme/colors';
 import { useStore } from '../../store/useStore';
@@ -79,7 +80,7 @@ export const TestSuitesPage: React.FC = () => {
     setLoadingTestCases(prev => new Set(prev).add(suiteId));
     
     try {
-      const res = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/ai-test-automation/generation/suites/${suiteId}/test-cases`);
+      const res = await axios.get(`${ENV.API_URL}/ai-test-automation/generation/suites/${suiteId}/test-cases`);
       setSuiteTestCases(prev => ({
         ...prev,
         [suiteId]: res.data.testCases || []

@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { colors } from '../../theme/colors';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { ENV } from '../../config/env';
 
 const FloatingButton = styled.button<{ isListening: boolean }>`
   position: fixed;
@@ -286,7 +287,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({
 
         try {
             const userId = localStorage.getItem('userId');
-            const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/voice-assistant/process-enhanced', {
+            const response = await axios.post(`${ENV.API_URL}/voice-assistant/process-enhanced`, {
                 command,
                 context: {
                     userId,

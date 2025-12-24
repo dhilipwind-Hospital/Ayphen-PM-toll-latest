@@ -4,6 +4,7 @@ import { Card, Input, Button, Progress, Avatar, Row, Col, Modal, Form, Select, m
 import { Search, UserPlus, Users, CheckCircle, Activity, Clock, Edit, Trash2, Mail, RefreshCw, XCircle, LayoutGrid, List } from 'lucide-react';
 import axios from 'axios';
 import { useStore } from '../store/useStore';
+import { ENV } from '../config/env';
 
 const Container = styled.div`
   padding: 24px;
@@ -205,7 +206,7 @@ const ViewProfileButton = styled(Button)`
   width: 100%;
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 interface TeamMember {
   id: string;

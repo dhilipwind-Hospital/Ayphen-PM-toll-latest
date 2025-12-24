@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal } from 'antd';
 import { Download, X } from 'lucide-react';
 import styled from 'styled-components';
+import { ENV } from '../../config/env';
 
 const PreviewContainer = styled.div`
   max-width: 100%;
@@ -61,8 +62,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 }) => {
   if (!attachment) return null;
 
-  const fileUrl = `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/file/${attachment.fileName}`;
-  const downloadUrl = `https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/download/${attachment.id}`;
+  const fileUrl = `${ENV.API_URL}/attachments-v2/file/${attachment.fileName}`;
+  const downloadUrl = `${ENV.API_URL}/attachments-v2/download/${attachment.id}`;
 
   const renderPreview = () => {
     if (attachment.isImage) {

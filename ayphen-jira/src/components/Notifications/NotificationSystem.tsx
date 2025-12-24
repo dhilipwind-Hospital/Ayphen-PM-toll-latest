@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
+import { ENV } from '../../config/env';
 
 const NotificationButton = styled(Button)`
   border: none;
@@ -130,7 +131,7 @@ export const NotificationSystem: React.FC = () => {
 
     setIsAiFiltering(true);
     try {
-      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/ai-notification-filter/filter', {
+      const response = await fetch(`${ENV.API_URL}/ai-notification-filter/filter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

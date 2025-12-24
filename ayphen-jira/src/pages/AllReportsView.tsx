@@ -11,6 +11,7 @@ import { Download, Calendar, TrendingUp, Activity, BarChart3, PieChart as PieCha
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
 import axios from 'axios';
+import { ENV } from '../config/env';
 import { exportToCSV, exportToJSON } from '../utils/exportUtils';
 
 const Container = styled.div`
@@ -59,7 +60,7 @@ const StatsRow = styled(Row)`
   margin-bottom: 24px;
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 export const AllReportsView: React.FC = () => {
   const { reportType } = useParams<{ reportType?: string }>();

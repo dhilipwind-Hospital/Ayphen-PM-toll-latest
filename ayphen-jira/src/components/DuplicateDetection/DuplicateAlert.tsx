@@ -3,6 +3,7 @@ import { Alert, Card, Tag, Button, Tooltip } from 'antd';
 import { ExclamationCircleOutlined, InfoCircleOutlined, LinkOutlined, EyeOutlined, CloseOutlined, MergeCellsOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 import { MergeIssuesModal } from './MergeIssuesModal';
 
 const AlertContainer = styled.div`
@@ -127,7 +128,7 @@ export const DuplicateAlert: React.FC<DuplicateAlertProps> = ({
 
   const recordFeedback = async (action: 'dismissed' | 'linked' | 'merged' | 'blocked', duplicateId: string) => {
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/duplicate-feedback', {
+      await axios.post(`${ENV.API_URL}/duplicate-feedback`, {
         issueId: 'current-issue-id', // Would be actual issue ID
         suggestedDuplicateId: duplicateId,
         aiConfidence: confidence,

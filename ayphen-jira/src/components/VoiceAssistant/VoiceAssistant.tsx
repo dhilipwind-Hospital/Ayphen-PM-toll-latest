@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import { Mic } from 'lucide-react';
 import { message as antMessage, Tooltip } from 'antd';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const pulse = keyframes`
   0%, 100% { transform: scale(1); }
@@ -73,7 +74,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ issueId, onUpdat
       setIsProcessing(true);
       
       try {
-        const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/voice-assistant/process', {
+        const response = await axios.post(`${ENV.API_URL}/voice-assistant/process`, {
           command,
           issueId
         });

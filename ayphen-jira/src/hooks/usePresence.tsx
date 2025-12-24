@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { ENV } from '../config/env';
 
 interface PresenceData {
   userId: string;
@@ -20,7 +21,7 @@ export const usePresence = (userId: string, userName: string, userAvatar?: strin
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io('https://ayphen-pm-toll-latest.onrender.com', {
+    const newSocket = io(ENV.WS_URL, {
       transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,

@@ -3,6 +3,7 @@ import { Upload, message, Progress } from 'antd';
 import { InboxOutlined, FileOutlined, DeleteOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const { Dragger } = Upload;
 
@@ -50,7 +51,7 @@ export const DragDropUpload: React.FC<DragDropUploadProps> = ({
       formData.append('file', file);
       if (issueId) formData.append('issueId', issueId);
 
-      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/attachments', formData, {
+      const response = await axios.post(`${ENV.API_URL}/attachments`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

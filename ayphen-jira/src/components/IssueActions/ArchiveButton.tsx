@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Modal, message } from 'antd';
 import { FolderOpenOutlined, InboxOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 interface ArchiveButtonProps {
   issueId: string;
@@ -24,7 +25,7 @@ export const ArchiveButton: React.FC<ArchiveButtonProps> = ({
       okType: 'danger',
       onOk: async () => {
         try {
-          await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/issues/${issueId}/archive`, {
+          await axios.post(`${ENV.API_URL}/issues/${issueId}/archive`, {
             userId: localStorage.getItem('userId'),
           });
           message.success('Issue archived successfully');
@@ -38,7 +39,7 @@ export const ArchiveButton: React.FC<ArchiveButtonProps> = ({
 
   const handleUnarchive = async () => {
     try {
-      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/issues/${issueId}/unarchive`);
+      await axios.post(`${ENV.API_URL}/issues/${issueId}/unarchive`);
       message.success('Issue restored successfully');
       onArchiveChange();
     } catch (error) {

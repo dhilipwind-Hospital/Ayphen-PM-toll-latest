@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { ENV } from '../config/env';
 
-const API_BASE = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_BASE = ENV.API_URL;
 
 export interface PMBotActivitySummary {
   autoAssignments: number;

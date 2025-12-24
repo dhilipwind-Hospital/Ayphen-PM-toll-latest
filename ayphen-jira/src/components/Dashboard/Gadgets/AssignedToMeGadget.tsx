@@ -3,6 +3,7 @@ import { List, Tag, Spin, Empty } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
+import { ENV } from '../../../config/env';
 
 const IssueItem = styled(List.Item)`
   cursor: pointer;
@@ -25,7 +26,7 @@ export const AssignedToMeGadget: React.FC<AssignedToMeGadgetProps> = ({ gadgetId
     const fetchData = async () => {
       try {
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/assigned-to-me`, {
+        const response = await axios.get(`${ENV.API_URL}/gadgets/${gadgetId}/data/assigned-to-me`, {
           params: { userId: currentUser.id },
         });
         setIssues(response.data);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, Button, Table, message, Space, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 interface CustomField {
   id: string;
@@ -27,7 +28,7 @@ export const CustomFieldManager: React.FC<{ projectId?: string }> = ({ projectId
   const loadFields = async () => {
     try {
       const params = projectId ? { projectId } : {};
-      const { data } = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/custom-fields', { params });
+      const { data } = await axios.get(`${ENV.API_URL}/custom-fields`, { params });
       setFields(data);
     } catch (error) {
       message.error('Failed to load custom fields');
@@ -46,10 +47,10 @@ export const CustomFieldManager: React.FC<{ projectId?: string }> = ({ projectId
       };
 
       if (editingField) {
-        await axios.put(`https://ayphen-pm-toll-latest.onrender.com/api/custom-fields/${editingField.id}`, payload);
+        await axios.put(`${ENV.API_URL}/custom-fields/${editingField.id}`, payload);
         message.success('Custom field updated');
       } else {
-        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/custom-fields', payload);
+        await axios.post(`${ENV.API_URL}/custom-fields`, payload);
         message.success('Custom field created');
       }
 
@@ -75,7 +76,7 @@ export const CustomFieldManager: React.FC<{ projectId?: string }> = ({ projectId
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`https://ayphen-pm-toll-latest.onrender.com/api/custom-fields/${id}`);
+      await axios.delete(`${ENV.API_URL}/custom-fields/${id}`);
       message.success('Custom field deleted');
       loadFields();
     } catch (error) {

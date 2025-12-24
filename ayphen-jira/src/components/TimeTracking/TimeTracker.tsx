@@ -4,6 +4,7 @@ import { Play, Pause, Square, Clock, Calendar, BarChart3, Download } from 'lucid
 import styled from 'styled-components';
 import { useStore } from '../../store/useStore';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const TrackerContainer = styled.div`
   padding: 24px;
@@ -108,7 +109,7 @@ export const TimeTracker: React.FC = () => {
     if (!currentProject || !currentUser) return;
 
     try {
-      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/entries`, {
+      const response = await axios.get(`${ENV.API_URL}/time-tracking/entries`, {
         params: {
           projectId: currentProject.id,
           userId: currentUser.id,
@@ -125,7 +126,7 @@ export const TimeTracker: React.FC = () => {
     if (!currentProject || !currentUser) return;
 
     try {
-      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/stats/today`, {
+      const response = await axios.get(`${ENV.API_URL}/time-tracking/stats/today`, {
         params: {
           projectId: currentProject.id,
           userId: currentUser.id
@@ -164,7 +165,7 @@ export const TimeTracker: React.FC = () => {
           billable: true
         };
 
-        await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/entries', timeEntry);
+        await axios.post(`${ENV.API_URL}/time-tracking/entries`, timeEntry);
 
         message.success('Time entry saved successfully!');
         loadTimeEntries();
@@ -184,7 +185,7 @@ export const TimeTracker: React.FC = () => {
 
   const exportTimesheet = async () => {
     try {
-      const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/time-tracking/export`, {
+      const response = await axios.get(`${ENV.API_URL}/time-tracking/export`, {
         params: {
           projectId: currentProject?.id,
           userId: currentUser?.id,

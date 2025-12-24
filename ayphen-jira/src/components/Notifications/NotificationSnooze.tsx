@@ -2,6 +2,7 @@ import React from 'react';
 import { Dropdown, Menu, Button, message } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 interface NotificationSnoozeProps {
   notificationId: string;
@@ -14,7 +15,7 @@ export const NotificationSnooze: React.FC<NotificationSnoozeProps> = ({
 }) => {
   const handleSnooze = async (minutes: number) => {
     try {
-      await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/notifications/${notificationId}/snooze`, {
+      await axios.post(`${ENV.API_URL}/notifications/${notificationId}/snooze`, {
         minutes,
       });
       message.success(`Notification snoozed for ${minutes > 60 ? `${minutes / 60} hour(s)` : `${minutes} minutes`}`);

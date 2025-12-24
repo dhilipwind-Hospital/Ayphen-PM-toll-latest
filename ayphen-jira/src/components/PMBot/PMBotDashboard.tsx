@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { colors } from '../../theme/colors';
 import { Bot, TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const DashboardCard = styled.div`
   background: ${colors.background.paper};
@@ -159,7 +160,7 @@ export const PMBotDashboard: React.FC<PMBotDashboardProps> = ({ projectId }) => 
 
     const fetchPMBotData = async () => {
         try {
-            const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/pmbot/activity/${projectId}?days=7`);
+            const response = await axios.get(`${ENV.API_URL}/pmbot/activity/${projectId}?days=7`);
             if (response.data.success) {
                 setStats(response.data.summary);
             }

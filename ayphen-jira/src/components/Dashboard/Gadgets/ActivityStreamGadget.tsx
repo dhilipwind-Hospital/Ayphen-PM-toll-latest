@@ -3,6 +3,7 @@ import { List, Avatar, Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
+import { ENV } from '../../../config/env';
 
 const ActivityItem = styled(List.Item)`
   cursor: pointer;
@@ -24,7 +25,7 @@ export const ActivityStreamGadget: React.FC<ActivityStreamGadgetProps> = ({ gadg
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/activity-stream`, {
+        const response = await axios.get(`${ENV.API_URL}/gadgets/${gadgetId}/data/activity-stream`, {
           params: { projectId: config.projectId },
         });
         setActivities(response.data);

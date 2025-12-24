@@ -4,6 +4,7 @@ import { Button, Select, Modal, Form, Input, message, Tag } from 'antd';
 import { Edit, Trash2, Users, Tag as TagIcon, GitBranch, X } from 'lucide-react';
 import axios from 'axios';
 import { colors } from '../../theme/colors';
+import { ENV } from '../../config/env';
 
 const Toolbar = styled.div`
   position: fixed;
@@ -60,8 +61,8 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
     const fetchData = async () => {
       try {
         const [usersRes, sprintsRes] = await Promise.all([
-          axios.get('https://ayphen-pm-toll-latest.onrender.com/api/users'),
-          axios.get('https://ayphen-pm-toll-latest.onrender.com/api/sprints')
+          axios.get(`${ENV.API_URL}/users`),
+          axios.get(`${ENV.API_URL}/sprints`)
         ]);
         setUsers(usersRes.data || []);
         setSprints(sprintsRes.data || []);
@@ -74,7 +75,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
 
   const handleBulkEdit = async (values: any) => {
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/update', {
+      await axios.post(`${ENV.API_URL}/bulk-operations/update`, {
         issueIds: selectedIssueIds,
         updates: values,
       });
@@ -97,7 +98,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
       okType: 'danger',
       onOk: async () => {
         try {
-          await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/delete', {
+          await axios.post(`${ENV.API_URL}/bulk-operations/delete`, {
             issueIds: selectedIssueIds,
           });
           message.success(`${selectedIssueIds.length} issues deleted successfully`);
@@ -113,7 +114,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
 
   const handleBulkAssign = async (values: any) => {
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/assign', {
+      await axios.post(`${ENV.API_URL}/bulk-operations/assign`, {
         issueIds: selectedIssueIds,
         assigneeId: values.assigneeId,
       });
@@ -131,7 +132,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
   const handleBulkAddLabels = async (values: any) => {
     try {
       const labels = values.labels.split(',').map((l: string) => l.trim()).filter(Boolean);
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/add-labels', {
+      await axios.post(`${ENV.API_URL}/bulk-operations/add-labels`, {
         issueIds: selectedIssueIds,
         labels,
       });
@@ -148,7 +149,7 @@ export const BulkOperationsToolbar: React.FC<BulkOperationsToolbarProps> = ({
 
   const handleBulkMoveToSprint = async (values: any) => {
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/bulk-operations/move-to-sprint', {
+      await axios.post(`${ENV.API_URL}/bulk-operations/move-to-sprint`, {
         issueIds: selectedIssueIds,
         sprintId: values.sprintId,
       });

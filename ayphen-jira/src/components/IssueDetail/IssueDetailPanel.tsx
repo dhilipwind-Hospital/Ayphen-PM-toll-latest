@@ -6,6 +6,7 @@ import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Min
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi, api, BASE_URL } from '../../services/api';
+import { ENV } from '../../config/env';
 import { useStore } from '../../store/useStore';
 import { colors } from '../../theme/colors';
 import { CreateIssueModal } from '../CreateIssueModal';
@@ -491,7 +492,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         formData.append('commentAttachment', 'true');
 
         try {
-          const uploadRes = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple', {
+          const uploadRes = await fetch(`${ENV.API_URL}/attachments-v2/upload-multiple`, {
             method: 'POST',
             body: formData
           });
@@ -565,7 +566,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       formData.append('issueId', issue.id);
       formData.append('uploaderId', localStorage.getItem('userId') || issue.reporterId);
 
-      const response = await fetch('https://ayphen-pm-toll-latest.onrender.com/api/attachments-v2/upload-multiple', {
+      const response = await fetch(`${ENV.API_URL}/attachments-v2/upload-multiple`, {
         method: 'POST',
         body: formData
       });
@@ -1236,7 +1237,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                       icon={<Download size={14} />}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        window.open(`https://ayphen-pm-toll-latest.onrender.com/uploads/${att.fileName}`, '_blank');
+                                        window.open(`${ENV.API_BASE_URL}/uploads/${att.fileName}`, '_blank');
                                       }}
                                       style={{ color: '#0EA5E9' }}
                                     />

@@ -3,6 +3,7 @@ import { List, Tag, Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
+import { ENV } from '../../../config/env';
 
 const IssueItem = styled(List.Item)`
   cursor: pointer;
@@ -24,7 +25,7 @@ export const FilterResultsGadget: React.FC<FilterResultsGadgetProps> = ({ gadget
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/filter-results`);
+        const response = await axios.get(`${ENV.API_URL}/gadgets/${gadgetId}/data/filter-results`);
         setIssues(response.data);
       } catch (error) {
         console.error('Error fetching filter results:', error);

@@ -4,6 +4,7 @@ import { Search, Sparkles, Filter, Clock } from 'lucide-react';
 import styled from 'styled-components';
 import { useStore } from '../../store/useStore';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const SearchContainer = styled.div`
   position: relative;
@@ -124,7 +125,7 @@ export const AdvancedSearchAI: React.FC = () => {
 
   const searchWithAI = async (searchQuery: string): Promise<SearchResult[]> => {
     try {
-      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/search/ai', {
+      const response = await axios.post(`${ENV.API_URL}/search/ai`, {
         query: searchQuery,
         projectId: currentProject?.id,
         context: 'issues'
@@ -138,7 +139,7 @@ export const AdvancedSearchAI: React.FC = () => {
 
   const getAISuggestions = async (searchQuery: string) => {
     try {
-      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/search/suggestions', {
+      const response = await axios.post(`${ENV.API_URL}/search/suggestions`, {
         query: searchQuery,
         projectId: currentProject?.id
       });

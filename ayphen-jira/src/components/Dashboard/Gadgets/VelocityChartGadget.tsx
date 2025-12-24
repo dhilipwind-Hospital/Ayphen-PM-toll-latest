@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Spin, Empty } from 'antd';
 import axios from 'axios';
 import styled from 'styled-components';
+import { ENV } from '../../../config/env';
 
 const ChartContainer = styled.div`
   width: 100%;
@@ -62,7 +63,7 @@ export const VelocityChartGadget: React.FC<VelocityChartGadgetProps> = ({ gadget
     const fetchData = async () => {
       try {
         const projectId = localStorage.getItem('currentProjectId');
-        const response = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/gadgets/${gadgetId}/data/velocity`, {
+        const response = await axios.get(`${ENV.API_URL}/gadgets/${gadgetId}/data/velocity`, {
           params: { projectId },
         });
         setData(response.data);

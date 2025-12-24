@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button, Checkbox, Card, Alert, message, Spin } from 'antd';
 import { MergeCellsOutlined, WarningOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 import styled from 'styled-components';
 
 const IssueCard = styled(Card)`
@@ -69,7 +70,7 @@ export const MergeIssuesModal: React.FC<MergeIssuesModalProps> = ({
   const handleMerge = async () => {
     setMerging(true);
     try {
-      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/issues/merge', {
+      const response = await axios.post(`${ENV.API_URL}/issues/merge`, {
         sourceIssueId: sourceIssue.id,
         targetIssueId: targetIssue.id,
         ...mergeOptions

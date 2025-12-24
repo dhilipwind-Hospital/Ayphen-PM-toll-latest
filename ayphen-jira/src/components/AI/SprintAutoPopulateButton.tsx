@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button, InputNumber, Select, message, Card, Progress, Tag, Divider } from 'antd';
 import { ThunderboltOutlined, EyeOutlined, CheckOutlined, UserOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const { Option } = Select;
 
@@ -50,7 +51,7 @@ export const SprintAutoPopulateButton: React.FC<SprintAutoPopulateButtonProps> =
     setLoading(true);
     try {
       const response = await axios.post(
-        `https://ayphen-pm-toll-latest.onrender.com/api/ai-sprint-auto-populate/preview/${sprintId}`,
+        `${ENV.API_URL}/ai-sprint-auto-populate/preview/${sprintId}`,
         {
           teamCapacity,
           sprintDuration,
@@ -75,7 +76,7 @@ export const SprintAutoPopulateButton: React.FC<SprintAutoPopulateButtonProps> =
     setLoading(true);
     try {
       const response = await axios.post(
-        `https://ayphen-pm-toll-latest.onrender.com/api/ai-sprint-auto-populate/populate/${sprintId}`,
+        `${ENV.API_URL}/ai-sprint-auto-populate/populate/${sprintId}`,
         {
           teamCapacity,
           sprintDuration,

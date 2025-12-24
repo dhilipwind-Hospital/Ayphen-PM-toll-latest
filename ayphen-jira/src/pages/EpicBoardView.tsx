@@ -4,6 +4,7 @@ import { Card, Tag, Progress, Button, message, Spin } from 'antd';
 import { Plus, TrendingUp } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import axios from 'axios';
+import { ENV } from '../config/env';
 
 const Container = styled.div`
   padding: 24px;
@@ -62,7 +63,7 @@ const EpicCard = styled(Card)`
   }
 `;
 
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 const statusColumns = [
   { id: 'todo', name: 'To Do', color: '#d9d9d9' },

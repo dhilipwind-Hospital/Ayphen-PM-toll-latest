@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import dayjs from 'dayjs';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const Container = styled.div`
   max-width: 800px;
@@ -97,7 +98,7 @@ export const NotificationPreferences: React.FC = () => {
 
     try {
       const response = await axios.get(
-        `https://ayphen-pm-toll-latest.onrender.com/api/notification-preferences/${currentUser.id}`
+        `${ENV.API_URL}/notification-preferences/${currentUser.id}`
       );
       if (response.data) {
         setPreferences(response.data);
@@ -121,7 +122,7 @@ export const NotificationPreferences: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/notification-preferences', {
+      await axios.post(`${ENV.API_URL}/notification-preferences`, {
         userId: currentUser.id,
         ...newPreferences,
       });

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, List, Button, Checkbox, Select, message, Tag, Spin, Alert } from 'antd';
 import { PlusOutlined, DeleteOutlined, RobotOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 interface RetrospectiveModalProps {
   visible: boolean;
@@ -38,7 +39,7 @@ export const RetrospectiveModal: React.FC<RetrospectiveModalProps> = ({
 
   const loadUsers = async () => {
     try {
-      const { data } = await axios.get('https://ayphen-pm-toll-latest.onrender.com/api/auth/users');
+      const { data } = await axios.get(`${ENV.API_URL}/auth/users`);
       setUsers(data);
     } catch (error) {
       console.error('Failed to load users');
@@ -47,7 +48,7 @@ export const RetrospectiveModal: React.FC<RetrospectiveModalProps> = ({
 
   const loadRetro = async () => {
     try {
-      const { data } = await axios.get(`https://ayphen-pm-toll-latest.onrender.com/api/sprint-retrospectives/sprint/${sprintId}`);
+      const { data } = await axios.get(`${ENV.API_URL}/sprint-retrospectives/sprint/${sprintId}`);
       if (data) {
         setRetroId(data.id);
         setWentWell(data.wentWell || []);
@@ -69,7 +70,7 @@ export const RetrospectiveModal: React.FC<RetrospectiveModalProps> = ({
     setCreatingTasks(true);
     try {
       const { data } = await axios.post(
-        `https://ayphen-pm-toll-latest.onrender.com/api/sprint-retrospectives/${retroId}/create-tasks`,
+        `${ENV.API_URL}/sprint-retrospectives/${retroId}/create-tasks`,
         { actionItems }
       );
 
@@ -105,7 +106,7 @@ export const RetrospectiveModal: React.FC<RetrospectiveModalProps> = ({
   const handleSave = async (values: any) => {
     setLoading(true);
     try {
-      await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/sprint-retrospectives', {
+      await axios.post(`${ENV.API_URL}/sprint-retrospectives`, {
         sprintId,
         wentWell,
         improvements,
@@ -156,7 +157,7 @@ export const RetrospectiveModal: React.FC<RetrospectiveModalProps> = ({
   const generateAIRetro = async () => {
     setGeneratingAI(true);
     try {
-      const { data } = await axios.post(`https://ayphen-pm-toll-latest.onrender.com/api/sprint-retrospectives/generate/${sprintId}`);
+      const { data } = await axios.post(`${ENV.API_URL}/sprint-retrospectives/generate/${sprintId}`);
       
       if (data.success && data.report) {
         setAiReport(data.report);

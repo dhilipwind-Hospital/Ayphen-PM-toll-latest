@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { ENV } from '../config/env';
 
-const API_BASE = 'https://ayphen-pm-toll-latest.onrender.com/api/ai-insights';
+const API_BASE = `${ENV.API_URL}/ai-insights`;
 
 export const aiInsightsApi = {
   analyzeFlakyTest: (testCaseId: string) => 

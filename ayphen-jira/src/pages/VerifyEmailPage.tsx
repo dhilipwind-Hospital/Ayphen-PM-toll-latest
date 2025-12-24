@@ -5,9 +5,10 @@ import styled, { keyframes } from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import { ENV } from '../config/env';
 
 const { Title, Text, Paragraph } = Typography;
-const API_URL = 'https://ayphen-pm-toll-latest.onrender.com/api';
+const API_URL = ENV.API_URL;
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { ENV } from '../config/env';
 
-const API_BASE = 'https://ayphen-pm-toll-latest.onrender.com/api/test-reports';
+const API_BASE = `${ENV.API_URL}/test-reports`;
 
 export const testReportsApi = {
   getSummary: (params?: any) => axios.get(`${API_BASE}/summary`, { params }),

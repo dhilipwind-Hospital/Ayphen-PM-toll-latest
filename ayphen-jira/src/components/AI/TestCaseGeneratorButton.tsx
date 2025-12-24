@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button, message, Card, Tag, Progress, Checkbox, Collapse } from 'antd';
 import { ExperimentOutlined, CheckCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ENV } from '../../config/env';
 
 const { Panel } = Collapse;
 
@@ -49,7 +50,7 @@ export const TestCaseGeneratorButton: React.FC<TestCaseGeneratorButtonProps> = (
     setLoading(true);
     try {
       const response = await axios.post(
-        `https://ayphen-pm-toll-latest.onrender.com/api/ai-test-case-generator/generate/${issueId}`
+        `${ENV.API_URL}/ai-test-case-generator/generate/${issueId}`
       );
 
       if (response.data.success) {
@@ -85,7 +86,7 @@ export const TestCaseGeneratorButton: React.FC<TestCaseGeneratorButtonProps> = (
           id: undefined // Let backend assign IDs
         }));
 
-      const response = await axios.post('https://ayphen-pm-toll-latest.onrender.com/api/test-cases/batch', {
+      const response = await axios.post(`${ENV.API_URL}/test-cases/batch`, {
         testCases: selectedTestCases
       });
 
