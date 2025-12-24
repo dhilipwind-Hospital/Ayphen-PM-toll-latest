@@ -777,7 +777,6 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 {subtasks.map(sub => (
                   <div
                     key={sub.id}
-                    onClick={() => navigate(`/issue/${sub.key}`)}
                     style={{
                       padding: '12px 0',
                       borderBottom: `1px solid ${colors.border.light}`,
@@ -787,7 +786,10 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                       alignItems: 'center'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div 
+                      onClick={() => navigate(`/issue/${sub.key}`)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}
+                    >
                       {sub.type === 'bug' ? <Bug size={14} color="#EF4444" /> :
                         sub.type === 'story' ? <BookOpen size={14} color="#10B981" /> :
                           sub.type === 'task' ? <CheckSquare size={14} color="#3B82F6" /> :
@@ -795,23 +797,49 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                       <span style={{ fontWeight: 500, color: '#0EA5E9' }}>{sub.key}</span>
                       <span style={{ color: colors.text.primary }}>{sub.summary}</span>
                     </div>
-                    <span style={{
-                      fontSize: 11,
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      background: (() => {
-                        const ws = workflowStatuses.find(s => s.id === sub.status);
-                        if (ws) return ws.category === 'DONE' ? '#D1FAE5' : ws.category === 'IN_PROGRESS' ? '#DBEAFE' : '#F3F4F6';
-                        return sub.status === 'done' ? '#D1FAE5' : sub.status === 'in-progress' ? '#DBEAFE' : '#F3F4F6';
-                      })(),
-                      color: (() => {
-                        const ws = workflowStatuses.find(s => s.id === sub.status);
-                        if (ws) return ws.category === 'DONE' ? '#059669' : ws.category === 'IN_PROGRESS' ? '#2563EB' : '#6B7280';
-                        return sub.status === 'done' ? '#059669' : sub.status === 'in-progress' ? '#2563EB' : '#6B7280';
-                      })()
-                    }}>
-                      {sub.status?.replace('-', ' ')}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{
+                        fontSize: 11,
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        background: (() => {
+                          const ws = workflowStatuses.find(s => s.id === sub.status);
+                          if (ws) return ws.category === 'DONE' ? '#D1FAE5' : ws.category === 'IN_PROGRESS' ? '#DBEAFE' : '#F3F4F6';
+                          return sub.status === 'done' ? '#D1FAE5' : sub.status === 'in-progress' ? '#DBEAFE' : '#F3F4F6';
+                        })(),
+                        color: (() => {
+                          const ws = workflowStatuses.find(s => s.id === sub.status);
+                          if (ws) return ws.category === 'DONE' ? '#059669' : ws.category === 'IN_PROGRESS' ? '#2563EB' : '#6B7280';
+                          return sub.status === 'done' ? '#059669' : sub.status === 'in-progress' ? '#2563EB' : '#6B7280';
+                        })()
+                      }}>
+                        {sub.status?.replace('-', ' ')}
+                      </span>
+                      <Tooltip title={issue.type === 'epic' ? 'Remove from Epic' : 'Delete Subtask'}>
+                        <Button 
+                          type="text" 
+                          danger 
+                          icon={<Trash2 size={14} />} 
+                          onClick={async (e) => { 
+                            e.stopPropagation(); 
+                            try { 
+                              if (issue.type === 'epic') {
+                                // Remove epic link from child issue
+                                await issuesApi.update(sub.id, { epicLink: null });
+                                message.success('Issue removed from epic');
+                              } else {
+                                // Delete subtask
+                                await issuesApi.delete(sub.id);
+                                message.success('Subtask deleted');
+                              }
+                              loadSubtasks(issue.id, issue);
+                            } catch (err) { 
+                              message.error('Failed to remove'); 
+                            } 
+                          }} 
+                        />
+                      </Tooltip>
+                    </div>
                   </div>
                 ))}
               </ContentBox>
