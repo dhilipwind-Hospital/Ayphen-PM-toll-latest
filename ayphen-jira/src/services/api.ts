@@ -370,3 +370,32 @@ export const reportsLegacyApi = {
   getUserWorkload: (projectId: string) => api.get(`/reports/user-workload/${projectId}`),
   getSprintReport: (sprintId: string) => api.get(`/reports/sprint-report/${sprintId}`),
 };
+
+// Watchers API
+export const watchersApi = {
+  getByIssue: (issueId: string) => api.get(`/watchers/issue/${issueId}`),
+  isWatching: (issueId: string, userId: string) => api.get(`/watchers/issue/${issueId}/user/${userId}`),
+  watch: (issueId: string, userId: string) => api.post('/watchers', { issueId, userId }),
+  unwatch: (issueId: string, userId: string) => api.delete('/watchers', { data: { issueId, userId } }),
+};
+
+// Export API
+export const exportApi = {
+  toCSV: (params: { projectId?: string; status?: string; assigneeId?: string }) => 
+    api.get('/issue-export/csv', { params, responseType: 'blob' }),
+  toJSON: (params: { projectId?: string; status?: string; assigneeId?: string }) => 
+    api.get('/issue-export/json', { params, responseType: 'blob' }),
+};
+
+// User Activity API
+export const userActivityApi = {
+  getActivity: (userId: string, limit?: number) => 
+    api.get(`/users/${userId}/activity`, { params: { limit } }),
+};
+
+// Project Templates API
+export const projectTemplatesApi = {
+  getAll: () => api.get('/project-templates'),
+  getById: (id: string) => api.get(`/project-templates/${id}`),
+  create: (data: any) => api.post('/project-templates', data),
+};
