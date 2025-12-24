@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Form, Input, Select, Switch, Button, Divider, message, Tabs } from 'antd';
 import { Settings, Users, Shield, Database, Mail, Globe } from 'lucide-react';
 import styled from 'styled-components';
+import { ENV } from '../../config/env';
 
 const Container = styled.div`
   padding: 24px;
@@ -50,7 +51,7 @@ export const SystemSettings: React.FC = () => {
         <Input />
       </Form.Item>
       
-      <Form.Item name="baseUrl" label="Base URL" initialValue="https://ayphen-pm-toll.vercel.app">
+      <Form.Item name="baseUrl" label="Base URL" initialValue={window.location.origin}>
         <Input />
       </Form.Item>
       
