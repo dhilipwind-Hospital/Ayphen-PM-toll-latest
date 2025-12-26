@@ -199,22 +199,8 @@ export const EnhancedDashboard: React.FC = () => {
     fetchData();
   }, [currentProject]);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [currentProject, issues, sprints, workflowStatusList]);
-
-  // No project selected state
-  if (!currentProject) {
-    return (
-      <DashboardContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-          <h2>No project selected</h2>
-        </div>
-      </DashboardContainer>
-    );
-  }
-
   const loadDashboardData = async () => {
+    if (!currentProject) return;
     setLoading(true);
     try {
       const userId = localStorage.getItem('userId');
@@ -285,6 +271,21 @@ export const EnhancedDashboard: React.FC = () => {
     if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
     return `${Math.floor(seconds / 86400)} days ago`;
   };
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [currentProject, issues, sprints, workflowStatusList]);
+
+  // No project selected state
+  if (!currentProject) {
+    return (
+      <DashboardContainer>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <h2>No project selected</h2>
+        </div>
+      </DashboardContainer>
+    );
+  }
 
   if (loading) {
     return (
