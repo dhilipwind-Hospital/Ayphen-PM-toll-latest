@@ -278,6 +278,7 @@ export const BacklogView: React.FC = () => {
   const [issues, setIssues] = useState<any[]>([]);
   const [selectedIssueKey, setSelectedIssueKey] = useState<string | null>(null);
   const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
+  const [backlogLoading, setBacklogLoading] = useState(true);
 
   // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -298,6 +299,7 @@ export const BacklogView: React.FC = () => {
         return;
       }
 
+      setBacklogLoading(true);
       try {
 
         // Fetch sprints
@@ -334,6 +336,8 @@ export const BacklogView: React.FC = () => {
       } catch (e) {
         console.error('[BacklogView] Failed to load backlog:', e);
         message.error('Failed to load backlog');
+      } finally {
+        setBacklogLoading(false);
       }
     };
 
@@ -488,7 +492,7 @@ export const BacklogView: React.FC = () => {
     setIsCompleteSprintModalOpen(true);
   };
 
-  if (!currentProject) {
+  if (!currentProject || backlogLoading) {
     return (
       <Container>
         <div style={{
