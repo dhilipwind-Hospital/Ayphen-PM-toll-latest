@@ -102,8 +102,7 @@ export const EpicBoardView: React.FC = () => {
     return epics.filter(epic => epic.status === status);
   };
   
-  // Show loading while initializing
-  if (!isInitialized || loading) {
+  if (loading) {
     return (
       <Container>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>

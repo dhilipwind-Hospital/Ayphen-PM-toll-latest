@@ -142,17 +142,6 @@ export const CalendarView: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <Container>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-          <Spin size="large" />
-        </div>
-      </Container>
-    );
-  }
-
   // Fetch fresh data from API
   useEffect(() => {
     const loadData = async (isBackground = false) => {

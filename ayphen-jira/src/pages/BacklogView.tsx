@@ -488,17 +488,6 @@ export const BacklogView: React.FC = () => {
     setIsCompleteSprintModalOpen(true);
   };
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <Container>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-          <Spin size="large" />
-        </div>
-      </Container>
-    );
-  }
-
   return (
     <Container>
       <BacklogColumn isSplit={!!selectedIssueKey}>

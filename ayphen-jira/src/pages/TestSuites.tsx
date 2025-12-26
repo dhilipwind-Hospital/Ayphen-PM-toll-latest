@@ -65,15 +65,6 @@ export default function TestSuites() {
     }
   };
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
   const loadTestCases = async () => {
     // ... (existing logic, maybe filter by project if API supports it, but keeping as is for now)
     try {

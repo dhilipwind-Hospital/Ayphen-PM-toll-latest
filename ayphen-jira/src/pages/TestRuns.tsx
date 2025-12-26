@@ -28,15 +28,6 @@ export default function TestRuns() {
     }
   };
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
   const columns = [
     { title: 'Suite', dataIndex: 'suite_name', key: 'suite_name' },
     {

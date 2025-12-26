@@ -105,17 +105,6 @@ export const FiltersView: React.FC = () => {
   const [aiQuery, setAiQuery] = useState('');
   const [form] = Form.useForm();
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <Container>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-          <Spin size="large" />
-        </div>
-      </Container>
-    );
-  }
-
   useEffect(() => {
     loadSavedFilters();
   }, [currentUser]);

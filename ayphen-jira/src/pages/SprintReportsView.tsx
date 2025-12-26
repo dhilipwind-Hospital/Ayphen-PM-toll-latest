@@ -40,17 +40,6 @@ export const SprintReportsView: React.FC = () => {
   const [velocityData, setVelocityData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <Container>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-          <Spin size="large" />
-        </div>
-      </Container>
-    );
-  }
-
   const projectSprints = sprints.filter(s => 
     currentProject ? s.projectId === currentProject.id : true
   );

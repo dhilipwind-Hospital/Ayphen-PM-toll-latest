@@ -1044,22 +1044,6 @@ export const BoardView: React.FC = () => {
     }
   };
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <Container>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '60vh'
-        }}>
-          <Spin size="large" />
-        </div>
-      </Container>
-    );
-  }
-
   if (!currentProject) {
     return (
       <Container>

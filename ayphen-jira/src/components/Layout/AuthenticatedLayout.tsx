@@ -54,7 +54,7 @@ interface AuthenticatedLayoutProps {
 
 export const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  const { setSidebarCollapsed } = useStore();
+  const { setSidebarCollapsed, isInitialized } = useStore();
   const location = useLocation();
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
 
@@ -82,11 +82,11 @@ export const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ childr
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  // Show loading while checking auth
-  if (loading) {
+  // Show loading while checking auth OR waiting for store initialization
+  if (loading || !isInitialized) {
     return (
       <LoadingContainer>
-        <Spin size="large" tip="Loading..." />
+        <Spin size="large" />
       </LoadingContainer>
     );
   }

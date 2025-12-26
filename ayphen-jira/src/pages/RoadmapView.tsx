@@ -531,22 +531,6 @@ export const RoadmapView: React.FC = () => {
   const periods = generatePeriods();
   const todayPosition = calculateTodayPosition();
 
-  // Show spinner until store is initialized to prevent flash
-  if (!isInitialized) {
-    return (
-      <Container>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '60vh'
-        }}>
-          <Spin size="large" />
-        </div>
-      </Container>
-    );
-  }
-
   if (!currentProject) {
     return (
       <Container>

@@ -203,17 +203,6 @@ export const EnhancedDashboard: React.FC = () => {
     loadDashboardData();
   }, [currentProject, issues, sprints, workflowStatusList]);
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <DashboardContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-          <Spin size="large" />
-        </div>
-      </DashboardContainer>
-    );
-  }
-
   // No project selected state
   if (!currentProject) {
     return (

@@ -101,17 +101,6 @@ export default function HierarchyView() {
     }
   };
 
-  // Show loading while initializing
-  if (!isInitialized) {
-    return (
-      <Container>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-          <Spin size="large" />
-        </div>
-      </Container>
-    );
-  }
-
   // Trigger rebuild when workflow statuses load
   useEffect(() => {
     if (issues.length > 0 && workflowStatuses.length > 0) {
