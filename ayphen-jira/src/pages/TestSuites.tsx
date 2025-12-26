@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Input, Modal, List, Typography, message, Checkbox } from 'antd';
+import { Card, Button, Input, Modal, List, Typography, message, Checkbox, Spin } from 'antd';
 import { PlusOutlined, PlayCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -33,7 +33,7 @@ const CardActions = styled.div`
 `;
 
 export default function TestSuites() {
-  const { currentProject } = useStore(); // Get current project
+  const { currentProject, isInitialized } = useStore(); // Get current project
   const [suites, setSuites] = useState([]);
   const [testCases, setTestCases] = useState([]);
   const [open, setOpen] = useState(false);
@@ -64,6 +64,15 @@ export default function TestSuites() {
       setSuites([]);
     }
   };
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   const loadTestCases = async () => {
     // ... (existing logic, maybe filter by project if API supports it, but keeping as is for now)

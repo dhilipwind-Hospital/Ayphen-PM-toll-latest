@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Card, Input, Button, Progress, Avatar, Row, Col, Modal, Form, Select, message, Popconfirm, Empty, Tabs, Table, Tag, Tooltip } from 'antd';
+import { Card, Input, Button, Progress, Avatar, Row, Col, Modal, Form, Select, message, Popconfirm, Empty, Tabs, Table, Tag, Tooltip, Spin } from 'antd';
 import { Search, UserPlus, Users, CheckCircle, Activity, Clock, Edit, Trash2, Mail, RefreshCw, XCircle, LayoutGrid, List } from 'lucide-react';
 import axios from 'axios';
 import { useStore } from '../store/useStore';
@@ -226,7 +226,7 @@ interface TeamMember {
 }
 
 export const PeoplePage: React.FC = () => {
-  const { currentProject } = useStore();
+  const { currentProject, isInitialized } = useStore();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [invitations, setInvitations] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -239,6 +239,17 @@ export const PeoplePage: React.FC = () => {
   const [form] = Form.useForm();
 
   const [currentUserRole, setCurrentUserRole] = useState<string>('member'); // Default to member
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   useEffect(() => {
     if (currentProject) {

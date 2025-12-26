@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Input, Tabs, Tag, Button, Space, Empty, Badge, Modal, Form, message, Select } from 'antd';
+import { Card, Input, Tabs, Tag, Button, Space, Empty, Badge, Modal, Form, message, Select, Spin } from 'antd';
 import { Search, Download, FileText, Bug, CheckSquare, Zap, Save } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { colors } from '../theme/colors';
@@ -92,7 +92,7 @@ const IssueDescription = styled.div`
 export const FiltersView: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { issues, currentProject, currentUser, addFilter } = useStore();
+  const { issues, currentProject, currentUser, addFilter, isInitialized } = useStore();
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [saveFilterModalVisible, setSaveFilterModalVisible] = useState(false);
@@ -104,6 +104,17 @@ export const FiltersView: React.FC = () => {
   const [aiModalVisible, setAiModalVisible] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
   const [form] = Form.useForm();
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   useEffect(() => {
     loadSavedFilters();

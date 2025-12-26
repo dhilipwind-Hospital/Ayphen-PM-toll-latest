@@ -58,7 +58,7 @@ const IssueSummary = styled.span`
 `;
 
 export default function HierarchyView() {
-  const { currentProject } = useStore();
+  const { currentProject, isInitialized } = useStore();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(false);
   const [treeData, setTreeData] = useState<any[]>([]);
@@ -100,6 +100,17 @@ export default function HierarchyView() {
       console.error('Failed to load workflow', e);
     }
   };
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   // Trigger rebuild when workflow statuses load
   useEffect(() => {

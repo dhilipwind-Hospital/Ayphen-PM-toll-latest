@@ -130,7 +130,7 @@ const EventItem = styled.div<{ type: string }>`
 
 export const CalendarView: React.FC = () => {
   const navigate = useNavigate();
-  const { currentProject } = useStore();
+  const { currentProject, isInitialized } = useStore();
   const [filter, setFilter] = useState<string>('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
@@ -141,6 +141,17 @@ export const CalendarView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   // Fetch fresh data from API
   useEffect(() => {

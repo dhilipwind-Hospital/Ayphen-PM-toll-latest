@@ -75,8 +75,19 @@ export default function ManualTestCases() {
   const [editId, setEditId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { currentProject } = useStore();
+  const { currentProject, isInitialized } = useStore();
   const navigate = useNavigate();
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   useEffect(() => {
     loadTestCases();

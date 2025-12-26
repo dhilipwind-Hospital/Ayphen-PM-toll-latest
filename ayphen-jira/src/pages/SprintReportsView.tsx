@@ -33,12 +33,23 @@ const StatsRow = styled(Row)`
 `;
 
 export const SprintReportsView: React.FC = () => {
-  const { sprints, currentProject } = useStore();
+  const { sprints, currentProject, isInitialized } = useStore();
   const [selectedSprintId, setSelectedSprintId] = useState<string>('');
   const [reportData, setReportData] = useState<any>(null);
   const [burndownData, setBurndownData] = useState<any[]>([]);
   const [velocityData, setVelocityData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   const projectSprints = sprints.filter(s => 
     currentProject ? s.projectId === currentProject.id : true

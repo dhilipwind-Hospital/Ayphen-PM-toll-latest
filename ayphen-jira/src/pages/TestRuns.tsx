@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table, Tag } from 'antd';
+import { Table, Tag, Spin } from 'antd';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
@@ -7,7 +7,7 @@ import { useStore } from '../store/useStore';
 export default function TestRuns() {
   const [runs, setRuns] = useState([]);
   const navigate = useNavigate();
-  const { currentProject } = useStore();
+  const { currentProject, isInitialized } = useStore();
 
   useEffect(() => {
     if (currentProject) {
@@ -27,6 +27,15 @@ export default function TestRuns() {
       setRuns([]);
     }
   };
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   const columns = [
     { title: 'Suite', dataIndex: 'suite_name', key: 'suite_name' },

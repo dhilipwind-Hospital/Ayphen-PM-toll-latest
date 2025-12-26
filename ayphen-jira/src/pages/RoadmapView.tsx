@@ -281,7 +281,7 @@ export const RoadmapView: React.FC = () => {
   };
 
   const timelineRef = useRef<HTMLDivElement>(null);
-  const projectId = currentProject?.id || 'default-project';
+  const projectId = currentProject?.id;
 
   useEffect(() => {
     if (currentProject) {
