@@ -1049,17 +1049,11 @@ export const BoardView: React.FC = () => {
       <Container>
         <div style={{
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
           justifyContent: 'center',
-          height: '60vh',
-          gap: '16px'
+          alignItems: 'center',
+          height: '60vh'
         }}>
-          <h2>No Project Selected</h2>
-          <p>Please select a project from the dropdown in the header to view the board.</p>
-          <Button type="primary" onClick={() => navigate('/projects')}>
-            Go to Projects
-          </Button>
+          <Spin size="large" />
         </div>
       </Container>
     );

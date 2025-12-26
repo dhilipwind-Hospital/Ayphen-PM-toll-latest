@@ -488,6 +488,21 @@ export const BacklogView: React.FC = () => {
     setIsCompleteSprintModalOpen(true);
   };
 
+  if (!currentProject) {
+    return (
+      <Container>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '60vh'
+        }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <BacklogColumn isSplit={!!selectedIssueKey}>

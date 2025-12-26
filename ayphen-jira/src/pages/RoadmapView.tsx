@@ -536,17 +536,11 @@ export const RoadmapView: React.FC = () => {
       <Container>
         <div style={{
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
           justifyContent: 'center',
-          height: '60vh',
-          gap: '16px'
+          alignItems: 'center',
+          height: '60vh'
         }}>
-          <h2>No Project Selected</h2>
-          <p>Please select a project from the dropdown in the header to view the roadmap.</p>
-          <Button type="primary" onClick={() => window.location.href = '/projects'}>
-            Go to Projects
-          </Button>
+          <Spin size="large" />
         </div>
       </Container>
     );
