@@ -305,7 +305,6 @@ export const CalendarView: React.FC = () => {
             type="primary"
             icon={<Plus size={16} />}
             onClick={() => setCreateModalOpen(true)}
-            style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', borderColor: '#0EA5E9', color: '#FFFFFF' }}
           >
             Create Issue
           </Button>

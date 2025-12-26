@@ -361,7 +361,7 @@ export const KanbanBoard: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Button type="primary" htmlType="submit" block style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', color: '#FFFFFF', border: 'none' }}>
+          <Button type="primary" htmlType="submit" block>
             Create Issue
           </Button>
         </Form>

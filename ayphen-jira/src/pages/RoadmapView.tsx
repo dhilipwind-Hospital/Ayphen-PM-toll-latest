@@ -481,7 +481,7 @@ export const RoadmapView: React.FC = () => {
             <Select.Option value="weeks">Weeks</Select.Option>
           </Select>
           <Button icon={<Filter size={16} />}>Filters</Button>
-          <Button type="primary" icon={<Plus size={16} />} onClick={() => setCreateEpicModalVisible(true)} style={{ color: '#FFFFFF' }}>
+          <Button type="primary" icon={<Plus size={16} />} onClick={() => setCreateEpicModalVisible(true)}>
             Create Epic
           </Button>
         </Controls>

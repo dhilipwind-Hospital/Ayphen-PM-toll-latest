@@ -297,14 +297,12 @@ export const AdvancedSearch: React.FC = () => {
           <Button
             type={searchMode === 'basic' ? 'primary' : 'default'}
             onClick={() => setSearchMode('basic')}
-            style={{ background: searchMode === 'basic' ? 'linear-gradient(to right, #0284C7, #0EA5E9)' : undefined, color: searchMode === 'basic' ? '#FFFFFF' : undefined }}
           >
             <Filter size={16} /> Basic
           </Button>
           <Button
             type={searchMode === 'jql' ? 'primary' : 'default'}
             onClick={() => setSearchMode('jql')}
-            style={{ background: searchMode === 'jql' ? 'linear-gradient(to right, #0284C7, #0EA5E9)' : undefined, color: searchMode === 'jql' ? '#FFFFFF' : undefined }}
           >
             <Code size={16} /> JQL
           </Button>
@@ -382,7 +380,6 @@ export const AdvancedSearch: React.FC = () => {
             type="primary"
             icon={<Search size={16} />}
             onClick={executeSearch}
-            style={{ background: 'linear-gradient(to right, #0284C7, #0EA5E9)', color: '#FFFFFF' }}
           >
             Search
           </Button>

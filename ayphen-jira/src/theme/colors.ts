@@ -13,6 +13,7 @@ export const colors = {
   },
 
   neutral: {
+    0: '#FFFFFF',
     50: '#FAFAFA',
     100: '#F5F5F5',
     200: '#E5E5E5',
@@ -92,6 +93,7 @@ export const colors = {
   sidebar: {
     background: '#F8F9FA',
     backgroundHover: '#F3F4F6',
+    activeBackground: '#EBF5FF',
     text: '#374151',
     textHover: '#111827',
     active: '#0EA5E9',

@@ -299,7 +299,6 @@ export const BugsListView: React.FC = () => {
               type="primary"
               icon={<Plus size={16} />}
               onClick={() => setCreateModalOpen(true)}
-              style={{ color: '#FFFFFF' }}
             >
               Report Bug
             </Button>

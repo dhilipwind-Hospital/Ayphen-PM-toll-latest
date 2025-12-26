@@ -499,7 +499,6 @@ export const BacklogView: React.FC = () => {
                 type="primary"
                 icon={<Plus size={16} />}
                 onClick={() => setIsCreateModalOpen(true)}
-                style={{ color: '#FFFFFF' }}
               >
                 Create Issue
               </Button>
@@ -547,7 +546,7 @@ export const BacklogView: React.FC = () => {
           <SprintCard title={<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <span style={{ fontWeight: 600 }}>Backlog ({backlogIssues.length} issues)</span>
             <Tooltip title="Create a new sprint container">
-              <Button size="small" type="primary" onClick={() => setIsCreateSprintModalOpen(true)} style={{ color: '#FFFFFF' }}>+ Create Sprint</Button>
+              <Button size="small" type="primary" onClick={() => setIsCreateSprintModalOpen(true)}>+ Create Sprint</Button>
             </Tooltip>
           </div>}>
             <DroppableSprint

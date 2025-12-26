@@ -56,10 +56,11 @@ export const antdTheme: ThemeConfig = {
       itemColor: colors.sidebar.text,
     },
     Button: {
-      primaryColor: colors.neutral[0],
+      primaryColor: '#FFFFFF',
       colorPrimary: colors.primary[500],
       colorPrimaryHover: colors.primary[600],
       colorPrimaryActive: colors.primary[700],
+      colorTextLightSolid: '#FFFFFF',
     },
     Input: {
       colorBorder: colors.border.light,
