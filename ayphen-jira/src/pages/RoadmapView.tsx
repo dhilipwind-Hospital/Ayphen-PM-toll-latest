@@ -261,7 +261,7 @@ export const RoadmapView: React.FC = () => {
   const { currentProject, currentUser, isInitialized } = useStore();
   const [view, setView] = useState<'quarters' | 'months' | 'weeks'>('months');
   const [epics, setEpics] = useState<Epic[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedEpic, setSelectedEpic] = useState<Epic | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [draggedEpic, setDraggedEpic] = useState<string | null>(null);
@@ -566,8 +566,12 @@ export const RoadmapView: React.FC = () => {
         </Controls>
       </Header>
 
-      <TimelineContainer loading={loading}>
-        {epics.length > 0 ? (
+      <TimelineContainer>
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+            <Spin size="large" />
+          </div>
+        ) : epics.length > 0 ? (
           <Timeline ref={timelineRef}>
             <TimelineHeader>
               <div style={{ width: 200 }} /> {/* Space for epic labels */}

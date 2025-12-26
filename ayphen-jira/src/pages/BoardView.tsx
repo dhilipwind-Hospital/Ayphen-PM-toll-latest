@@ -531,6 +531,7 @@ export const BoardView: React.FC = () => {
   const [savedViews, setSavedViews] = useState<any[]>([]);
   const [currentView, setCurrentView] = useState<any>(null);
   const [activeSprint, setActiveSprint] = useState<any>(null);
+  const [boardLoading, setBoardLoading] = useState(true);
 
   const [columns, setColumns] = useState([
     { id: 'backlog', title: 'Backlog', statuses: ['backlog'], wipLimit: undefined, color: '#8c8c8c' },
@@ -618,7 +619,9 @@ export const BoardView: React.FC = () => {
       const res = await sprintsApi.getAll(currentProject?.id, userId);
       const active = res.data.find((s: any) => s.status === 'active');
       setActiveSprint(active);
-    } catch (e) { console.error('Failed to load sprints', e); }
+    } catch (e) { console.error('Failed to load sprints', e); } finally {
+      setBoardLoading(false);
+    }
   };
 
   const loadIssues = async () => {
@@ -1130,7 +1133,17 @@ export const BoardView: React.FC = () => {
         currentUserId={currentUser?.id}
       />
 
-      {currentProject?.type === 'scrum' && !activeSprint ? (
+      {boardLoading ? (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '60vh',
+          width: '100%'
+        }}>
+          <Spin size="large" />
+        </div>
+      ) : currentProject?.type === 'scrum' && !activeSprint ? (
         <div style={{
           display: 'flex',
           flexDirection: 'column',
