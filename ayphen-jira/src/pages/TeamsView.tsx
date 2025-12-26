@@ -42,7 +42,7 @@ const API_URL = ENV.API_URL;
 
 export const TeamsView: React.FC = () => {
   const navigate = useNavigate();
-  const { currentProject } = useStore();
+  const { currentProject, isInitialized } = useStore();
   const [teams, setTeams] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -202,6 +202,17 @@ export const TeamsView: React.FC = () => {
       ),
     },
   ];
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>

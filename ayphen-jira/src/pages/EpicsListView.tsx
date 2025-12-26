@@ -96,18 +96,20 @@ const StatsRow = styled.div`
 
 export const EpicsListView: React.FC = () => {
   const navigate = useNavigate();
-  const { currentProject, issues } = useStore();
+  const { currentProject, issues, isInitialized } = useStore();
   const [loading, setLoading] = useState(false);
   const [epics, setEpics] = useState<any[]>([]);
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [storyCounts, setStoryCounts] = useState<Record<string, { stories: number, bugs: number }>>({});
 
-  const projectId = currentProject?.id || 'default-project';
+  const projectId = currentProject?.id;
 
   useEffect(() => {
-    loadEpics();
-  }, [projectId]);
+    if (currentProject) {
+      loadEpics();
+    }
+  }, [currentProject?.id]);
 
   useEffect(() => {
     calculateStoryCounts();
@@ -128,10 +130,11 @@ export const EpicsListView: React.FC = () => {
   };
 
   const loadEpics = async () => {
+    if (!currentProject) return;
     setLoading(true);
     try {
       const userId = localStorage.getItem('userId');
-      const response = await api.get('/epics', { params: { projectId, userId } });
+      const response = await api.get('/epics', { params: { projectId: currentProject.id, userId } });
       setEpics(response.data);
     } catch (error) {
       console.error('Failed to load epics:', error);
@@ -140,6 +143,17 @@ export const EpicsListView: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   const filteredEpics = epics.filter(epic => {
     if (filter === 'active') return epic.progress < 100;

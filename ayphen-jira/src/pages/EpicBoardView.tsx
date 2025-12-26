@@ -73,21 +73,22 @@ const statusColumns = [
 ];
 
 export const EpicBoardView: React.FC = () => {
-  const { currentProject } = useStore();
+  const { currentProject, isInitialized } = useStore();
   const [loading, setLoading] = useState(false);
   const [epics, setEpics] = useState<any[]>([]);
   
-  const projectId = currentProject?.id || 'default-project';
-  
   useEffect(() => {
-    loadEpics();
-  }, [projectId]);
+    if (currentProject) {
+      loadEpics();
+    }
+  }, [currentProject?.id]);
   
   const loadEpics = async () => {
+    if (!currentProject) return;
     setLoading(true);
     try {
       const userId = localStorage.getItem('userId');
-      const response = await axios.get(`${API_URL}/epics?projectId=${projectId}&userId=${userId}`);
+      const response = await axios.get(`${API_URL}/epics?projectId=${currentProject.id}&userId=${userId}`);
       setEpics(response.data);
     } catch (error) {
       console.error('Failed to load epics:', error);
@@ -101,11 +102,12 @@ export const EpicBoardView: React.FC = () => {
     return epics.filter(epic => epic.status === status);
   };
   
-  if (loading) {
+  // Show loading while initializing
+  if (!isInitialized || loading) {
     return (
       <Container>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-          <Spin size="large" tip="Loading epic board..." />
+          <Spin size="large" />
         </div>
       </Container>
     );
