@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Table, Tag, Button, Select, message, Spin, Progress, Tooltip, Space, Badge, Tabs } from 'antd';
-import { Plus, TrendingUp, Eye, FileText, Bug, List, LayoutGrid, Calendar } from 'lucide-react';
+import { Table, Tag, Button, Select, message, Spin, Progress, Tooltip, Space, Badge } from 'antd';
+import { Plus, TrendingUp, Eye, FileText, Bug } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { CreateIssueModal } from '../components/CreateIssueModal';
 import { api } from '../services/api';
@@ -102,7 +102,6 @@ export const EpicsListView: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [storyCounts, setStoryCounts] = useState<Record<string, { stories: number, bugs: number }>>({});
-  const [activeTab, setActiveTab] = useState('list');
 
   const projectId = currentProject?.id || 'default-project';
 
@@ -292,22 +291,10 @@ export const EpicsListView: React.FC = () => {
   return (
     <Container>
       <Header>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <Title>
-            <TrendingUp size={28} color="#0EA5E9" />
-            Epics
-          </Title>
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            style={{ marginBottom: 0 }}
-            items={[
-              { key: 'list', label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><List size={14} /> List</span> },
-              { key: 'board', label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><LayoutGrid size={14} /> Board</span> },
-              { key: 'timeline', label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={14} /> Timeline</span> },
-            ]}
-          />
-        </div>
+        <Title>
+          <TrendingUp size={28} color="#0EA5E9" />
+          Epics
+        </Title>
         <div style={{ display: 'flex', gap: 12 }}>
           <Select
             value={filter}
