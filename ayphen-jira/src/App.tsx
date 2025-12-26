@@ -80,7 +80,7 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const { currentUser, currentProject, setCurrentUser, setProjects, setCurrentProject, setIssues, setBoards, setSprints, setCurrentBoard } = useStore();
+  const { currentUser, currentProject, setCurrentUser, setProjects, setCurrentProject, setIssues, setBoards, setSprints, setCurrentBoard, setIsInitialized } = useStore();
 
   // Initialize Socket Connection
   useEffect(() => {
@@ -208,6 +208,9 @@ function App() {
       } catch (error) {
         console.error('❌ Error loading data:', error);
         // Don't throw - allow app to continue with empty data
+      } finally {
+        // Mark store as initialized after data load attempt
+        setIsInitialized(true);
       }
     };
 

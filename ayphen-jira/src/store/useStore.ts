@@ -96,6 +96,8 @@ interface AppState {
   favorites: FavoriteItem[];
   toggleFavorite: (type: 'issue' | 'project' | 'filter' | 'dashboard', id: string) => void;
   isFavorite: (type: 'issue' | 'project' | 'filter' | 'dashboard', id: string) => boolean;
+  isInitialized: boolean;
+  setIsInitialized: (initialized: boolean) => void;
 
   // Computed Selectors
   getCurrentProjectIssues: () => Issue[];
@@ -236,6 +238,8 @@ export const useStore = create<AppState>((set, get) => ({
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
   theme: 'light',
   setTheme: (theme) => set({ theme }),
+  isInitialized: false,
+  setIsInitialized: (initialized) => set({ isInitialized: initialized }),
 
   // Favorites
   favorites: JSON.parse(localStorage.getItem('user_favorites') || '[]'),

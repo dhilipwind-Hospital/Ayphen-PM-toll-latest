@@ -258,11 +258,10 @@ interface Epic {
 }
 
 export const RoadmapView: React.FC = () => {
-  const { currentProject, currentUser } = useStore();
+  const { currentProject, currentUser, isInitialized } = useStore();
   const [view, setView] = useState<'quarters' | 'months' | 'weeks'>('months');
   const [epics, setEpics] = useState<Epic[]>([]);
   const [loading, setLoading] = useState(false);
-  const [initializing, setInitializing] = useState(true);
   const [selectedEpic, setSelectedEpic] = useState<Epic | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [draggedEpic, setDraggedEpic] = useState<string | null>(null);
@@ -283,14 +282,6 @@ export const RoadmapView: React.FC = () => {
 
   const timelineRef = useRef<HTMLDivElement>(null);
   const projectId = currentProject?.id || 'default-project';
-
-  // Wait for store to initialize before showing "No Project Selected"
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setInitializing(false);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (currentProject) {
@@ -540,8 +531,8 @@ export const RoadmapView: React.FC = () => {
   const periods = generatePeriods();
   const todayPosition = calculateTodayPosition();
 
-  // Show spinner during initialization to prevent flash
-  if (initializing) {
+  // Show spinner until store is initialized to prevent flash
+  if (!isInitialized) {
     return (
       <Container>
         <div style={{
