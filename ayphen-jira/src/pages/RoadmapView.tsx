@@ -43,28 +43,44 @@ const Controls = styled.div`
 const TimelineContainer = styled(Card)`
   margin-bottom: 24px;
   overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-radius: 8px;
 `;
 
 const Timeline = styled.div`
   position: relative;
   min-width: 1200px;
-  padding: 20px 0;
+  padding: 20px;
+  background: #FFFFFF;
 `;
 
 const TimelineHeader = styled.div`
   display: flex;
-  border-bottom: 2px solid #e8e8e8;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+  border-bottom: 3px solid #DFE1E6;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  background: #F8FAFC;
+  margin-left: -20px;
+  margin-right: -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 12px;
 `;
 
-const PeriodColumn = styled.div<{ width: number }>`
+const PeriodColumn = styled.div<{ width: number; isToday?: boolean }>`
   flex: 0 0 ${props => props.width}px;
   text-align: center;
-  font-weight: 600;
-  font-size: 12px;
-  color: #666;
-  border-right: 1px solid #f0f0f0;
+  font-weight: 700;
+  font-size: 13px;
+  color: ${props => props.isToday ? '#1890ff' : '#344054'};
+  border-right: 2px solid #E2E8F0;
+  padding: 8px 12px;
+  position: relative;
+  background: ${props => props.isToday ? '#F0F7FF' : 'transparent'};
+  
+  &:last-child {
+    border-right: none;
+  }
 `;
 
 const EpicsContainer = styled.div`
@@ -77,6 +93,17 @@ const EpicRow = styled.div`
   margin-bottom: 16px;
   display: flex;
   align-items: center;
+  transition: background 0.2s ease;
+  padding: 4px 0;
+  border-radius: 4px;
+  
+  &:hover {
+    background: #F8FAFC;
+  }
+  
+  &:not(:last-child) {
+    border-bottom: 1px solid #F3F4F6;
+  }
 `;
 
 const EpicLabel = styled.div`
@@ -97,24 +124,26 @@ const EpicLabel = styled.div`
   }
 `;
 
-const EpicBar = styled.div<{ left: number; width: number; color: string; isDragging?: boolean }>`
+const EpicBar = styled.div<{ left: number; width: number; color: string; isDragging?: boolean; isPlaceholder?: boolean }>`
   position: absolute;
   left: ${props => props.left + 220}px;
   width: ${props => props.width}px;
   height: 40px;
-  background: ${props => props.color};
+  background: ${props => props.isPlaceholder ? 'transparent' : props.color};
+  border: ${props => props.isPlaceholder ? '2px dashed #D0D5DD' : 'none'};
   border-radius: 6px;
-  cursor: move;
+  cursor: ${props => props.isPlaceholder ? 'pointer' : 'move'};
   display: flex;
   align-items: center;
   padding: 0 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: ${props => props.isPlaceholder ? 'none' : '0 2px 4px rgba(0,0,0,0.1)'};
   transition: ${props => props.isDragging ? 'none' : 'all 0.2s ease'};
   opacity: ${props => props.isDragging ? 0.7 : 1};
   
   &:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    transform: translateY(-2px);
+    box-shadow: ${props => props.isPlaceholder ? '0 0 0 2px #1890ff' : '0 4px 8px rgba(0,0,0,0.15)'};
+    transform: ${props => props.isPlaceholder ? 'none' : 'translateY(-2px)'};
+    border-color: ${props => props.isPlaceholder ? '#1890ff' : 'transparent'};
   }
 `;
 
@@ -152,6 +181,31 @@ const DependencyLine = styled.svg`
   height: 100%;
   pointer-events: none;
   z-index: 1;
+`;
+
+const TodayIndicator = styled.div<{ position: number }>`
+  position: absolute;
+  left: ${props => props.position + 220}px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #EF4444;
+  z-index: 10;
+  pointer-events: none;
+  
+  &::before {
+    content: 'Today';
+    position: absolute;
+    top: -24px;
+    left: -20px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #EF4444;
+    background: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #EF4444;
+  }
 `;
 
 const SidePanel = styled.div`
@@ -366,7 +420,14 @@ export const RoadmapView: React.FC = () => {
     return { left: Math.max(0, left), width: Math.max(20, width) };
   };
 
-  const calculateEpicPosition = (epic: Epic) => calculatePosition(epic);
+  const calculateEpicPosition = (epic: Epic) => {
+    if (!epic.startDate || !epic.endDate) {
+      // Return placeholder position for epics without dates
+      const periods = generatePeriods();
+      return { left: 0, width: periods.length * 150, isPlaceholder: true };
+    }
+    return { ...calculatePosition(epic), isPlaceholder: false };
+  };
 
   const getEpicColor = (status: string) => {
     const colorMap: Record<string, string> = {
@@ -444,7 +505,31 @@ export const RoadmapView: React.FC = () => {
     }
   };
 
+  const calculateTodayPosition = () => {
+    const { start: timelineStart } = calculateTimelineBounds();
+    const periods = generatePeriods();
+    const totalWidth = periods.length * 150;
+    
+    const lastPeriod = periods[periods.length - 1];
+    if (!lastPeriod) return -1;
+    
+    const timelineStartTime = timelineStart.getTime();
+    const timelineEndTime = new Date(lastPeriod.end).getTime();
+    const timelineRange = timelineEndTime - timelineStartTime;
+    
+    const now = new Date().getTime();
+    if (now < timelineStartTime || now > timelineEndTime) return -1;
+    
+    return ((now - timelineStartTime) / timelineRange) * totalWidth;
+  };
+
+  const isCurrentPeriod = (period: { start: Date; end: Date }) => {
+    const now = new Date();
+    return now >= period.start && now <= period.end;
+  };
+
   const periods = generatePeriods();
+  const todayPosition = calculateTodayPosition();
 
   if (!currentProject) {
     return (
@@ -493,7 +578,7 @@ export const RoadmapView: React.FC = () => {
             <TimelineHeader>
               <div style={{ width: 200 }} /> {/* Space for epic labels */}
               {periods.map((period, index) => (
-                <PeriodColumn key={index} width={150}>
+                <PeriodColumn key={index} width={150} isToday={isCurrentPeriod(period)}>
                   {period.label}
                 </PeriodColumn>
               ))}
@@ -548,9 +633,12 @@ export const RoadmapView: React.FC = () => {
                 </defs>
               </DependencyLine>
 
+              {/* Today indicator */}
+              {todayPosition >= 0 && <TodayIndicator position={todayPosition} />}
+
               {/* Epic bars */}
               {epics.map((epic, index) => {
-                const { left, width } = calculateEpicPosition(epic);
+                const { left, width, isPlaceholder } = calculateEpicPosition(epic);
                 const isExpanded = expandedEpics.has(epic.id);
 
                 return (
@@ -563,20 +651,37 @@ export const RoadmapView: React.FC = () => {
                           - {epic.summary}
                         </span>
                       </EpicLabel>
-                      <EpicBar
-                        left={left}
-                        width={width}
-                        color={getEpicColor(epic.status)}
-                        isDragging={draggedEpic === epic.id}
-                        onClick={() => handleEpicClick(epic)}
-                      >
-                        <ResizeHandle position="left" />
-                        <EpicBarContent>
-                          <span>{epic.summary.substring(0, 20)}...</span>
-                          <span>{epic.progress}%</span>
-                        </EpicBarContent>
-                        <ResizeHandle position="right" />
-                      </EpicBar>
+                      {isPlaceholder ? (
+                        <EpicBar
+                          left={left}
+                          width={width}
+                          color="#D0D5DD"
+                          isPlaceholder={true}
+                          onClick={() => handleEpicClick(epic)}
+                        >
+                          <EpicBarContent style={{ color: '#667085', justifyContent: 'center' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <Calendar size={14} />
+                              No dates set - Click to add dates
+                            </span>
+                          </EpicBarContent>
+                        </EpicBar>
+                      ) : (
+                        <EpicBar
+                          left={left}
+                          width={width}
+                          color={getEpicColor(epic.status)}
+                          isDragging={draggedEpic === epic.id}
+                          onClick={() => handleEpicClick(epic)}
+                        >
+                          <ResizeHandle position="left" />
+                          <EpicBarContent>
+                            <span>{epic.summary.substring(0, 20)}...</span>
+                            <span>{epic.progress}%</span>
+                          </EpicBarContent>
+                          <ResizeHandle position="right" />
+                        </EpicBar>
+                      )}
                     </EpicRow>
 
                     {/* Render Children if Expanded */}
