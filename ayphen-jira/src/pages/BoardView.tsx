@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Button, Tag, message, Avatar, Modal } from 'antd';
+import { Button, Tag, message, Avatar, Modal, Spin } from 'antd';
 import { FileText, Bug, Layers, Plus, Star, Settings, Paperclip, MessageSquare, Link2 } from 'lucide-react';
 import { ContextMenu } from '../components/ContextMenu';
 import { QuickFilters } from '../components/QuickFilters';
@@ -503,7 +503,7 @@ const DroppableColumn = React.memo<DroppableColumnProps>(({ status, title, categ
 
 export const BoardView: React.FC = () => {
   const navigate = useNavigate();
-  const { issues, setIssues, updateIssue, currentProject, currentUser } = useStore();
+  const { issues, setIssues, updateIssue, currentProject, currentUser, isInitialized } = useStore();
   const [filterType, setFilterType] = useState<string[]>([]);
   const [filterAssignee, setFilterAssignee] = useState<string[]>([]);
   const [filterPriority, setFilterPriority] = useState<string[]>([]);
@@ -1043,6 +1043,22 @@ export const BoardView: React.FC = () => {
       message.error('Failed to set default view');
     }
   };
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '60vh'
+        }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   if (!currentProject) {
     return (

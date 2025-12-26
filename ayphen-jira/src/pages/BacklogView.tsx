@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { Card, Button, Tag, Avatar, Badge, Tooltip, message, Dropdown, Modal, Empty } from 'antd';
+import { Card, Button, Tag, Avatar, Badge, Tooltip, message, Dropdown, Modal, Empty, Spin } from 'antd';
 import { Plus, MoreHorizontal, GripVertical, Bug, BookOpen, CheckSquare, Zap, X } from 'lucide-react';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
@@ -271,7 +271,7 @@ const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssue
 
 export const BacklogView: React.FC = () => {
   const navigate = useNavigate();
-  const { currentProject } = useStore();
+  const { currentProject, isInitialized } = useStore();
 
   // Use LOCAL state for sprints to ensure re-rendering
   const [localSprints, setLocalSprints] = useState<any[]>([]);
@@ -487,6 +487,17 @@ export const BacklogView: React.FC = () => {
     setSelectedSprint(sprint);
     setIsCompleteSprintModalOpen(true);
   };
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>

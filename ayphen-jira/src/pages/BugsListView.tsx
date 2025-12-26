@@ -105,7 +105,7 @@ const SeverityTag = styled(Tag) <{ severity: string }>`
 
 export const BugsListView: React.FC = () => {
   const navigate = useNavigate();
-  const { issues, currentProject } = useStore();
+  const { issues, currentProject, isInitialized } = useStore();
   const [loading, setLoading] = useState(false);
   // const [bugs, setBugs] = useState<any[]>([]); // REPLACED by useMemo
   // const [filteredBugs, setFilteredBugs] = useState<any[]>([]); // REPLACED by useMemo
@@ -202,6 +202,17 @@ export const BugsListView: React.FC = () => {
     };
     return colors[priority] || 'default';
   };
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   const columns = [
     {

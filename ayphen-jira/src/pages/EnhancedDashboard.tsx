@@ -147,10 +147,10 @@ const AnimatedCounter: React.FC<{ value: number; duration?: number }> = ({ value
 
 export const EnhancedDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { currentProject, issues, sprints, currentUser, isInitialized, setIssues, setSprints } = useStore();
   const [timeRange, setTimeRange] = useState('week');
   const [projectFilter, setProjectFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const { issues, setIssues, currentProject, sprints, setSprints } = useStore();
   const [stats, setStats] = useState([
     { title: 'Total Issues', value: 0, icon: <TrendingUp size={28} />, color: '#0EA5E9' },
     { title: 'In Progress', value: 0, icon: <Clock size={28} />, color: '#38BDF8' },
@@ -201,7 +201,29 @@ export const EnhancedDashboard: React.FC = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [currentProject, issues, sprints]);
+  }, [currentProject, issues, sprints, workflowStatusList]);
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <DashboardContainer>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </DashboardContainer>
+    );
+  }
+
+  // No project selected state
+  if (!currentProject) {
+    return (
+      <DashboardContainer>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <h2>No project selected</h2>
+        </div>
+      </DashboardContainer>
+    );
+  }
 
   const loadDashboardData = async () => {
     setLoading(true);

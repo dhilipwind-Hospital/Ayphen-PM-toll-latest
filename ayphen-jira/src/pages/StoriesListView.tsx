@@ -103,7 +103,7 @@ const FilterBar = styled.div`
 
 export const StoriesListView: React.FC = () => {
   const navigate = useNavigate();
-  const { issues, currentProject } = useStore();
+  const { issues, currentProject, isInitialized } = useStore();
   const [loading, setLoading] = useState(false);
   // const [stories, setStories] = useState<any[]>([]); // REPLACED by useMemo
   // const [filteredStories, setFilteredStories] = useState<any[]>([]); // REPLACED by useMemo
@@ -251,6 +251,17 @@ export const StoriesListView: React.FC = () => {
     };
     return colors[priority] || 'default';
   };
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <Container>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <Spin size="large" />
+        </div>
+      </Container>
+    );
+  }
 
   const columns = [
     {
