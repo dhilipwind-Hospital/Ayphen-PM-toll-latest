@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, Button, Table, Tag, Tabs, DatePicker, Select, Empty, Spin, Avatar, Statistic, Row, Col } from 'antd';
-import { Clock, Calendar, CalendarDays, CalendarRange, Download, Timer, Edit2, Trash2 } from 'lucide-react';
+import { Card, Button, Tag, Tabs, DatePicker, Select, Empty, Spin, Avatar, Statistic, Input, message, Progress } from 'antd';
+import { Clock, Calendar, CalendarDays, CalendarRange, Download, Timer, Play, Pause, Square, BarChart3, Users, Filter } from 'lucide-react';
 import styled from 'styled-components';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -13,8 +13,64 @@ dayjs.extend(isoWeek);
 
 const PageContainer = styled.div`
   padding: 24px;
-  background: #FAF9F7;
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
   min-height: calc(100vh - 64px);
+`;
+
+const TimerCard = styled(Card)`
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15);
+  border: 1px solid rgba(14, 165, 233, 0.1);
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%);
+  text-align: center;
+`;
+
+const TimerDisplay = styled.div`
+  font-size: 56px;
+  font-weight: bold;
+  color: #0EA5E9;
+  margin: 20px 0;
+  font-family: 'Monaco', 'Consolas', monospace;
+  letter-spacing: 4px;
+`;
+
+const ControlButton = styled(Button)<{ $variant?: 'start' | 'pause' | 'stop' }>`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: ${props => {
+    switch (props.$variant) {
+      case 'start': return 'linear-gradient(135deg, #10B981, #059669)';
+      case 'pause': return 'linear-gradient(135deg, #F59E0B, #D97706)';
+      case 'stop': return 'linear-gradient(135deg, #EF4444, #DC2626)';
+      default: return 'linear-gradient(135deg, #0EA5E9, #38BDF8)';
+    }
+  }};
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 4px 15px ${props => {
+    switch (props.$variant) {
+      case 'start': return 'rgba(16, 185, 129, 0.4)';
+      case 'pause': return 'rgba(245, 158, 11, 0.4)';
+      case 'stop': return 'rgba(239, 68, 68, 0.4)';
+      default: return 'rgba(14, 165, 233, 0.4)';
+    }
+  }};
+  
+  &:hover {
+    transform: scale(1.08);
+    transition: all 0.2s ease;
+    opacity: 0.95;
+  }
+
+  svg {
+    color: white !important;
+  }
 `;
 
 const PageHeader = styled.div`
@@ -36,15 +92,19 @@ const Title = styled.h1`
 
 const StatsRow = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
 `;
@@ -144,6 +204,18 @@ const FilterBar = styled.div`
   flex-wrap: wrap;
 `;
 
+const FilterSection = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid ${colors.border.light};
+  margin-bottom: 16px;
+`;
+
 interface WorkLogEntry {
   id: string;
   issueId: string;
@@ -165,13 +237,92 @@ type ViewMode = 'today' | 'week' | 'month' | 'all';
 export const TimeTrackingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [workLogs, setWorkLogs] = useState<WorkLogEntry[]>([]);
-  const [viewMode, setViewMode] = useState<ViewMode>('today');
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const { currentProject, issues } = useStore();
+  const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
+  const { currentProject, issues, currentUser } = useStore();
+
+  // Timer state
+  const [isRunning, setIsRunning] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [currentIssue, setCurrentIssue] = useState('');
+  const [description, setDescription] = useState('');
+  const [startTime, setStartTime] = useState<Date | null>(null);
+
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRunning) {
+      interval = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning]);
 
   useEffect(() => {
     loadWorkLogs();
   }, [currentProject]);
+
+  const formatTimerDisplay = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const startTimer = () => {
+    if (!currentIssue) {
+      message.warning('Please select an issue first');
+      return;
+    }
+    setIsRunning(true);
+    setStartTime(new Date());
+  };
+
+  const pauseTimer = () => {
+    setIsRunning(false);
+  };
+
+  const stopTimer = async () => {
+    if (elapsedTime > 0 && currentIssue) {
+      try {
+        const timeSpentMinutes = Math.ceil(elapsedTime / 60);
+        const userId = localStorage.getItem('userId') || '';
+        const userName = localStorage.getItem('userName') || 'User';
+
+        const newWorkLog = {
+          id: `worklog-${Date.now()}`,
+          timeSpentMinutes,
+          description,
+          startDate: startTime?.toISOString() || new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          author: {
+            id: userId,
+            name: userName,
+            avatar: localStorage.getItem('userAvatar') || undefined
+          }
+        };
+
+        await issuesApi.update(currentIssue, {
+          $addWorkLog: newWorkLog,
+          timeSpent: timeSpentMinutes
+        });
+
+        message.success(`Logged ${formatMinutesToTimeString(timeSpentMinutes)} successfully!`);
+        loadWorkLogs();
+      } catch (error) {
+        console.error('Error saving time entry:', error);
+        message.error('Failed to save time entry');
+      }
+    }
+
+    setIsRunning(false);
+    setElapsedTime(0);
+    setCurrentIssue('');
+    setDescription('');
+    setStartTime(null);
+  };
 
   const loadWorkLogs = async () => {
     if (!currentProject) {
@@ -181,11 +332,9 @@ export const TimeTrackingPage: React.FC = () => {
 
     try {
       setLoading(true);
-      // Fetch all issues for the current project
       const response = await issuesApi.getAll({ projectId: currentProject.id });
       const allIssues = response.data || [];
 
-      // Extract work logs from all issues
       const allWorkLogs: WorkLogEntry[] = [];
       
       allIssues.forEach((issue: any) => {
@@ -209,7 +358,6 @@ export const TimeTrackingPage: React.FC = () => {
         }
       });
 
-      // Sort by date descending
       allWorkLogs.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
@@ -222,26 +370,47 @@ export const TimeTrackingPage: React.FC = () => {
     }
   };
 
-  // Filter work logs based on view mode
+  // Get unique assignees for filter
+  const assignees = useMemo(() => {
+    const uniqueAssignees = new Map<string, { id: string; name: string; avatar?: string }>();
+    workLogs.forEach(log => {
+      if (log.author?.id && !uniqueAssignees.has(log.author.id)) {
+        uniqueAssignees.set(log.author.id, log.author);
+      }
+    });
+    return Array.from(uniqueAssignees.values());
+  }, [workLogs]);
+
+  // Filter work logs based on view mode and assignee
   const filteredWorkLogs = useMemo(() => {
     const now = selectedDate;
     
     return workLogs.filter(log => {
       const logDate = dayjs(log.createdAt);
       
+      // Date filter
+      let dateMatch = true;
       switch (viewMode) {
         case 'today':
-          return logDate.isSame(now, 'day');
+          dateMatch = logDate.isSame(now, 'day');
+          break;
         case 'week':
-          return logDate.isSame(now, 'isoWeek');
+          dateMatch = logDate.isSame(now, 'isoWeek');
+          break;
         case 'month':
-          return logDate.isSame(now, 'month');
+          dateMatch = logDate.isSame(now, 'month');
+          break;
         case 'all':
         default:
-          return true;
+          dateMatch = true;
       }
+
+      // Assignee filter
+      const assigneeMatch = selectedAssignee === 'all' || log.author?.id === selectedAssignee;
+
+      return dateMatch && assigneeMatch;
     });
-  }, [workLogs, viewMode, selectedDate]);
+  }, [workLogs, viewMode, selectedDate, selectedAssignee]);
 
   // Group work logs by date
   const groupedWorkLogs = useMemo(() => {
@@ -263,6 +432,7 @@ export const TimeTrackingPage: React.FC = () => {
     const totalMinutes = filteredWorkLogs.reduce((sum, log) => sum + log.timeSpentMinutes, 0);
     const uniqueIssues = new Set(filteredWorkLogs.map(log => log.issueId)).size;
     const uniqueDays = Object.keys(groupedWorkLogs).length;
+    const uniqueUsers = new Set(filteredWorkLogs.map(log => log.author?.id)).size;
     
     return {
       totalTime: formatMinutesToTimeString(totalMinutes),
@@ -270,6 +440,7 @@ export const TimeTrackingPage: React.FC = () => {
       entriesCount: filteredWorkLogs.length,
       uniqueIssues,
       uniqueDays,
+      uniqueUsers,
       avgPerDay: uniqueDays > 0 ? formatMinutesToTimeString(Math.round(totalMinutes / uniqueDays)) : '0m'
     };
   }, [filteredWorkLogs, groupedWorkLogs]);
@@ -344,17 +515,69 @@ export const TimeTrackingPage: React.FC = () => {
           Time Tracking
         </Title>
         <FilterBar>
-          <DatePicker
-            value={selectedDate}
-            onChange={(date) => date && setSelectedDate(date)}
-            picker={viewMode === 'month' ? 'month' : viewMode === 'week' ? 'week' : 'date'}
-            allowClear={false}
-          />
           <Button icon={<Download size={14} />}>
-            Export
+            Export Timesheet
           </Button>
         </FilterBar>
       </PageHeader>
+
+      {/* Timer Section */}
+      <TimerCard title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Play size={18} /> Track Time</span>}>
+        <TimerDisplay>
+          {formatTimerDisplay(elapsedTime)}
+        </TimerDisplay>
+
+        <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <Select
+            value={currentIssue || undefined}
+            onChange={setCurrentIssue}
+            placeholder="Select issue to track"
+            style={{ width: 280 }}
+            showSearch
+            filterOption={(input, option) =>
+              String(option?.label || '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={issues.map(issue => ({
+              value: issue.id,
+              label: `${issue.key} - ${issue.summary}`
+            }))}
+          />
+
+          <Input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="What are you working on?"
+            style={{ width: 280 }}
+          />
+        </div>
+
+        <div>
+          {!isRunning ? (
+            <ControlButton
+              $variant="start"
+              onClick={startTimer}
+              disabled={!currentIssue}
+            >
+              <Play size={24} fill="white" />
+            </ControlButton>
+          ) : (
+            <ControlButton
+              $variant="pause"
+              onClick={pauseTimer}
+            >
+              <Pause size={24} fill="white" />
+            </ControlButton>
+          )}
+
+          <ControlButton
+            $variant="stop"
+            onClick={stopTimer}
+            disabled={elapsedTime === 0}
+          >
+            <Square size={24} fill="white" />
+          </ControlButton>
+        </div>
+      </TimerCard>
 
       {/* Stats */}
       <StatsRow>
@@ -376,6 +599,14 @@ export const TimeTrackingPage: React.FC = () => {
           <Statistic
             title="Issues Worked"
             value={stats.uniqueIssues}
+            prefix={<BarChart3 size={16} style={{ color: colors.primary[500] }} />}
+          />
+        </StatCard>
+        <StatCard>
+          <Statistic
+            title="Team Members"
+            value={stats.uniqueUsers}
+            prefix={<Users size={16} style={{ color: colors.primary[500] }} />}
           />
         </StatCard>
         <StatCard>
@@ -385,6 +616,30 @@ export const TimeTrackingPage: React.FC = () => {
           />
         </StatCard>
       </StatsRow>
+
+      {/* Filters */}
+      <FilterSection>
+        <Filter size={16} style={{ color: colors.text.secondary }} />
+        <span style={{ fontWeight: 500, color: colors.text.secondary }}>Filters:</span>
+        
+        <DatePicker
+          value={selectedDate}
+          onChange={(date) => date && setSelectedDate(date)}
+          picker={viewMode === 'month' ? 'month' : viewMode === 'week' ? 'week' : 'date'}
+          allowClear={false}
+          style={{ width: 180 }}
+        />
+
+        <Select
+          value={selectedAssignee}
+          onChange={setSelectedAssignee}
+          style={{ width: 200 }}
+          options={[
+            { value: 'all', label: 'All Team Members' },
+            ...assignees.map(a => ({ value: a.id, label: a.name }))
+          ]}
+        />
+      </FilterSection>
 
       {/* View Mode Tabs */}
       <ContentCard>
@@ -396,7 +651,7 @@ export const TimeTrackingPage: React.FC = () => {
         />
 
         <div style={{ 
-          padding: '8px 16px', 
+          padding: '12px 16px', 
           background: colors.primary[50], 
           borderRadius: 8, 
           marginBottom: 16,
@@ -407,8 +662,8 @@ export const TimeTrackingPage: React.FC = () => {
           <span style={{ fontWeight: 600, color: colors.primary[700] }}>
             {getViewModeLabel()}
           </span>
-          <span style={{ color: colors.primary[600] }}>
-            {stats.totalTime} total
+          <span style={{ color: colors.primary[600], fontWeight: 600 }}>
+            {stats.totalTime} total • {stats.entriesCount} entries
           </span>
         </div>
 
