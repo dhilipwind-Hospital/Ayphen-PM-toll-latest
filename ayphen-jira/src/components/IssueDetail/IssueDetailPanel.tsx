@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress } from 'antd';
-import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen, Star } from 'lucide-react';
+import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen, Star, Timer, MoreVertical, Edit2 } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi, api, BASE_URL } from '../../services/api';
@@ -14,6 +14,10 @@ import { IssueLinkModal } from './IssueLinkModal';
 import { IssueRightSidebar } from './Sidebar/IssueRightSidebar';
 import { VoiceDescriptionButton } from '../VoiceDescription/VoiceDescriptionButton';
 import { IssueBreadcrumbs } from '../common/IssueBreadcrumbs';
+import { formatMinutesToTimeString } from '../../utils/timeFormat';
+import { LogWorkModal } from '../TimeTracking/LogWorkModal';
+import { EditWorkLogModal } from '../TimeTracking/EditWorkLogModal';
+import { DeleteWorkLogModal } from '../TimeTracking/DeleteWorkLogModal';
 
 const { TextArea } = Input;
 
@@ -307,6 +311,12 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [fileList, setFileList] = useState<any[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Work Log Modals
+  const [workLogModalVisible, setWorkLogModalVisible] = useState(false);
+  const [editWorkLogModalVisible, setEditWorkLogModalVisible] = useState(false);
+  const [deleteWorkLogModalVisible, setDeleteWorkLogModalVisible] = useState(false);
+  const [selectedWorkLog, setSelectedWorkLog] = useState<any>(null);
 
   // Active Tab
   const [activeTab, setActiveTab] = useState('comments');
@@ -1397,6 +1407,132 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                     </div>
                   )
                 },
+                {
+                  key: 'worklog',
+                  label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Timer size={14} /> Work Log ({(issue.workLogs || []).length})</span>,
+                  children: (
+                    <div style={{ paddingTop: 16 }}>
+                      {/* Log Work Button */}
+                      <div style={{ marginBottom: 16 }}>
+                        <Button 
+                          type="primary" 
+                          icon={<Plus size={14} />}
+                          onClick={() => setWorkLogModalVisible(true)}
+                        >
+                          Log Work
+                        </Button>
+                      </div>
+
+                      {/* Work Logs List */}
+                      {(issue.workLogs || []).length > 0 ? (
+                        <>
+                          {(issue.workLogs || [])
+                            .slice()
+                            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                            .map((log: any) => {
+                              const currentUserId = localStorage.getItem('userId');
+                              const isOwn = log.author?.id === currentUserId;
+                              
+                              return (
+                                <div key={log.id} style={{ 
+                                  padding: '12px 16px', 
+                                  borderBottom: `1px solid ${colors.border.light}`,
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'flex-start'
+                                }}>
+                                  <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+                                    <Avatar size={32} src={log.author?.avatar} style={{ flexShrink: 0, backgroundColor: '#0EA5E9' }}>
+                                      {log.author?.name?.[0] || 'U'}
+                                    </Avatar>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ marginBottom: 4 }}>
+                                        <b style={{ color: colors.text.primary }}>{log.author?.name || localStorage.getItem('userName') || 'Unknown'}</b>
+                                        <span style={{ color: colors.text.secondary, marginLeft: 8, fontSize: 12 }}>
+                                          {new Date(log.createdAt).toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <div style={{ 
+                                        display: 'inline-block',
+                                        background: colors.primary[50], 
+                                        color: colors.primary[700],
+                                        padding: '4px 12px',
+                                        borderRadius: 4,
+                                        fontWeight: 600,
+                                        fontSize: 14,
+                                        marginBottom: log.description ? 8 : 0
+                                      }}>
+                                        {formatMinutesToTimeString(log.timeSpentMinutes || log.timeSpent || 0)}
+                                      </div>
+                                      {log.description && (
+                                        <div style={{ fontSize: 13, color: colors.text.secondary, marginTop: 4 }}>
+                                          {log.description}
+                                        </div>
+                                      )}
+                                      {log.startDate && (
+                                        <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4 }}>
+                                          Started: {new Date(log.startDate).toLocaleString()}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Edit/Delete buttons */}
+                                  {isOwn && (
+                                    <div style={{ display: 'flex', gap: 4 }}>
+                                      <Tooltip title="Edit">
+                                        <Button 
+                                          type="text" 
+                                          size="small" 
+                                          icon={<Edit2 size={14} />}
+                                          onClick={() => {
+                                            setSelectedWorkLog(log);
+                                            setEditWorkLogModalVisible(true);
+                                          }}
+                                          style={{ color: colors.text.secondary }}
+                                        />
+                                      </Tooltip>
+                                      <Tooltip title="Delete">
+                                        <Button 
+                                          type="text" 
+                                          size="small" 
+                                          danger
+                                          icon={<Trash2 size={14} />}
+                                          onClick={() => {
+                                            setSelectedWorkLog(log);
+                                            setDeleteWorkLogModalVisible(true);
+                                          }}
+                                        />
+                                      </Tooltip>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          
+                          {/* Total Time */}
+                          <div style={{ 
+                            padding: '12px 16px', 
+                            background: colors.primary[50],
+                            borderRadius: 6,
+                            marginTop: 16,
+                            textAlign: 'center',
+                            fontWeight: 600,
+                            color: colors.primary[700]
+                          }}>
+                            Total Time Logged: {formatMinutesToTimeString(
+                              (issue.workLogs || []).reduce((sum: number, log: any) => 
+                                sum + (log.timeSpentMinutes || log.timeSpent || 0), 0
+                              )
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <EmptyStateText style={{ textAlign: 'center' }}>No work logged yet. Click "Log Work" to add time entries.</EmptyStateText>
+                      )}
+                    </div>
+                  )
+                },
               ]}
             />
           </TabsContainer>
@@ -1460,6 +1596,62 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
           queryClient.invalidateQueries({ queryKey: ['issue-links', issue.id] });
         }}
       />
+
+      {/* Work Log Modals */}
+      <LogWorkModal
+        visible={workLogModalVisible}
+        issueId={issue.id}
+        issueKey={issue.key}
+        currentRemaining={issue.remainingEstimate || 0}
+        onClose={() => setWorkLogModalVisible(false)}
+        onSuccess={() => {
+          setWorkLogModalVisible(false);
+          loadIssueData();
+        }}
+      />
+
+      {selectedWorkLog && (
+        <>
+          <EditWorkLogModal
+            visible={editWorkLogModalVisible}
+            issueId={issue.id}
+            issueKey={issue.key}
+            workLog={{
+              ...selectedWorkLog,
+              timeSpentMinutes: selectedWorkLog.timeSpentMinutes || selectedWorkLog.timeSpent || 0
+            }}
+            currentRemaining={issue.remainingEstimate || 0}
+            onClose={() => {
+              setEditWorkLogModalVisible(false);
+              setSelectedWorkLog(null);
+            }}
+            onSuccess={() => {
+              setEditWorkLogModalVisible(false);
+              setSelectedWorkLog(null);
+              loadIssueData();
+            }}
+          />
+
+          <DeleteWorkLogModal
+            visible={deleteWorkLogModalVisible}
+            issueId={issue.id}
+            workLog={{
+              ...selectedWorkLog,
+              timeSpentMinutes: selectedWorkLog.timeSpentMinutes || selectedWorkLog.timeSpent || 0
+            }}
+            currentRemaining={issue.remainingEstimate || 0}
+            onClose={() => {
+              setDeleteWorkLogModalVisible(false);
+              setSelectedWorkLog(null);
+            }}
+            onSuccess={() => {
+              setDeleteWorkLogModalVisible(false);
+              setSelectedWorkLog(null);
+              loadIssueData();
+            }}
+          />
+        </>
+      )}
 
     </LayoutContainer>
   );

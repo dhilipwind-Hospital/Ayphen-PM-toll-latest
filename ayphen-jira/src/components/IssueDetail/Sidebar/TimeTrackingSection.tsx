@@ -5,11 +5,10 @@ import { Clock } from 'lucide-react';
 import { colors } from '../../../theme/colors';
 import { SidebarSection } from './SidebarSection';
 import { LogWorkModal } from '../../TimeTracking/LogWorkModal';
-import { WorkLogList } from '../../TimeTracking/WorkLogList';
 import { formatMinutesToTimeString, calculateProgress, isOverBudget } from '../../../utils/timeFormat';
 
 const ProgressContainer = styled.div`
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 `;
 
 const ProgressLabels = styled.div`
@@ -17,7 +16,7 @@ const ProgressLabels = styled.div`
   justify-content: space-between;
   font-size: 11px;
   color: ${colors.text.secondary};
-  margin-top: 6px;
+  margin-top: 4px;
 `;
 
 const TimeLabel = styled.span<{ $highlight?: boolean }>`
@@ -26,28 +25,22 @@ const TimeLabel = styled.span<{ $highlight?: boolean }>`
 `;
 
 const FieldRow = styled.div`
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 `;
 
 const Label = styled.div`
-  font-size: 12px;
+  font-size: 11px;
   color: ${colors.text.secondary};
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  margin-bottom: 2px;
 `;
 
 const EstimateInput = styled(InputNumber)`
   width: 100%;
   
   .ant-input-number-input {
-    padding: 4px 8px;
+    padding: 2px 8px;
+    font-size: 12px;
   }
-`;
-
-const LogWorkButton = styled(Button)`
-  margin-top: 8px;
 `;
 
 interface TimeTrackingSectionProps {
@@ -57,7 +50,6 @@ interface TimeTrackingSectionProps {
 
 export const TimeTrackingSection: React.FC<TimeTrackingSectionProps> = ({ issue, onUpdate }) => {
     const [logWorkVisible, setLogWorkVisible] = useState(false);
-    const [showWorkLogs, setShowWorkLogs] = useState(false);
 
     // Get time values (stored as numbers in minutes)
     const original = typeof issue.originalEstimate === 'number' ? issue.originalEstimate : 0;
@@ -87,6 +79,7 @@ export const TimeTrackingSection: React.FC<TimeTrackingSectionProps> = ({ issue,
                     showInfo={false} 
                     strokeColor={overBudget ? colors.status.error.main : colors.primary[500]}
                     trailColor={colors.neutral[200]}
+                    size="small"
                 />
                 <ProgressLabels>
                     <TimeLabel $highlight={spent > 0}>
@@ -100,65 +93,40 @@ export const TimeTrackingSection: React.FC<TimeTrackingSectionProps> = ({ issue,
 
             {/* Original Estimate */}
             <FieldRow>
-                <Label>
-                    <Clock size={12} />
-                    Original Estimate
-                </Label>
-                <Tooltip title="Enter time in minutes">
-                    <EstimateInput
-                        value={original || undefined}
-                        onChange={(val) => handleEstimateChange('originalEstimate', val as number)}
-                        min={0}
-                        placeholder="No estimate"
-                        addonAfter="min"
-                        size="small"
-                    />
-                </Tooltip>
+                <Label>Original Estimate</Label>
+                <EstimateInput
+                    value={original || undefined}
+                    onChange={(val) => handleEstimateChange('originalEstimate', val as number)}
+                    min={0}
+                    placeholder="None"
+                    addonAfter="min"
+                    size="small"
+                />
             </FieldRow>
 
             {/* Remaining Estimate */}
             <FieldRow>
-                <Label>
-                    <Clock size={12} />
-                    Remaining Estimate
-                </Label>
-                <Tooltip title="Enter time in minutes">
-                    <EstimateInput
-                        value={remaining || undefined}
-                        onChange={(val) => handleEstimateChange('remainingEstimate', val as number)}
-                        min={0}
-                        placeholder="No estimate"
-                        addonAfter="min"
-                        size="small"
-                    />
-                </Tooltip>
+                <Label>Remaining</Label>
+                <EstimateInput
+                    value={remaining || undefined}
+                    onChange={(val) => handleEstimateChange('remainingEstimate', val as number)}
+                    min={0}
+                    placeholder="None"
+                    addonAfter="min"
+                    size="small"
+                />
             </FieldRow>
 
             {/* Log Work Button */}
-            <LogWorkButton 
+            <Button 
                 type="primary" 
                 block 
+                size="small"
                 onClick={() => setLogWorkVisible(true)}
+                style={{ marginTop: 4 }}
             >
                 Log Work
-            </LogWorkButton>
-
-            {/* Work Log List */}
-            <WorkLogList
-                issueId={issue.id}
-                issueKey={issue.key}
-                currentRemaining={remaining}
-                initialWorkLogs={(issue.workLogs || []).map((log: any) => ({
-                    id: log.id,
-                    issueId: issue.id,
-                    author: log.author || { id: 'unknown', name: 'Unknown' },
-                    timeSpentMinutes: log.timeSpentMinutes || (typeof log.timeSpent === 'number' ? log.timeSpent : 0),
-                    description: log.description,
-                    startDate: log.startDate,
-                    createdAt: log.createdAt || new Date().toISOString()
-                }))}
-                onUpdate={handleLogWorkSuccess}
-            />
+            </Button>
 
             {/* Log Work Modal */}
             <LogWorkModal
