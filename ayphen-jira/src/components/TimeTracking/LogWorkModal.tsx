@@ -148,12 +148,42 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
       }
       // 'leave' option keeps current remaining (null means no change)
 
-      // Log work using existing API
-      await issuesEnhancedApi.logWork(issueId, timeSpentMinutes, description, userId);
+      // Create new work log entry
+      const newWorkLog = {
+        id: `worklog-${Date.now()}`,
+        timeSpentMinutes,
+        description,
+        startDate: startDate,
+        createdAt: new Date().toISOString(),
+        author: {
+          id: userId,
+          name: localStorage.getItem('userName') || 'Unknown User',
+          avatar: localStorage.getItem('userAvatar') || undefined
+        }
+      };
+
+      // Build update payload
+      const updatePayload: any = {
+        // Add work log to issue's workLogs array
+        $addWorkLog: newWorkLog,
+        // Update timeSpent (add to existing)
+        timeSpent: timeSpentMinutes
+      };
 
       // Update remaining estimate if needed
       if (remainingOption !== 'leave' && newRemainingEstimate !== null) {
-        await issuesApi.update(issueId, { remainingEstimate: newRemainingEstimate });
+        updatePayload.remainingEstimate = newRemainingEstimate;
+      }
+
+      // Update issue with new work log and time tracking data
+      await issuesApi.update(issueId, updatePayload);
+
+      // Also try the dedicated API (may work on some backends)
+      try {
+        await issuesEnhancedApi.logWork(issueId, timeSpentMinutes, description, userId);
+      } catch (e) {
+        // Ignore if dedicated endpoint fails - we already saved via update
+        console.log('Dedicated worklog endpoint not available, using issue update');
       }
 
       message.success('Work logged successfully');

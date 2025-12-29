@@ -75,6 +75,7 @@ interface WorkLogListProps {
   issueId: string;
   issueKey: string;
   currentRemaining: number | null;
+  initialWorkLogs?: WorkLogData[];
   onUpdate: () => void;
 }
 
@@ -82,20 +83,28 @@ export const WorkLogList: React.FC<WorkLogListProps> = ({
   issueId,
   issueKey,
   currentRemaining,
+  initialWorkLogs = [],
   onUpdate
 }) => {
-  const [workLogs, setWorkLogs] = useState<WorkLogData[]>([]);
+  const [workLogs, setWorkLogs] = useState<WorkLogData[]>(initialWorkLogs);
   const [loading, setLoading] = useState(true);
   const [logModalVisible, setLogModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<WorkLogData | null>(null);
 
+  // Update workLogs when initialWorkLogs prop changes
   useEffect(() => {
-    if (issueId) {
+    if (initialWorkLogs && initialWorkLogs.length > 0) {
+      const sortedLogs = [...initialWorkLogs].sort((a: WorkLogData, b: WorkLogData) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setWorkLogs(sortedLogs);
+      setLoading(false);
+    } else if (issueId) {
       loadWorkLogs();
     }
-  }, [issueId]);
+  }, [issueId, initialWorkLogs]);
 
   const loadWorkLogs = async () => {
     try {

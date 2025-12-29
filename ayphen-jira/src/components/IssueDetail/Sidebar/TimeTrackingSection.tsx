@@ -148,6 +148,15 @@ export const TimeTrackingSection: React.FC<TimeTrackingSectionProps> = ({ issue,
                 issueId={issue.id}
                 issueKey={issue.key}
                 currentRemaining={remaining}
+                initialWorkLogs={(issue.workLogs || []).map((log: any) => ({
+                    id: log.id,
+                    issueId: issue.id,
+                    author: log.author || { id: 'unknown', name: 'Unknown' },
+                    timeSpentMinutes: log.timeSpentMinutes || (typeof log.timeSpent === 'number' ? log.timeSpent : 0),
+                    description: log.description,
+                    startDate: log.startDate,
+                    createdAt: log.createdAt || new Date().toISOString()
+                }))}
                 onUpdate={handleLogWorkSuccess}
             />
 

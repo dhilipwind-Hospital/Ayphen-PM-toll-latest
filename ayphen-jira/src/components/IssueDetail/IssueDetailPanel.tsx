@@ -1326,10 +1326,72 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                   label: <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><History size={14} /> History ({history.length})</span>,
                   children: (
                     <div style={{ paddingTop: 16 }}>
-                      {history.length > 0 ? history.map((h, index) => (
+                      {history.length > 0 ? history.map((h: any, index) => (
                         <div key={index} style={{ padding: '12px 0', borderBottom: `1px solid ${colors.border.light}` }}>
-                          <div><b>{h.user?.name}</b> {h.description}</div>
-                          <div style={{ fontSize: 12, color: colors.text.secondary }}>{new Date(h.createdAt || h.timestamp).toLocaleString()}</div>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                            <Avatar size={28} src={h.user?.avatar} style={{ flexShrink: 0, backgroundColor: '#0EA5E9' }}>
+                              {h.user?.name?.[0] || 'U'}
+                            </Avatar>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ marginBottom: 4 }}>
+                                <b style={{ color: colors.text.primary }}>{h.user?.name || 'Unknown'}</b>
+                                <span style={{ color: colors.text.secondary, marginLeft: 4 }}>
+                                  {h.field ? `updated ${h.field}` : h.description || 'made changes'}
+                                </span>
+                              </div>
+                              {/* Show old -> new value if available */}
+                              {(h.oldValue !== undefined || h.newValue !== undefined) && (
+                                <div style={{ 
+                                  fontSize: 12, 
+                                  padding: '6px 10px', 
+                                  background: colors.background.light, 
+                                  borderRadius: 4,
+                                  marginBottom: 4
+                                }}>
+                                  {h.oldValue && (
+                                    <span style={{ textDecoration: 'line-through', color: colors.status.error.main, marginRight: 8 }}>
+                                      {String(h.oldValue)}
+                                    </span>
+                                  )}
+                                  {h.oldValue && h.newValue && <span style={{ color: colors.text.tertiary }}>→ </span>}
+                                  {h.newValue && (
+                                    <span style={{ color: colors.status.success.main, fontWeight: 500 }}>
+                                      {String(h.newValue)}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {/* Show changes array if available */}
+                              {h.changes && Array.isArray(h.changes) && h.changes.length > 0 && (
+                                <div style={{ fontSize: 12, marginTop: 4 }}>
+                                  {h.changes.map((change: any, idx: number) => (
+                                    <div key={idx} style={{ 
+                                      padding: '4px 10px', 
+                                      background: colors.background.light, 
+                                      borderRadius: 4,
+                                      marginBottom: 2
+                                    }}>
+                                      <span style={{ fontWeight: 500 }}>{change.field}: </span>
+                                      {change.oldValue && (
+                                        <span style={{ textDecoration: 'line-through', color: colors.status.error.main, marginRight: 4 }}>
+                                          {String(change.oldValue)}
+                                        </span>
+                                      )}
+                                      {change.oldValue && change.newValue && <span>→ </span>}
+                                      {change.newValue && (
+                                        <span style={{ color: colors.status.success.main }}>
+                                          {String(change.newValue)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4 }}>
+                                {new Date(h.createdAt || h.timestamp).toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )) : <EmptyStateText style={{ textAlign: 'center' }}>No history available.</EmptyStateText>}
                     </div>
