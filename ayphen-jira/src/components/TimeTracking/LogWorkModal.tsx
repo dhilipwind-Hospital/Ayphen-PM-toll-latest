@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, DatePicker, Radio, Space, message } from 'antd';
+import { Modal, Form, Input, DatePicker, message } from 'antd';
 import styled from 'styled-components';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { colors } from '../../theme/colors';
 import { parseTimeString, formatMinutesToTimeString, isValidTimeString } from '../../utils/timeFormat';
-import { issuesApi, issuesEnhancedApi } from '../../services/api';
+import { issuesApi } from '../../services/api';
 
 const { TextArea } = Input;
-
-const HelpText = styled.div`
-  font-size: 12px;
-  color: ${colors.text.secondary};
-  margin-top: 4px;
-  padding: 8px 12px;
-  background: ${colors.background.light};
-  border-radius: 4px;
-`;
 
 const TimeInputWrapper = styled.div`
   position: relative;
@@ -35,7 +26,7 @@ const ErrorText = styled.div`
 
 const FormatHint = styled.div`
   font-size: 11px;
-  color: ${colors.text.secondary};
+  color: ${colors.text.tertiary};
   margin-top: 4px;
 `;
 
@@ -60,18 +51,12 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [timeSpentMinutes, setTimeSpentMinutes] = useState(0);
   const [timeSpentValid, setTimeSpentValid] = useState(true);
-  const [remainingOption, setRemainingOption] = useState<'auto' | 'manual' | 'leave'>('auto');
-  const [manualRemainingMinutes, setManualRemainingMinutes] = useState(0);
-  const [manualRemainingValid, setManualRemainingValid] = useState(true);
 
   useEffect(() => {
     if (visible) {
       form.resetFields();
       setTimeSpentMinutes(0);
       setTimeSpentValid(true);
-      setRemainingOption('auto');
-      setManualRemainingMinutes(0);
-      setManualRemainingValid(true);
     }
   }, [visible, form]);
 
@@ -94,25 +79,6 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
     }
   };
 
-  const handleManualRemainingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    form.setFieldValue('manualRemaining', value);
-    
-    if (!value.trim()) {
-      setManualRemainingMinutes(0);
-      setManualRemainingValid(true);
-      return;
-    }
-
-    const valid = isValidTimeString(value);
-    setManualRemainingValid(valid);
-
-    if (valid) {
-      const minutes = parseTimeString(value);
-      setManualRemainingMinutes(minutes);
-    }
-  };
-
   const getAdjustedRemaining = (): number => {
     if (currentRemaining === null) return 0;
     return Math.max(0, currentRemaining - timeSpentMinutes);
@@ -127,28 +93,15 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
         return;
       }
 
-      if (remainingOption === 'manual' && !manualRemainingValid) {
-        message.error('Please enter a valid remaining estimate');
-        return;
-      }
-
       setLoading(true);
 
       const values = form.getFieldsValue();
       const startDate = values.startDate ? values.startDate.toISOString() : new Date().toISOString();
       const description = values.description || '';
       const userId = localStorage.getItem('userId') || '';
+      const userName = localStorage.getItem('userName') || 'User';
 
-      // Calculate new remaining estimate based on option
-      let newRemainingEstimate: number | null = null;
-      if (remainingOption === 'auto') {
-        newRemainingEstimate = getAdjustedRemaining();
-      } else if (remainingOption === 'manual') {
-        newRemainingEstimate = manualRemainingMinutes;
-      }
-      // 'leave' option keeps current remaining (null means no change)
-
-      // Create new work log entry
+      // Create new work log entry with proper author info
       const newWorkLog = {
         id: `worklog-${Date.now()}`,
         timeSpentMinutes,
@@ -157,34 +110,20 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
         createdAt: new Date().toISOString(),
         author: {
           id: userId,
-          name: localStorage.getItem('userName') || 'Unknown User',
+          name: userName,
           avatar: localStorage.getItem('userAvatar') || undefined
         }
       };
 
       // Build update payload
       const updatePayload: any = {
-        // Add work log to issue's workLogs array
         $addWorkLog: newWorkLog,
-        // Update timeSpent (add to existing)
-        timeSpent: timeSpentMinutes
+        timeSpent: timeSpentMinutes,
+        remainingEstimate: getAdjustedRemaining()
       };
-
-      // Update remaining estimate if needed
-      if (remainingOption !== 'leave' && newRemainingEstimate !== null) {
-        updatePayload.remainingEstimate = newRemainingEstimate;
-      }
 
       // Update issue with new work log and time tracking data
       await issuesApi.update(issueId, updatePayload);
-
-      // Also try the dedicated API (may work on some backends)
-      try {
-        await issuesEnhancedApi.logWork(issueId, timeSpentMinutes, description, userId);
-      } catch (e) {
-        // Ignore if dedicated endpoint fails - we already saved via update
-        console.log('Dedicated worklog endpoint not available, using issue update');
-      }
 
       message.success('Work logged successfully');
       form.resetFields();
@@ -248,62 +187,6 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
             format="MMM DD, YYYY hh:mm A"
             style={{ width: '100%' }}
           />
-        </Form.Item>
-
-        <Form.Item label="Remaining Estimate">
-          <Radio.Group
-            value={remainingOption}
-            onChange={(e) => setRemainingOption(e.target.value)}
-          >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Radio value="auto">
-                <strong>Auto Adjust</strong>
-                {currentRemaining !== null && timeSpentMinutes > 0 && (
-                  <HelpText>
-                    The Remaining Estimate will be reduced by{' '}
-                    <strong>{formatMinutesToTimeString(timeSpentMinutes)}</strong> automatically
-                    <br />
-                    New remaining: <strong>{formatMinutesToTimeString(getAdjustedRemaining())}</strong>
-                  </HelpText>
-                )}
-                {currentRemaining === null && (
-                  <HelpText>No current estimate set</HelpText>
-                )}
-              </Radio>
-
-              <Radio value="manual">
-                <strong>Set to</strong>
-                {remainingOption === 'manual' && (
-                  <div style={{ marginTop: 8, marginLeft: 24 }}>
-                    <Input
-                      placeholder="e.g., 1h"
-                      onChange={handleManualRemainingChange}
-                      status={!manualRemainingValid ? 'error' : undefined}
-                      style={{ width: 200 }}
-                    />
-                    {manualRemainingMinutes > 0 && manualRemainingValid && (
-                      <ParsedValue>
-                        = {formatMinutesToTimeString(manualRemainingMinutes)}
-                      </ParsedValue>
-                    )}
-                    {!manualRemainingValid && (
-                      <ErrorText>Invalid format</ErrorText>
-                    )}
-                  </div>
-                )}
-              </Radio>
-
-              <Radio value="leave">
-                <strong>Leave as is</strong>
-                {currentRemaining !== null && (
-                  <HelpText>
-                    Keep remaining estimate at{' '}
-                    <strong>{formatMinutesToTimeString(currentRemaining)}</strong>
-                  </HelpText>
-                )}
-              </Radio>
-            </Space>
-          </Radio.Group>
         </Form.Item>
 
         <Form.Item

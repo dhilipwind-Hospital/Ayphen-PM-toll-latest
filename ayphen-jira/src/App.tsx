@@ -8,7 +8,7 @@ import { RoadmapView } from './pages/RoadmapView';
 import { EnhancedDashboard } from './pages/EnhancedDashboard';
 import { KanbanBoard } from './components/Board/KanbanBoard';
 import { AdvancedSearch } from './components/Search/AdvancedSearch';
-import { TimeTracker } from './components/TimeTracking/TimeTracker';
+import { TimeTrackingPage } from './pages/TimeTrackingPage';
 
 import { ReportsView } from './components/Reports/ReportsView';
 import { FiltersView } from './pages/FiltersView';
@@ -303,7 +303,7 @@ function App() {
                           <Route path="/ai-features-test" element={<AIFeaturesTestPage />} />
                           <Route path="/phase2-test" element={<Phase2TestPage />} />
 
-                          <Route path="/time-tracking" element={<TimeTracker />} />
+                          <Route path="/time-tracking" element={<TimeTrackingPage />} />
                           <Route path="/issue/:issueKey" element={<IssueDetailView />} />
                           <Route path="/settings/profile" element={<UserProfileSettings />} />
                           <Route path="/settings/notifications" element={<NotificationPreferences />} />

@@ -1430,8 +1430,8 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                             .slice()
                             .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                             .map((log: any) => {
-                              const currentUserId = localStorage.getItem('userId');
-                              const isOwn = log.author?.id === currentUserId;
+                              // Get display name - prefer author.name, fallback to localStorage
+                              const displayName = log.author?.name || localStorage.getItem('userName') || 'User';
                               
                               return (
                                 <div key={log.id} style={{ 
@@ -1443,11 +1443,11 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                 }}>
                                   <div style={{ display: 'flex', gap: 12, flex: 1 }}>
                                     <Avatar size={32} src={log.author?.avatar} style={{ flexShrink: 0, backgroundColor: '#0EA5E9' }}>
-                                      {log.author?.name?.[0] || 'U'}
+                                      {displayName[0]?.toUpperCase() || 'U'}
                                     </Avatar>
                                     <div style={{ flex: 1 }}>
                                       <div style={{ marginBottom: 4 }}>
-                                        <b style={{ color: colors.text.primary }}>{log.author?.name || localStorage.getItem('userName') || 'Unknown'}</b>
+                                        <b style={{ color: colors.text.primary }}>{displayName}</b>
                                         <span style={{ color: colors.text.secondary, marginLeft: 8, fontSize: 12 }}>
                                           {new Date(log.createdAt).toLocaleString()}
                                         </span>
@@ -1469,43 +1469,36 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                                           {log.description}
                                         </div>
                                       )}
-                                      {log.startDate && (
-                                        <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4 }}>
-                                          Started: {new Date(log.startDate).toLocaleString()}
-                                        </div>
-                                      )}
                                     </div>
                                   </div>
                                   
-                                  {/* Edit/Delete buttons */}
-                                  {isOwn && (
-                                    <div style={{ display: 'flex', gap: 4 }}>
-                                      <Tooltip title="Edit">
-                                        <Button 
-                                          type="text" 
-                                          size="small" 
-                                          icon={<Edit2 size={14} />}
-                                          onClick={() => {
-                                            setSelectedWorkLog(log);
-                                            setEditWorkLogModalVisible(true);
-                                          }}
-                                          style={{ color: colors.text.secondary }}
-                                        />
-                                      </Tooltip>
-                                      <Tooltip title="Delete">
-                                        <Button 
-                                          type="text" 
-                                          size="small" 
-                                          danger
-                                          icon={<Trash2 size={14} />}
-                                          onClick={() => {
-                                            setSelectedWorkLog(log);
-                                            setDeleteWorkLogModalVisible(true);
-                                          }}
-                                        />
-                                      </Tooltip>
-                                    </div>
-                                  )}
+                                  {/* Edit/Delete buttons - always show */}
+                                  <div style={{ display: 'flex', gap: 4 }}>
+                                    <Tooltip title="Edit">
+                                      <Button 
+                                        type="text" 
+                                        size="small" 
+                                        icon={<Edit2 size={14} />}
+                                        onClick={() => {
+                                          setSelectedWorkLog(log);
+                                          setEditWorkLogModalVisible(true);
+                                        }}
+                                        style={{ color: colors.text.secondary }}
+                                      />
+                                    </Tooltip>
+                                    <Tooltip title="Delete">
+                                      <Button 
+                                        type="text" 
+                                        size="small" 
+                                        danger
+                                        icon={<Trash2 size={14} />}
+                                        onClick={() => {
+                                          setSelectedWorkLog(log);
+                                          setDeleteWorkLogModalVisible(true);
+                                        }}
+                                      />
+                                    </Tooltip>
+                                  </div>
                                 </div>
                               );
                             })}
