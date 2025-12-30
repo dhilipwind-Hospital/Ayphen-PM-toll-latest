@@ -8,6 +8,7 @@ interface StartSprintModalProps {
   sprint: any;
   onClose: () => void;
   onSuccess: () => void;
+  activeSprints?: any[]; // Pass active sprints to check if one is already running
 }
 
 export const StartSprintModal: React.FC<StartSprintModalProps> = ({
@@ -15,6 +16,7 @@ export const StartSprintModal: React.FC<StartSprintModalProps> = ({
   sprint,
   onClose,
   onSuccess,
+  activeSprints = [],
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,12 @@ export const StartSprintModal: React.FC<StartSprintModalProps> = ({
 
   const handleStartSprint = async (values: any) => {
     if (!sprint) return;
+
+    // Check if there's already an active sprint
+    if (activeSprints.length > 0) {
+      message.error('Cannot start a new sprint while another sprint is active. Please complete the current sprint first.');
+      return;
+    }
 
     setLoading(true);
     try {

@@ -424,11 +424,28 @@ export const BacklogView: React.FC = () => {
     // Update state with final position
     newIssues = newIssues.map(i => i.id === activeId ? { ...i, listPosition: newListPosition } : i);
 
+    // If moving from backlog (no sprint) to a sprint, change status to 'todo'
+    const wasInBacklog = !activeIssue.sprintId;
+    const movingToSprint = newSprintId !== null;
+    const currentStatus = activeIssue.status?.toLowerCase() || '';
+    const isBacklogStatus = currentStatus === 'backlog' || currentStatus === '' || !activeIssue.status;
+    
+    if (wasInBacklog && movingToSprint && isBacklogStatus) {
+      newIssues = newIssues.map(i => i.id === activeId ? { ...i, status: 'todo' } : i);
+    }
+
     setIssues(newIssues);
 
     // Persist
     try {
-      await issuesApi.update(activeId, { sprintId: newSprintId, listPosition: newListPosition });
+      const updatePayload: any = { sprintId: newSprintId, listPosition: newListPosition };
+      
+      // Also update status to 'todo' when moving from backlog to sprint
+      if (wasInBacklog && movingToSprint && isBacklogStatus) {
+        updatePayload.status = 'todo';
+      }
+      
+      await issuesApi.update(activeId, updatePayload);
     } catch (e) {
       message.error('Failed to move issue');
       loadData(); // Revert on error
@@ -596,7 +613,7 @@ export const BacklogView: React.FC = () => {
 
       {/* Modals */}
       <CreateIssueModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onSuccess={loadData} />
-      <StartSprintModal visible={isStartSprintModalOpen} onClose={() => setIsStartSprintModalOpen(false)} sprint={selectedSprint} onSuccess={loadData} />
+      <StartSprintModal visible={isStartSprintModalOpen} onClose={() => setIsStartSprintModalOpen(false)} sprint={selectedSprint} onSuccess={loadData} activeSprints={activeSprints} />
       {currentProject && (
         <CreateSprintModal
           visible={isCreateSprintModalOpen}
