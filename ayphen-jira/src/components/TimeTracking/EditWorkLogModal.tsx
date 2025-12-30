@@ -153,15 +153,27 @@ export const EditWorkLogModal: React.FC<EditWorkLogModalProps> = ({
       const startDate = values.startDate ? values.startDate.toISOString() : workLog.startDate;
       const description = values.description || '';
 
-      // Update work log (using update endpoint)
-      await issuesApi.update(issueId, {
-        workLogs: [{
-          id: workLog.id,
-          timeSpentMinutes,
-          description,
-          startDate
-        }]
+      // Get current issue to update work log in array
+      const issueResponse = await issuesApi.getById(issueId);
+      const currentIssueData = issueResponse.data;
+      const existingWorkLogs = currentIssueData?.workLogs || [];
+      const currentTimeSpent = currentIssueData?.timeSpent || 0;
+
+      // Find and update the work log in the array
+      const updatedWorkLogs = existingWorkLogs.map((log: any) => {
+        if (log.id === workLog.id) {
+          return {
+            ...log,
+            timeSpentMinutes,
+            description,
+            startDate
+          };
+        }
+        return log;
       });
+
+      // Calculate time difference for updating total time spent
+      const timeDiff = timeSpentMinutes - (workLog.timeSpentMinutes || 0);
 
       // Calculate new remaining estimate based on option
       let newRemainingEstimate: number | null = null;
@@ -171,10 +183,17 @@ export const EditWorkLogModal: React.FC<EditWorkLogModalProps> = ({
         newRemainingEstimate = manualRemainingMinutes;
       }
 
-      // Update remaining estimate if needed
+      // Build update payload
+      const updatePayload: any = {
+        workLogs: updatedWorkLogs,
+        timeSpent: currentTimeSpent + timeDiff
+      };
+
       if (remainingOption !== 'leave' && newRemainingEstimate !== null) {
-        await issuesApi.update(issueId, { remainingEstimate: newRemainingEstimate });
+        updatePayload.remainingEstimate = newRemainingEstimate;
       }
+
+      await issuesApi.update(issueId, updatePayload);
 
       message.success('Work log updated successfully');
       onSuccess();

@@ -304,13 +304,24 @@ export const TimeTrackingPage: React.FC = () => {
           }
         };
 
+        // Get current issue to append work log
+        const issueResponse = await issuesApi.getById(currentIssue);
+        const currentIssueData = issueResponse.data;
+        const existingWorkLogs = currentIssueData?.workLogs || [];
+        const currentTimeSpent = currentIssueData?.timeSpent || 0;
+
+        // Update issue with appended work log
         await issuesApi.update(currentIssue, {
-          $addWorkLog: newWorkLog,
-          timeSpent: timeSpentMinutes
+          workLogs: [...existingWorkLogs, newWorkLog],
+          timeSpent: currentTimeSpent + timeSpentMinutes
         });
 
         message.success(`Logged ${formatMinutesToTimeString(timeSpentMinutes)} successfully!`);
-        loadWorkLogs();
+        
+        // Reload work logs after a short delay to ensure backend has updated
+        setTimeout(() => {
+          loadWorkLogs();
+        }, 500);
       } catch (error) {
         console.error('Error saving time entry:', error);
         message.error('Failed to save time entry');

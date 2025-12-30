@@ -133,11 +133,14 @@ export const DeleteWorkLogModal: React.FC<DeleteWorkLogModalProps> = ({
     try {
       setLoading(true);
 
-      // Delete work log by updating issue with filtered workLogs
-      // This is a simplified approach - in production, you'd have a dedicated delete endpoint
-      await issuesApi.update(issueId, {
-        deleteWorkLogId: workLog.id
-      });
+      // Get current issue to remove work log from array
+      const issueResponse = await issuesApi.getById(issueId);
+      const currentIssueData = issueResponse.data;
+      const existingWorkLogs = currentIssueData?.workLogs || [];
+      const currentTimeSpent = currentIssueData?.timeSpent || 0;
+
+      // Filter out the work log to delete
+      const updatedWorkLogs = existingWorkLogs.filter((log: any) => log.id !== workLog.id);
 
       // Calculate new remaining estimate based on option
       let newRemainingEstimate: number | null = null;
@@ -147,10 +150,17 @@ export const DeleteWorkLogModal: React.FC<DeleteWorkLogModalProps> = ({
         newRemainingEstimate = manualRemainingMinutes;
       }
 
-      // Update remaining estimate if needed
+      // Build update payload
+      const updatePayload: any = {
+        workLogs: updatedWorkLogs,
+        timeSpent: Math.max(0, currentTimeSpent - (workLog.timeSpentMinutes || 0))
+      };
+
       if (remainingOption !== 'leave' && newRemainingEstimate !== null) {
-        await issuesApi.update(issueId, { remainingEstimate: newRemainingEstimate });
+        updatePayload.remainingEstimate = newRemainingEstimate;
       }
+
+      await issuesApi.update(issueId, updatePayload);
 
       message.success('Work log deleted successfully');
       onSuccess();

@@ -115,10 +115,16 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
         }
       };
 
-      // Build update payload
+      // Get current issue to append work log
+      const issueResponse = await issuesApi.getById(issueId);
+      const currentIssueData = issueResponse.data;
+      const existingWorkLogs = currentIssueData?.workLogs || [];
+      const currentTimeSpent = currentIssueData?.timeSpent || 0;
+
+      // Build update payload with appended work log
       const updatePayload: any = {
-        $addWorkLog: newWorkLog,
-        timeSpent: timeSpentMinutes,
+        workLogs: [...existingWorkLogs, newWorkLog],
+        timeSpent: currentTimeSpent + timeSpentMinutes,
         remainingEstimate: getAdjustedRemaining()
       };
 
