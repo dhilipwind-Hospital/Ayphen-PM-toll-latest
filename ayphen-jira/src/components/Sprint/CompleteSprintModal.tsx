@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Radio, Select, Card, Statistic, Row, Col, List, Tag, message } from 'antd';
 import { CheckCircle, XCircle } from 'lucide-react';
 import styled from 'styled-components';
-import { sprintsApi, workflowsApi } from '../../services/api';
+import { sprintsApi, workflowsApi, issuesApi } from '../../services/api';
 import { colors } from '../../theme/colors';
 
 const StatsCard = styled(Card)`
@@ -86,6 +86,23 @@ export const CompleteSprintModal: React.FC<CompleteSprintModalProps> = ({
         action: incompleteAction,
         targetSprintId: incompleteAction === 'next-sprint' ? values.targetSprintId : undefined,
       }));
+
+      // Handle moving incomplete issues based on action
+      if (incompleteAction === 'backlog') {
+        // Move incomplete issues to backlog (set sprintId to null and status to backlog)
+        await Promise.all(
+          incompleteIssues.map(issue =>
+            issuesApi.update(issue.id, { sprintId: null, status: 'backlog' })
+          )
+        );
+      } else if (incompleteAction === 'next-sprint' && values.targetSprintId) {
+        // Move incomplete issues to selected sprint
+        await Promise.all(
+          incompleteIssues.map(issue =>
+            issuesApi.update(issue.id, { sprintId: values.targetSprintId })
+          )
+        );
+      }
 
       await sprintsApi.complete(sprint.id, {
         incompleteIssues: incompleteIssuesData,
