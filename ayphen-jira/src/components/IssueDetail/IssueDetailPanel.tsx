@@ -5,7 +5,7 @@ import { Button, message, Input, Tooltip, Avatar, Tabs, Modal, Upload, Progress 
 import { ArrowLeft, Link, Paperclip, Plus, Trash2, Edit, ArrowUp, ArrowDown, Minus, Ban, ShieldAlert, Copy, Clock, Search, Pencil, Download, ListTodo, MessageSquare, History, FileText, Bug, CheckSquare, BookOpen, Star, Timer, MoreVertical, Edit2 } from 'lucide-react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
-import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi, api, BASE_URL } from '../../services/api';
+import { commentsApi, issuesApi, projectMembersApi, historyApi, issueLinksApi, api, BASE_URL, sprintsApi } from '../../services/api';
 import { ENV } from '../../config/env';
 import { useStore } from '../../store/useStore';
 import { colors } from '../../theme/colors';
@@ -279,6 +279,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
   const [attachments, setAttachments] = useState<any[]>([]);
   const [subtasks, setSubtasks] = useState<any[]>([]);
   const [epics, setEpics] = useState<any[]>([]);
+  const [sprints, setSprints] = useState<any[]>([]);
   // const [linkedIssues, setLinkedIssues] = useState<any[]>([]); // Replaced by React Query
   const [history, setHistory] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -378,6 +379,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
       loadAttachments(res.data.id);
       loadSubtasks(res.data.id, res.data);
       loadEpics(res.data.projectId);
+      loadSprints(res.data.projectId);
       loadWorkflow(res.data.projectId, res.data.workflowId);
       // loadLinkedIssues(res.data.id); // Handled by React Query
 
@@ -397,6 +399,16 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
     } catch (e) {
       console.error('Failed to load epics:', e);
       setEpics([]);
+    }
+  };
+
+  const loadSprints = async (projectId: string) => {
+    try {
+      const res = await sprintsApi.getAll(projectId);
+      setSprints(res.data || []);
+    } catch (e) {
+      console.error('Failed to load sprints:', e);
+      setSprints([]);
     }
   };
 
@@ -1567,8 +1579,33 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
         issue={issue}
         users={projectMembers}
         epics={epics}
+        sprints={sprints}
         onUpdate={handleUpdate}
         onAIAction={(action) => message.info(`AI Action: ${action}`)}
+        onLinkIssue={() => setLinkModalVisible(true)}
+        onLogWork={() => setWorkLogModalVisible(true)}
+        onDelete={() => {
+          Modal.confirm({
+            title: 'Delete Issue?',
+            content: `Are you sure you want to delete ${issue.key}? This action cannot be undone.`,
+            okText: 'Delete',
+            okButtonProps: { danger: true },
+            cancelText: 'Cancel',
+            onOk: async () => {
+              try {
+                await issuesApi.delete(issue.id);
+                message.success('Issue deleted successfully');
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigate('/backlog');
+                }
+              } catch (err) {
+                message.error('Failed to delete issue');
+              }
+            }
+          });
+        }}
       />
 
       {/* Modals & Hidden Logic */}

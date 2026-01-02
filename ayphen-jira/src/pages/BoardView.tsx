@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Button, Tag, message, Avatar, Modal, Spin } from 'antd';
-import { FileText, Bug, Layers, Plus, Star, Settings, Paperclip, MessageSquare, Link2 } from 'lucide-react';
+import { FileText, Bug, Layers, Plus, Star, Settings, Paperclip, MessageSquare, Link2, Flag } from 'lucide-react';
 import { ContextMenu } from '../components/ContextMenu';
 import { QuickFilters } from '../components/QuickFilters';
 import { BulkActionsToolbar } from '../components/BulkActionsToolbar';
@@ -377,7 +377,12 @@ const SortableIssue = React.memo<SortableIssueProps>(({ issue, onClick, onContex
     >
       <div>
         <CardHeader>
-          <IssueKey>{issue.key}</IssueKey>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <IssueKey>{issue.key}</IssueKey>
+            {issue.isFlagged && (
+              <Flag size={12} fill="#ff4d4f" color="#ff4d4f" />
+            )}
+          </div>
           <StarIcon isStarred={isStarred} onClick={handleStarClick} />
         </CardHeader>
         <IssueSummary>

@@ -19,3 +19,10 @@
 1:51:50 PM [vite] (client) hmr update /src/components/IssueDetail/Sidebar/IssueRightSidebar.tsx
 1:52:42 PM [vite] (client) hmr update /src/components/IssueDetail/Sidebar/DetailsSection.tsx
 1:53:01 PM [vite] (client) hmr update /src/components/IssueDetail/Sidebar/IssueRightSidebar.tsx
+2:16:02 PM [vite] (client) hmr update /src/components/IssueDetail/IssueDetailPanel.tsx
+2:16:31 PM [vite] (client) hmr update /src/components/IssueDetail/IssueDetailPanel.tsx
+2:16:51 PM [vite] (client) hmr update /src/components/IssueDetail/IssueDetailPanel.tsx
+2:18:31 PM [vite] (client) hmr update /src/pages/BoardView.tsx
+2:18:52 PM [vite] (client) hmr update /src/pages/BoardView.tsx
+2:20:04 PM [vite] (client) hmr update /src/pages/BacklogView.tsx
+2:20:23 PM [vite] (client) hmr update /src/pages/BacklogView.tsx

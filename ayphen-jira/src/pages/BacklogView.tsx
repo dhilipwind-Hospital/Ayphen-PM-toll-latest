@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Card, Button, Tag, Avatar, Badge, Tooltip, message, Dropdown, Modal, Empty, Spin } from 'antd';
-import { Plus, MoreHorizontal, GripVertical, Bug, BookOpen, CheckSquare, Zap, X } from 'lucide-react';
+import { Plus, MoreHorizontal, GripVertical, Bug, BookOpen, CheckSquare, Zap, X, Flag } from 'lucide-react';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
@@ -207,6 +207,7 @@ const SortableIssueItem = React.memo(({ issue, onClick, isSelected, workflowStat
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontWeight: 500, color: colors.text.secondary, fontSize: 11, minWidth: 45 }}>{issue.key}</span>
+            {issue.isFlagged && <Flag size={12} fill="#ff4d4f" color="#ff4d4f" />}
             <span style={{ fontSize: 13, color: colors.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{issue.summary}</span>
           </div>
         </div>
@@ -236,7 +237,8 @@ const SortableIssueItem = React.memo(({ issue, onClick, isSelected, workflowStat
     prev.issue.listPosition === next.issue.listPosition &&
     prev.workflowStatuses === next.workflowStatuses &&
     prev.issue.status === next.issue.status &&
-    prev.issue.sprintId === next.issue.sprintId;
+    prev.issue.sprintId === next.issue.sprintId &&
+    prev.issue.isFlagged === next.issue.isFlagged;
 });
 
 const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssueClick, workflowStatuses }: { sprintId: string, issues: any[], selectedIssueId: string | null, onIssueClick: (key: string) => void, workflowStatuses: any[] }) => {
