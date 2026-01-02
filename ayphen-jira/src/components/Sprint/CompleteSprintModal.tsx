@@ -130,8 +130,12 @@ export const CompleteSprintModal: React.FC<CompleteSprintModalProps> = ({
       onCancel={onClose}
       onOk={() => form.submit()}
       confirmLoading={loading}
-      width={700}
+      width={720}
       okText="Complete Sprint"
+      styles={{
+        body: { maxHeight: '70vh', overflowY: 'auto', padding: '24px' }
+      }}
+      centered
     >
       <StatsCard>
         <Row gutter={16}>
@@ -231,8 +235,9 @@ export const CompleteSprintModal: React.FC<CompleteSprintModalProps> = ({
           tooltip="What went well? What could be improved?"
         >
           <Input.TextArea
-            rows={4}
-            placeholder="Share your thoughts about this sprint..."
+            rows={6}
+            placeholder="Share your thoughts about this sprint...&#10;&#10;What went well?&#10;What could be improved?&#10;Action items for next sprint?"
+            style={{ minHeight: 140, fontSize: 14, lineHeight: 1.6 }}
           />
         </Form.Item>
       </Form>

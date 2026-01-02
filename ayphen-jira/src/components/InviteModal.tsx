@@ -64,7 +64,8 @@ export const InviteModal: React.FC<InviteModalProps> = ({
       open={visible}
       onCancel={onClose}
       footer={null}
-      width={500}
+      width={520}
+      centered
     >
       <Alert
         message="Send an email invitation"

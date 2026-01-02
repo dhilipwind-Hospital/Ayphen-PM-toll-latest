@@ -149,10 +149,11 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
       open={visible}
       onCancel={onClose}
       onOk={handleSubmit}
-      okText="Log"
+      okText="Log Work"
       confirmLoading={loading}
-      width={500}
+      width={520}
       destroyOnClose
+      centered
     >
       <Form
         form={form}
@@ -200,8 +201,9 @@ export const LogWorkModal: React.FC<LogWorkModalProps> = ({
           name="description"
         >
           <TextArea
-            rows={3}
+            rows={4}
             placeholder="Describe what you worked on..."
+            style={{ minHeight: 100, fontSize: 14, lineHeight: 1.6 }}
           />
         </Form.Item>
       </Form>

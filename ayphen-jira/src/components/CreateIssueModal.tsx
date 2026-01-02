@@ -484,7 +484,12 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       open={open}
       onCancel={onClose}
       footer={null}
-      width={700}
+      width={720}
+      styles={{
+        body: { maxHeight: '70vh', overflowY: 'auto', padding: '24px' },
+        header: { borderBottom: '1px solid #f0f0f0', paddingBottom: 16 }
+      }}
+      centered
     >
       <Form
         form={form}

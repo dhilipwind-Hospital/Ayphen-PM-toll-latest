@@ -147,8 +147,9 @@ export const StartSprintModal: React.FC<StartSprintModalProps> = ({
           name="goal"
         >
           <Input.TextArea
-            rows={3}
+            rows={4}
             placeholder="What is the goal of this sprint? (optional)"
+            style={{ minHeight: 100, fontSize: 14, lineHeight: 1.6 }}
           />
         </Form.Item>
 

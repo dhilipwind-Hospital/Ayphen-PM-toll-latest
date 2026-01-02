@@ -70,7 +70,11 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
         onClose(false);
       }}
       footer={null}
-      width={600}
+      width={620}
+      centered
+      styles={{
+        body: { maxHeight: '70vh', overflowY: 'auto', padding: '24px' }
+      }}
     >
       <p style={{ marginBottom: 24, color: '#8c8c8c' }}>
         Only filled fields will be updated. Empty fields will remain unchanged.

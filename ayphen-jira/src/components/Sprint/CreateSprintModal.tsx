@@ -119,9 +119,10 @@ export const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
                 >
                     <Input.TextArea
                         placeholder="What do you want to accomplish in this sprint?"
-                        rows={3}
+                        rows={4}
                         maxLength={500}
                         showCount
+                        style={{ minHeight: 100, fontSize: 14, lineHeight: 1.6 }}
                     />
                 </Form.Item>
 
