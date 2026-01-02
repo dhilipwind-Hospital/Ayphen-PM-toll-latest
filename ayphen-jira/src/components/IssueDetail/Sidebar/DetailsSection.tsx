@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Select, Tag, Button, Input, Tooltip } from 'antd';
-import { Edit, Sparkles } from 'lucide-react';
+import { Select, Tag, Button, Input, Tooltip, InputNumber } from 'antd';
+import { Edit, Sparkles, Zap } from 'lucide-react';
 import { colors } from '../../../theme/colors';
 import { SidebarSection } from './SidebarSection';
 
@@ -32,11 +32,12 @@ interface DetailsSectionProps {
     issue: any;
     epics?: any[];
     statuses?: any[];
+    sprints?: any[];
     onUpdate: (field: string, value: any) => Promise<void>;
     onAIAction?: (action: string) => void;
 }
 
-export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [], statuses = [], onUpdate, onAIAction }) => {
+export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [], statuses = [], sprints = [], onUpdate, onAIAction }) => {
     const getStatusColor = (category: string) => {
         switch (category) {
             case 'DONE': return colors.status.done;
@@ -212,6 +213,70 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [
                     <Select.Option value="security">security</Select.Option>
                 </Select>
             </FieldRow>
+
+            {/* Story Points - Not for epics */}
+            {issue.type !== 'epic' && (
+                <FieldRow>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Label>Story Points</Label>
+                        <Tooltip title="AI Estimate">
+                            <Button
+                                type="text"
+                                size="small"
+                                icon={<Zap size={12} color={colors.primary[500]} />}
+                                onClick={() => onAIAction && onAIAction('estimate-points')}
+                            />
+                        </Tooltip>
+                    </div>
+                    <Select
+                        style={{ width: '100%' }}
+                        placeholder="None"
+                        bordered={false}
+                        allowClear
+                        value={issue.storyPoints || undefined}
+                        onChange={(val) => onUpdate('storyPoints', val)}
+                    >
+                        <Select.Option value={1}>1</Select.Option>
+                        <Select.Option value={2}>2</Select.Option>
+                        <Select.Option value={3}>3</Select.Option>
+                        <Select.Option value={5}>5</Select.Option>
+                        <Select.Option value={8}>8</Select.Option>
+                        <Select.Option value={13}>13</Select.Option>
+                        <Select.Option value={21}>21</Select.Option>
+                    </Select>
+                </FieldRow>
+            )}
+
+            {/* Sprint - Not for epics */}
+            {issue.type !== 'epic' && (
+                <FieldRow>
+                    <Label>Sprint</Label>
+                    <Select
+                        style={{ width: '100%' }}
+                        placeholder="Backlog"
+                        bordered={false}
+                        allowClear
+                        value={issue.sprintId || undefined}
+                        onChange={(val) => onUpdate('sprintId', val)}
+                    >
+                        {sprints.map((sprint: any) => (
+                            <Select.Option key={sprint.id} value={sprint.id}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    {sprint.status === 'active' && (
+                                        <span style={{
+                                            width: 6,
+                                            height: 6,
+                                            borderRadius: '50%',
+                                            background: '#22c55e'
+                                        }} />
+                                    )}
+                                    {sprint.name}
+                                </span>
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </FieldRow>
+            )}
         </SidebarSection>
     );
 };

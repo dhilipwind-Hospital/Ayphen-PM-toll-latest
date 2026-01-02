@@ -5,10 +5,10 @@ import { DetailsSection } from './DetailsSection';
 import { PeopleSection } from './PeopleSection';
 import { DatesSection } from './DatesSection';
 import { TimeTrackingSection } from './TimeTrackingSection';
-import { Button, Modal, message, Spin, Card, Tag } from 'antd';
-import { Sparkles, Wand2, Target, Clock, FileText, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Button, Modal, message, Spin, Card, Tag, Tooltip, Dropdown, Divider } from 'antd';
+import { Sparkles, Wand2, Target, Clock, FileText, CheckCircle, AlertTriangle, Flag, Eye, EyeOff, ThumbsUp, Link2, Copy, MoreHorizontal, GitBranch, Printer, Download, Share2, Trash2 } from 'lucide-react';
 import { aiActionsApi } from '../../../services/ai-actions-api';
-import { api, workflowsApi } from '../../../services/api';
+import { api, workflowsApi, issuesApi } from '../../../services/api';
 
 const Container = styled.div`
   display: flex;
@@ -36,6 +36,49 @@ const TopActions = styled.div`
   border-bottom: 1px solid ${colors.border.light};
   display: flex;
   gap: 8px;
+`;
+
+const QuickActionsRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid ${colors.border.light};
+`;
+
+const QuickActionButton = styled.button<{ $active?: boolean; $danger?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid ${props => props.$active ? (props.$danger ? '#ff4d4f' : colors.primary[500]) : colors.border.light};
+  border-radius: 6px;
+  background: ${props => props.$active ? (props.$danger ? '#fff1f0' : colors.primary[50]) : 'white'};
+  color: ${props => props.$active ? (props.$danger ? '#ff4d4f' : colors.primary[600]) : colors.text.secondary};
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    border-color: ${props => props.$danger ? '#ff4d4f' : colors.primary[500]};
+    color: ${props => props.$danger ? '#ff4d4f' : colors.primary[600]};
+    background: ${props => props.$danger ? '#fff1f0' : colors.primary[50]};
+  }
+`;
+
+const FlagBanner = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fff1f0;
+  border: 1px solid #ffccc7;
+  border-radius: 6px;
+  color: #cf1322;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 12px;
 `;
 
 const AIActionCard = styled.div`
@@ -77,22 +120,34 @@ interface IssueRightSidebarProps {
     issue: any;
     users: any[];
     epics?: any[];
+    sprints?: any[];
     onUpdate: (field: string, value: any) => Promise<void>;
     onAIAction?: (action: string) => void;
+    onLinkIssue?: () => void;
+    onLogWork?: () => void;
+    onDelete?: () => void;
 }
 
 export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
     issue,
     users,
     epics = [],
+    sprints = [],
     onUpdate,
-    onAIAction
+    onAIAction,
+    onLinkIssue,
+    onLogWork,
+    onDelete
 }) => {
     const [aiModalVisible, setAiModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [aiResult, setAiResult] = useState<any>(null);
     const [activeAction, setActiveAction] = useState<string | null>(null);
     const [workflowStatuses, setWorkflowStatuses] = useState<any[]>([]);
+    const [isWatching, setIsWatching] = useState(false);
+    const [hasVoted, setHasVoted] = useState(false);
+    const [voteCount, setVoteCount] = useState(0);
+    const [watcherCount, setWatcherCount] = useState(0);
 
     useEffect(() => {
         const fetchWorkflow = async () => {
@@ -309,8 +364,154 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
         return null;
     };
 
+    const handleFlag = async () => {
+        try {
+            const newFlagStatus = !issue.isFlagged;
+            await onUpdate('isFlagged', newFlagStatus);
+            message.success(newFlagStatus ? 'Issue flagged as impediment' : 'Flag removed');
+        } catch (error) {
+            message.error('Failed to update flag status');
+        }
+    };
+
+    const handleWatch = async () => {
+        try {
+            setIsWatching(!isWatching);
+            setWatcherCount(prev => isWatching ? prev - 1 : prev + 1);
+            message.success(isWatching ? 'Stopped watching this issue' : 'Now watching this issue');
+        } catch (error) {
+            message.error('Failed to update watch status');
+        }
+    };
+
+    const handleVote = async () => {
+        try {
+            setHasVoted(!hasVoted);
+            setVoteCount(prev => hasVoted ? prev - 1 : prev + 1);
+            message.success(hasVoted ? 'Vote removed' : 'Voted for this issue');
+        } catch (error) {
+            message.error('Failed to update vote');
+        }
+    };
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(window.location.href);
+        message.success('Link copied to clipboard');
+    };
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: `${issue.key}: ${issue.summary}`,
+                url: window.location.href
+            });
+        } else {
+            handleCopyLink();
+        }
+    };
+
+    const moreActionsItems = [
+        {
+            key: 'link',
+            label: 'Link Issue',
+            icon: <Link2 size={14} />,
+            onClick: onLinkIssue
+        },
+        {
+            key: 'log-work',
+            label: 'Log Work',
+            icon: <Clock size={14} />,
+            onClick: onLogWork
+        },
+        { type: 'divider' as const },
+        {
+            key: 'copy-link',
+            label: 'Copy Link',
+            icon: <Copy size={14} />,
+            onClick: handleCopyLink
+        },
+        {
+            key: 'share',
+            label: 'Share',
+            icon: <Share2 size={14} />,
+            onClick: handleShare
+        },
+        { type: 'divider' as const },
+        {
+            key: 'print',
+            label: 'Print',
+            icon: <Printer size={14} />,
+            onClick: () => window.print()
+        },
+        {
+            key: 'export',
+            label: 'Export as JSON',
+            icon: <Download size={14} />,
+            onClick: () => {
+                const blob = new Blob([JSON.stringify(issue, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${issue.key}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                message.success('Issue exported');
+            }
+        },
+        { type: 'divider' as const },
+        {
+            key: 'delete',
+            label: 'Delete Issue',
+            icon: <Trash2 size={14} />,
+            danger: true,
+            onClick: onDelete
+        }
+    ];
+
     return (
         <Container>
+            {/* Flag Banner - Show when flagged */}
+            {issue.isFlagged && (
+                <FlagBanner>
+                    <Flag size={16} fill="#cf1322" />
+                    Flagged as Impediment
+                </FlagBanner>
+            )}
+
+            {/* Quick Actions Row */}
+            <QuickActionsRow>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <Tooltip title={issue.isFlagged ? 'Remove flag' : 'Flag as impediment'}>
+                        <QuickActionButton $active={issue.isFlagged} $danger onClick={handleFlag}>
+                            <Flag size={14} fill={issue.isFlagged ? '#ff4d4f' : 'none'} />
+                            Flag
+                        </QuickActionButton>
+                    </Tooltip>
+                    
+                    <Tooltip title={isWatching ? 'Stop watching' : 'Watch this issue'}>
+                        <QuickActionButton $active={isWatching} onClick={handleWatch}>
+                            {isWatching ? <EyeOff size={14} /> : <Eye size={14} />}
+                            {watcherCount > 0 ? watcherCount : ''}
+                        </QuickActionButton>
+                    </Tooltip>
+                    
+                    <Tooltip title={hasVoted ? 'Remove vote' : 'Vote for this issue'}>
+                        <QuickActionButton $active={hasVoted} onClick={handleVote}>
+                            <ThumbsUp size={14} fill={hasVoted ? colors.primary[500] : 'none'} />
+                            {voteCount > 0 ? voteCount : ''}
+                        </QuickActionButton>
+                    </Tooltip>
+                </div>
+                
+                <Dropdown menu={{ items: moreActionsItems }} trigger={['click']} placement="bottomRight">
+                    <Tooltip title="More actions">
+                        <QuickActionButton>
+                            <MoreHorizontal size={14} />
+                        </QuickActionButton>
+                    </Tooltip>
+                </Dropdown>
+            </QuickActionsRow>
+
             <TopActions>
                 <Button
                     icon={<Sparkles size={16} />}
@@ -335,7 +536,7 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
                 setAiModalVisible(true);
                 handleAIAction(action);
             }} />
-            <DetailsSection issue={issue} epics={epics} statuses={workflowStatuses} onUpdate={onUpdate} onAIAction={(action) => {
+            <DetailsSection issue={issue} epics={epics} statuses={workflowStatuses} sprints={sprints} onUpdate={onUpdate} onAIAction={(action) => {
                 setAiModalVisible(true);
                 handleAIAction(action);
             }} />
