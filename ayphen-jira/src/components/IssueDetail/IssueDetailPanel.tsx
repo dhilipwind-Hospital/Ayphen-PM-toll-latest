@@ -694,6 +694,35 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
                 <Link size={18} />
               </HeaderIconButton>
             </Tooltip>
+            {/* Delete Issue */}
+            <Tooltip title="Delete Issue">
+              <HeaderIconButton
+                onClick={() => {
+                  Modal.confirm({
+                    title: 'Delete Issue?',
+                    content: `Are you sure you want to delete ${issue.key}? This action cannot be undone.`,
+                    okText: 'Delete',
+                    okButtonProps: { danger: true },
+                    cancelText: 'Cancel',
+                    onOk: async () => {
+                      try {
+                        await issuesApi.delete(issue.id);
+                        message.success('Issue deleted successfully');
+                        if (onClose) {
+                          onClose();
+                        } else {
+                          navigate('/backlog');
+                        }
+                      } catch (err) {
+                        message.error('Failed to delete issue');
+                      }
+                    }
+                  });
+                }}
+              >
+                <Trash2 size={18} color="#ff4d4f" />
+              </HeaderIconButton>
+            </Tooltip>
           </div>
         </StickyHeader>
 
