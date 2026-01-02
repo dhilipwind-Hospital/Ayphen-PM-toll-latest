@@ -8,7 +8,7 @@ import { TimeTrackingSection } from './TimeTrackingSection';
 import { Button, Modal, message, Spin, Card, Tag, Tooltip, Dropdown, Divider } from 'antd';
 import { Sparkles, Wand2, Target, Clock, FileText, CheckCircle, AlertTriangle, Flag, Eye, EyeOff, ThumbsUp, Link2, Copy, MoreHorizontal, GitBranch, Printer, Download, Share2, Trash2 } from 'lucide-react';
 import { aiActionsApi } from '../../../services/ai-actions-api';
-import { api, workflowsApi, issuesApi } from '../../../services/api';
+import { api, workflowsApi, issuesApi, watchersApi, votesApi } from '../../../services/api';
 
 const Container = styled.div`
   display: flex;
@@ -148,6 +148,34 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
     const [hasVoted, setHasVoted] = useState(false);
     const [voteCount, setVoteCount] = useState(0);
     const [watcherCount, setWatcherCount] = useState(0);
+    const currentUserId = localStorage.getItem('userId') || '';
+
+    // Load watch/vote status on mount
+    useEffect(() => {
+        const loadWatchVoteStatus = async () => {
+            if (!issue?.id || !currentUserId) return;
+            try {
+                // Check if user is watching
+                const watchRes = await watchersApi.isWatching(issue.id, currentUserId);
+                setIsWatching(watchRes.data?.isWatching || false);
+                
+                // Get watcher count
+                const watchersRes = await watchersApi.getByIssue(issue.id);
+                setWatcherCount(watchersRes.data?.length || 0);
+                
+                // Check if user has voted
+                const voteRes = await votesApi.hasVoted(issue.id, currentUserId);
+                setHasVoted(voteRes.data?.hasVoted || false);
+                
+                // Get vote count
+                const votesRes = await votesApi.getByIssue(issue.id);
+                setVoteCount(votesRes.data?.length || 0);
+            } catch (e) {
+                console.log('Watch/Vote status check failed (may not be implemented)');
+            }
+        };
+        loadWatchVoteStatus();
+    }, [issue?.id, currentUserId]);
 
     useEffect(() => {
         const fetchWorkflow = async () => {
@@ -376,20 +404,38 @@ export const IssueRightSidebar: React.FC<IssueRightSidebarProps> = ({
 
     const handleWatch = async () => {
         try {
-            setIsWatching(!isWatching);
-            setWatcherCount(prev => isWatching ? prev - 1 : prev + 1);
-            message.success(isWatching ? 'Stopped watching this issue' : 'Now watching this issue');
+            if (isWatching) {
+                await watchersApi.unwatch(issue.id, currentUserId);
+                setIsWatching(false);
+                setWatcherCount(prev => Math.max(0, prev - 1));
+                message.success('Stopped watching this issue');
+            } else {
+                await watchersApi.watch(issue.id, currentUserId);
+                setIsWatching(true);
+                setWatcherCount(prev => prev + 1);
+                message.success('Now watching this issue');
+            }
         } catch (error) {
+            console.error('Watch error:', error);
             message.error('Failed to update watch status');
         }
     };
 
     const handleVote = async () => {
         try {
-            setHasVoted(!hasVoted);
-            setVoteCount(prev => hasVoted ? prev - 1 : prev + 1);
-            message.success(hasVoted ? 'Vote removed' : 'Voted for this issue');
+            if (hasVoted) {
+                await votesApi.unvote(issue.id, currentUserId);
+                setHasVoted(false);
+                setVoteCount(prev => Math.max(0, prev - 1));
+                message.success('Vote removed');
+            } else {
+                await votesApi.vote(issue.id, currentUserId);
+                setHasVoted(true);
+                setVoteCount(prev => prev + 1);
+                message.success('Voted for this issue');
+            }
         } catch (error) {
+            console.error('Vote error:', error);
             message.error('Failed to update vote');
         }
     };

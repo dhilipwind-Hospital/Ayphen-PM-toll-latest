@@ -379,6 +379,14 @@ export const watchersApi = {
   unwatch: (issueId: string, userId: string) => api.delete('/watchers', { data: { issueId, userId } }),
 };
 
+// Votes API
+export const votesApi = {
+  getByIssue: (issueId: string) => api.get(`/votes/issue/${issueId}`),
+  hasVoted: (issueId: string, userId: string) => api.get(`/votes/issue/${issueId}/user/${userId}`),
+  vote: (issueId: string, userId: string) => api.post('/votes', { issueId, userId }),
+  unvote: (issueId: string, userId: string) => api.delete('/votes', { data: { issueId, userId } }),
+};
+
 // Export API
 export const exportApi = {
   toCSV: (params: { projectId?: string; status?: string; assigneeId?: string }) => 
