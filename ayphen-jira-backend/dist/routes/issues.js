@@ -463,16 +463,110 @@ router.delete('/:id', async (req, res) => {
         if (!issue) {
             return res.status(404).json({ error: 'Issue not found' });
         }
+        console.log(`🗑️ Deleting issue ${issue.key} (${issue.id})`);
+        // Delete related records first to avoid foreign key constraints
+        try {
+            // Delete comments
+            const { Comment } = require('../entities/Comment');
+            const commentRepo = database_1.AppDataSource.getRepository(Comment);
+            await commentRepo.delete({ issueId: req.params.id });
+            console.log(`  ✓ Deleted comments for issue ${issue.key}`);
+        }
+        catch (e) {
+            console.log('  - No comments to delete or Comment entity not found');
+        }
+        try {
+            // Delete attachments
+            const { Attachment } = require('../entities/Attachment');
+            const attachmentRepo = database_1.AppDataSource.getRepository(Attachment);
+            await attachmentRepo.delete({ issueId: req.params.id });
+            console.log(`  ✓ Deleted attachments for issue ${issue.key}`);
+        }
+        catch (e) {
+            console.log('  - No attachments to delete or Attachment entity not found');
+        }
+        try {
+            // Delete history
+            const { History } = require('../entities/History');
+            const historyRepo = database_1.AppDataSource.getRepository(History);
+            await historyRepo.delete({ issueId: req.params.id });
+            console.log(`  ✓ Deleted history for issue ${issue.key}`);
+        }
+        catch (e) {
+            console.log('  - No history to delete or History entity not found');
+        }
+        try {
+            // Delete issue links (both source and target)
+            const { IssueLink } = require('../entities/IssueLink');
+            const issueLinkRepo = database_1.AppDataSource.getRepository(IssueLink);
+            await issueLinkRepo.delete({ sourceIssueId: req.params.id });
+            await issueLinkRepo.delete({ targetIssueId: req.params.id });
+            console.log(`  ✓ Deleted issue links for issue ${issue.key}`);
+        }
+        catch (e) {
+            console.log('  - No issue links to delete or IssueLink entity not found');
+        }
+        try {
+            // Delete issue votes
+            const { IssueVote } = require('../entities/IssueVote');
+            const issueVoteRepo = database_1.AppDataSource.getRepository(IssueVote);
+            await issueVoteRepo.delete({ issueId: req.params.id });
+            console.log(`  ✓ Deleted votes for issue ${issue.key}`);
+        }
+        catch (e) {
+            console.log('  - No votes to delete or IssueVote entity not found');
+        }
+        try {
+            // Delete issue watchers
+            const { IssueWatcher } = require('../entities/IssueWatcher');
+            const issueWatcherRepo = database_1.AppDataSource.getRepository(IssueWatcher);
+            await issueWatcherRepo.delete({ issueId: req.params.id });
+            console.log(`  ✓ Deleted watchers for issue ${issue.key}`);
+        }
+        catch (e) {
+            console.log('  - No watchers to delete or IssueWatcher entity not found');
+        }
+        try {
+            // Delete notifications related to this issue
+            const { Notification } = require('../entities/Notification');
+            const notificationRepo = database_1.AppDataSource.getRepository(Notification);
+            await notificationRepo.delete({ issueId: req.params.id });
+            console.log(`  ✓ Deleted notifications for issue ${issue.key}`);
+        }
+        catch (e) {
+            console.log('  - No notifications to delete or Notification entity not found');
+        }
+        try {
+            // Update subtasks to remove parent reference (don't delete them)
+            await issueRepo.update({ parentId: req.params.id }, { parentId: null });
+            console.log(`  ✓ Unlinked subtasks from issue ${issue.key}`);
+        }
+        catch (e) {
+            console.log('  - No subtasks to unlink');
+        }
+        try {
+            // Update issues linked to this epic
+            if (issue.type === 'epic') {
+                await issueRepo.update({ epicLink: issue.key }, { epicLink: null, epicId: null, epicKey: null });
+                console.log(`  ✓ Unlinked stories from epic ${issue.key}`);
+            }
+        }
+        catch (e) {
+            console.log('  - No epic stories to unlink');
+        }
+        // Now delete the issue itself
         await issueRepo.delete(req.params.id);
+        console.log(`✅ Issue ${issue.key} deleted successfully`);
         // Notify via WebSocket
         if (websocket_service_1.websocketService) {
-            const deleterId = req.body.userId || 'system';
+            const deleterId = req.query.userId || req.body.userId || 'system';
             websocket_service_1.websocketService.notifyIssueDeleted(issue.id, issue.projectId, deleterId);
         }
         res.status(204).send();
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to delete issue' });
+        console.error('❌ Failed to delete issue:', error);
+        res.status(500).json({ error: 'Failed to delete issue', details: error.message });
     }
 });
 // POST bulk update issues

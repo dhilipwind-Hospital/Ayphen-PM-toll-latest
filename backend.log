@@ -32,3 +32,33 @@ Require stack:
 - /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/services/sendgrid.service.ts
 - /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/auth.ts
 - /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/index.ts
+[INFO] 12:48:16 Restarting: /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/issues.ts has been modified
+[2026-01-02 07:18:16] DEBUG Creating transport: nodemailer (7.0.10; +https://nodemailer.com/; SMTP (pool)/7.0.10[client:7.0.10])
+📧 Email service initialized with SMTP
+   Host: smtp.gmail.com
+   Port: 587
+   User: dhilipwind@gmail.com
+   From: dhilipwind@gmail.com
+   Connection timeout: 60s
+🔵 Using Cerebras API
+🔵 Using Cerebras API
+Error: Cannot find module '@sendgrid/mail'
+Require stack:
+- /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/services/sendgrid.service.ts
+- /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/auth.ts
+- /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/index.ts
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1401:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/services/sendgrid.service.ts:1:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1730:14)
+[ERROR] 12:48:16 Error: Cannot find module '@sendgrid/mail'
+Require stack:
+- /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/services/sendgrid.service.ts
+- /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/routes/auth.ts
+- /Users/dhilipelango/VS Jira 2/ayphen-jira-backend/src/index.ts
