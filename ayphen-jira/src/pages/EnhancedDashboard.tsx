@@ -276,21 +276,22 @@ export const EnhancedDashboard: React.FC = () => {
     loadDashboardData();
   }, [currentProject, issues, sprints, workflowStatusList]);
 
-  // No project selected state
+  // Show loading while store is initializing (prevents flash of "No project selected")
+  if (!isInitialized || loading) {
+    return (
+      <DashboardContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+        <Spin size="large" tip="Loading dashboard..." />
+      </DashboardContainer>
+    );
+  }
+
+  // No project selected state - only show after initialization complete
   if (!currentProject) {
     return (
       <DashboardContainer>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
           <h2>No project selected</h2>
         </div>
-      </DashboardContainer>
-    );
-  }
-
-  if (loading) {
-    return (
-      <DashboardContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Spin size="large" tip="Loading dashboard..." />
       </DashboardContainer>
     );
   }
