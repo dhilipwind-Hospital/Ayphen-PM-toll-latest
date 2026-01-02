@@ -140,6 +140,9 @@ export class Issue {
     aiPrompt?: string;
   };
 
+  @Column({ type: 'simple-json', nullable: true })
+  customFields: Record<string, any>;
+
   @CreateDateColumn()
   createdAt: Date;
 

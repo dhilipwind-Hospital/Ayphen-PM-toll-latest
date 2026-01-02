@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, Select, InputNumber, Button, message, Avatar, DatePicker } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { issuesApi, projectMembersApi, sprintsApi, api } from '../services/api';
+import { issuesApi, projectMembersApi, sprintsApi, api, settingsApi } from '../services/api';
 import { useStore } from '../store/useStore';
 import { VoiceDescriptionButton } from './VoiceDescription/VoiceDescriptionButton';
 import { TemplateButton } from './Templates';
@@ -58,6 +58,8 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   const [members, setMembers] = useState<any[]>([]);
 
   const [sprints, setSprints] = useState<any[]>([]);
+  const [issueTypes, setIssueTypes] = useState<any[]>([]);
+  const [customFields, setCustomFields] = useState<any[]>([]);
 
   // Track creation method for badge
   const [creationMethod, setCreationMethod] = useState<'manual' | 'ai' | 'template'>('manual');
@@ -69,6 +71,8 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       loadStories();
       loadMembers();
       loadSprints();
+      loadIssueTypes();
+      loadCustomFields();
     }
 
     if (open) {
@@ -142,6 +146,48 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       setSprints(activeSprints);
     } catch (error) {
       console.error('Failed to load sprints', error);
+    }
+  };
+
+  const loadIssueTypes = async () => {
+    try {
+      const response = await settingsApi.getIssueTypes();
+      // Use settings issue types if available, fallback to defaults
+      if (response.data && response.data.length > 0) {
+        setIssueTypes(response.data);
+      } else {
+        // Fallback to default issue types
+        setIssueTypes([
+          { id: 'epic', name: 'Epic', icon: '🎯', description: 'Large body of work' },
+          { id: 'story', name: 'Story', icon: '📖', description: 'User story' },
+          { id: 'task', name: 'Task', icon: '✅', description: 'Task to be done' },
+          { id: 'bug', name: 'Bug', icon: '🐛', description: 'Bug to be fixed' },
+          { id: 'subtask', name: 'Subtask', icon: '📝', description: 'Subtask of an issue' },
+        ]);
+      }
+    } catch (error) {
+      console.error('Failed to load issue types', error);
+      // Fallback to defaults on error
+      setIssueTypes([
+        { id: 'epic', name: 'Epic', icon: '🎯', description: 'Large body of work' },
+        { id: 'story', name: 'Story', icon: '📖', description: 'User story' },
+        { id: 'task', name: 'Task', icon: '✅', description: 'Task to be done' },
+        { id: 'bug', name: 'Bug', icon: '🐛', description: 'Bug to be fixed' },
+        { id: 'subtask', name: 'Subtask', icon: '📝', description: 'Subtask of an issue' },
+      ]);
+    }
+  };
+
+  const loadCustomFields = async () => {
+    try {
+      const response = await settingsApi.getCustomFields();
+      // Filter to project-specific or global fields
+      const fields = (response.data || []).filter((f: any) => 
+        f.isGlobal || f.projectId === currentProject?.id
+      );
+      setCustomFields(fields);
+    } catch (error) {
+      console.error('Failed to load custom fields', error);
     }
   };
 
@@ -279,6 +325,11 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           issueData.epicKey = selectedEpic.key;
           issueData.epicLink = selectedEpic.key;
         }
+      }
+
+      // Include custom field values
+      if (values.customFields) {
+        issueData.customFields = values.customFields;
       }
 
       if (values.userStoryLink) {
@@ -531,11 +582,21 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           rules={[{ required: true, message: 'Please select issue type' }]}
         >
           <Select>
-            <Select.Option value="epic">🎯 Epic</Select.Option>
-            <Select.Option value="story">📖 Story</Select.Option>
-            <Select.Option value="task">✅ Task</Select.Option>
-            <Select.Option value="bug">🐛 Bug</Select.Option>
-            <Select.Option value="subtask">📝 Subtask</Select.Option>
+            {issueTypes.length > 0 ? (
+              issueTypes.map((type: any) => (
+                <Select.Option key={type.id || type.name.toLowerCase()} value={type.id || type.name.toLowerCase()}>
+                  {type.icon || '📋'} {type.name}
+                </Select.Option>
+              ))
+            ) : (
+              <>
+                <Select.Option value="epic">🎯 Epic</Select.Option>
+                <Select.Option value="story">📖 Story</Select.Option>
+                <Select.Option value="task">✅ Task</Select.Option>
+                <Select.Option value="bug">🐛 Bug</Select.Option>
+                <Select.Option value="subtask">📝 Subtask</Select.Option>
+              </>
+            )}
           </Select>
         </Form.Item>
 
@@ -664,6 +725,45 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
             <Select.Option value="feature">feature</Select.Option>
           </Select>
         </Form.Item>
+
+        {/* Custom Fields Section */}
+        {customFields.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontWeight: 500, marginBottom: 12, color: '#666' }}>Custom Fields</div>
+            {customFields.map((field: any) => (
+              <Form.Item
+                key={field.id}
+                name={['customFields', field.id]}
+                label={field.name}
+                rules={field.isRequired ? [{ required: true, message: `${field.name} is required` }] : []}
+              >
+                {field.type === 'text' && <Input placeholder={`Enter ${field.name}`} />}
+                {field.type === 'number' && <InputNumber style={{ width: '100%' }} placeholder={`Enter ${field.name}`} />}
+                {field.type === 'date' && <DatePicker style={{ width: '100%' }} />}
+                {field.type === 'select' && (
+                  <Select placeholder={`Select ${field.name}`}>
+                    {(field.options || []).map((opt: string) => (
+                      <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+                    ))}
+                  </Select>
+                )}
+                {field.type === 'multiselect' && (
+                  <Select mode="multiple" placeholder={`Select ${field.name}`}>
+                    {(field.options || []).map((opt: string) => (
+                      <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+                    ))}
+                  </Select>
+                )}
+                {field.type === 'checkbox' && (
+                  <Select placeholder={`Select ${field.name}`}>
+                    <Select.Option value={true}>Yes</Select.Option>
+                    <Select.Option value={false}>No</Select.Option>
+                  </Select>
+                )}
+              </Form.Item>
+            ))}
+          </div>
+        )}
 
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={loading} block size="large">

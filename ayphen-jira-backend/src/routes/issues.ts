@@ -326,7 +326,7 @@ router.put('/:id', async (req, res) => {
       'storyPoints', 'dueDate', 'labels', 'components', 'fixVersions',
       'epicLink', 'epicId', 'epicKey', 'epicName', 'parentId',
       'environment', 'originalEstimate', 'remainingEstimate', 'timeSpent',
-      'workLogs', 'isFlagged', 'flaggedAt', 'flaggedBy'
+      'workLogs', 'isFlagged', 'flaggedAt', 'flaggedBy', 'customFields'
     ];
 
     const updatePayload: any = {};
