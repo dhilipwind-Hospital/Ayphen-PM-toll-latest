@@ -587,8 +587,15 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           }
         >
           <TextArea
-            rows={4}
+            rows={8}
             placeholder="Add a description..."
+            style={{
+              minHeight: 180,
+              maxHeight: 400,
+              fontSize: 14,
+              lineHeight: 1.6,
+              resize: 'vertical'
+            }}
           />
         </Form.Item>
 

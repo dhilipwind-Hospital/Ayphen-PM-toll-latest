@@ -721,15 +721,16 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ issueKey, on
             {isEditingDescription ? (
               <div style={{ marginBottom: 24, marginTop: 16, width: '100%' }}>
                 <TextArea
-                  rows={12}
+                  rows={20}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
                   style={{
                     marginBottom: 12,
                     width: '100%',
-                    minHeight: 200,
+                    minHeight: 400,
+                    maxHeight: 600,
                     fontSize: 14,
-                    lineHeight: 1.6,
+                    lineHeight: 1.8,
                     padding: 16,
                     borderRadius: 8,
                     border: '1px solid #E0E0E0',
