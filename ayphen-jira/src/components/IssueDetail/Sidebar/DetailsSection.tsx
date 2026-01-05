@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Select, Tag, Button, Input, Tooltip, InputNumber } from 'antd';
+import { Select, Tag, Button, Input, Tooltip, InputNumber, DatePicker } from 'antd';
 import { Edit, Sparkles, Zap } from 'lucide-react';
+import dayjs from 'dayjs';
 import { colors } from '../../../theme/colors';
 import { SidebarSection } from './SidebarSection';
+import { settingsApi } from '../../../services/api';
 
 const FieldRow = styled.div`
   margin-bottom: 12px;
@@ -38,6 +40,34 @@ interface DetailsSectionProps {
 }
 
 export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [], statuses = [], sprints = [], onUpdate, onAIAction }) => {
+    const [customFields, setCustomFields] = useState<any[]>([]);
+
+    // Load custom fields on mount
+    useEffect(() => {
+        const loadCustomFields = async () => {
+            try {
+                const response = await settingsApi.getCustomFields();
+                const fields = (response.data || []).filter((f: any) => 
+                    f.isGlobal || f.projectId === issue?.projectId
+                );
+                setCustomFields(fields);
+            } catch (error) {
+                console.error('Failed to load custom fields:', error);
+            }
+        };
+        loadCustomFields();
+    }, [issue?.projectId]);
+
+    const handleCustomFieldChange = (fieldId: string, value: any) => {
+        const currentCustomFields = issue.customFields || {};
+        const updatedCustomFields = { ...currentCustomFields, [fieldId]: value };
+        onUpdate('customFields', updatedCustomFields);
+    };
+
+    const getCustomFieldValue = (fieldId: string) => {
+        return issue.customFields?.[fieldId];
+    };
+
     const getStatusColor = (category: string) => {
         switch (category) {
             case 'DONE': return colors.status.done;
@@ -277,6 +307,80 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [
                     </Select>
                 </FieldRow>
             )}
+
+            {/* Custom Fields Section */}
+            {customFields.length > 0 && customFields.map((field: any) => (
+                <FieldRow key={field.id}>
+                    <Label>{field.name}{field.isRequired && <span style={{ color: 'red' }}> *</span>}</Label>
+                    {field.type === 'text' && (
+                        <Input
+                            size="small"
+                            value={getCustomFieldValue(field.id) || ''}
+                            placeholder={`Enter ${field.name}`}
+                            onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
+                            onBlur={() => {}}
+                        />
+                    )}
+                    {field.type === 'number' && (
+                        <InputNumber
+                            size="small"
+                            style={{ width: '100%' }}
+                            value={getCustomFieldValue(field.id)}
+                            placeholder={`Enter ${field.name}`}
+                            onChange={(val) => handleCustomFieldChange(field.id, val)}
+                        />
+                    )}
+                    {field.type === 'date' && (
+                        <DatePicker
+                            size="small"
+                            style={{ width: '100%' }}
+                            value={getCustomFieldValue(field.id) ? dayjs(getCustomFieldValue(field.id)) : null}
+                            onChange={(date) => handleCustomFieldChange(field.id, date?.toISOString())}
+                        />
+                    )}
+                    {field.type === 'select' && (
+                        <Select
+                            size="small"
+                            style={{ width: '100%' }}
+                            value={getCustomFieldValue(field.id)}
+                            placeholder={`Select ${field.name}`}
+                            allowClear
+                            onChange={(val) => handleCustomFieldChange(field.id, val)}
+                        >
+                            {(field.options || []).map((opt: string) => (
+                                <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+                            ))}
+                        </Select>
+                    )}
+                    {field.type === 'multiselect' && (
+                        <Select
+                            size="small"
+                            mode="multiple"
+                            style={{ width: '100%' }}
+                            value={getCustomFieldValue(field.id) || []}
+                            placeholder={`Select ${field.name}`}
+                            onChange={(val) => handleCustomFieldChange(field.id, val)}
+                        >
+                            {(field.options || []).map((opt: string) => (
+                                <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+                            ))}
+                        </Select>
+                    )}
+                    {field.type === 'checkbox' && (
+                        <Select
+                            size="small"
+                            style={{ width: '100%' }}
+                            value={getCustomFieldValue(field.id)}
+                            placeholder={`Select ${field.name}`}
+                            allowClear
+                            onChange={(val) => handleCustomFieldChange(field.id, val)}
+                        >
+                            <Select.Option value={true}>Yes</Select.Option>
+                            <Select.Option value={false}>No</Select.Option>
+                        </Select>
+                    )}
+                </FieldRow>
+            ))}
         </SidebarSection>
     );
 };
