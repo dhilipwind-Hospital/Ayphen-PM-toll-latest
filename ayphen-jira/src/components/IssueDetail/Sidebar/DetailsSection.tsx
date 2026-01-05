@@ -39,10 +39,20 @@ interface DetailsSectionProps {
     onAIAction?: (action: string) => void;
 }
 
+// Default issue types fallback
+const DEFAULT_ISSUE_TYPES = [
+    { id: 'epic', name: 'Epic', icon: '🎯' },
+    { id: 'story', name: 'Story', icon: '📖' },
+    { id: 'task', name: 'Task', icon: '✅' },
+    { id: 'bug', name: 'Bug', icon: '🐛' },
+    { id: 'subtask', name: 'Subtask', icon: '📝' },
+];
+
 export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [], statuses = [], sprints = [], onUpdate, onAIAction }) => {
     const [customFields, setCustomFields] = useState<any[]>([]);
+    const [issueTypes, setIssueTypes] = useState<any[]>(DEFAULT_ISSUE_TYPES);
 
-    // Load custom fields on mount
+    // Load custom fields and issue types on mount
     useEffect(() => {
         const loadCustomFields = async () => {
             try {
@@ -55,7 +65,20 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [
                 console.error('Failed to load custom fields:', error);
             }
         };
+
+        const loadIssueTypes = async () => {
+            try {
+                const response = await settingsApi.getIssueTypes();
+                if (response.data && response.data.length > 0) {
+                    setIssueTypes(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to load issue types:', error);
+            }
+        };
+
         loadCustomFields();
+        loadIssueTypes();
     }, [issue?.projectId]);
 
     const handleCustomFieldChange = (fieldId: string, value: any) => {
@@ -79,10 +102,27 @@ export const DetailsSection: React.FC<DetailsSectionProps> = ({ issue, epics = [
 
     return (
         <SidebarSection title="Details">
+            {/* Issue Type */}
+            <FieldRow>
+                <Label>Type</Label>
+                <Select
+                    value={issue.type}
+                    style={{ width: '100%' }}
+                    bordered={false}
+                    onChange={(val) => onUpdate('type', val)}
+                >
+                    {issueTypes.map((type: any) => (
+                        <Select.Option key={type.id || type.name?.toLowerCase()} value={type.id || type.name?.toLowerCase()}>
+                            {type.icon || '📋'} {type.name}
+                        </Select.Option>
+                    ))}
+                </Select>
+            </FieldRow>
+
+            {/* Status */}
             <FieldRow>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Label>Status</Label>
-                    {/* Smart transition suggestion could go here */}
                 </div>
                 <Select
                     value={issue.status}
