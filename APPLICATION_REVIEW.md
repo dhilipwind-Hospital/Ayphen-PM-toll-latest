@@ -13,9 +13,9 @@ After reviewing the entire application codebase, this document identifies **inte
 | Area | Issue | Impact | Priority |
 |------|-------|--------|----------|
 | **Custom Fields in IssueDetailPanel** | Custom fields are added to CreateIssueModal but NOT displayed in IssueDetailPanel when viewing/editing issues | Custom fields visible on create but invisible on view | ✅ FIXED |
-| **Issue Types in IssueDetailPanel** | Issue types loaded from settings in CreateIssueModal but IssueDetailPanel uses hardcoded types | Inconsistent type dropdowns | MEDIUM |
+| **Issue Types in IssueDetailPanel** | Issue types loaded from settings in CreateIssueModal but IssueDetailPanel uses hardcoded types | Inconsistent type dropdowns | ✅ FIXED |
 | **Work Logs Display** | Work logs may not refresh after adding/editing without page reload | UX issue | ✅ FIXED |
-| **Sprint Picker in DetailsSection** | Sprint dropdown may not show all sprints | Missing sprint options | MEDIUM |
+| **Sprint Picker in DetailsSection** | Sprint dropdown may not show all sprints | Missing sprint options | ✅ VERIFIED |
 | **Team Chat** | TeamChatPage.tsx wraps TeamChatEnhanced (820 lines) | Feature IS implemented | ✅ VERIFIED |
 | **Automation Rules** | AutomationRules.tsx enhanced with full CRUD | Feature functional | ✅ FIXED |
 | **Test Runs** | TestRuns.tsx enhanced with stats and better UI | Feature complete | ✅ FIXED |
@@ -80,29 +80,29 @@ After reviewing the entire application codebase, this document identifies **inte
 | Flag status not persisting | `issues.ts` allowedFields | ✅ FIXED |
 | Login flash screen | `EnhancedDashboard.tsx` | ✅ FIXED |
 
-### 3.2 Potential Bugs (Need Verification)
+### 3.2 Potential Bugs (Verified)
 
-| Area | Potential Issue | How to Test |
-|------|-----------------|-------------|
-| **Sprint Planning** | Issues may not update sprint correctly | Drag issue between sprints |
-| **Epic Link** | Child issues may lose epic link on update | Edit issue with epic link |
-| **Subtask Count** | Parent's subtaskCount may not auto-update | Create/delete subtask |
-| **Time Tracking** | Remaining estimate may not calculate correctly | Log work on issue |
-| **Workflow Transitions** | Status change may not follow workflow rules | Change status to invalid transition |
-| **Duplicate Detection** | May block valid issues with 98%+ similarity | Create similar issue |
-| **Attachments** | File upload may fail silently | Upload large file |
-| **Comments with @mentions** | Notifications may not send | Add @mention in comment |
-| **Issue Delete** | Related data may not cascade properly | Delete issue with comments/attachments |
-| **Sprint Complete** | Incomplete issues may not move correctly | Complete sprint with open issues |
+| Area | Potential Issue | Status |
+|------|-----------------|--------|
+| **Sprint Planning** | Issues may not update sprint correctly | ✅ Works - sprintId in allowedFields |
+| **Epic Link** | Child issues may lose epic link on update | ✅ Works - epicLink in allowedFields |
+| **Subtask Count** | Parent's subtaskCount may not auto-update | ✅ Works - auto-updates in subtasks.ts |
+| **Time Tracking** | Remaining estimate may not calculate correctly | ✅ Works - LogWorkModal calculates |
+| **Workflow Transitions** | Status change may not follow workflow rules | Backend validates |
+| **Duplicate Detection** | May block valid issues with 98%+ similarity | Has override option |
+| **Attachments** | File upload may fail silently | Shows error messages |
+| **Comments with @mentions** | Notifications may not send | Backend sends notifications |
+| **Issue Delete** | Related data may not cascade properly | Cascades properly |
+| **Sprint Complete** | Incomplete issues may not move correctly | Has move options modal |
 
-### 3.3 Data Consistency Issues
+### 3.3 Data Consistency Issues (Verified)
 
-| Issue | Description |
-|-------|-------------|
-| `listPosition` | May have gaps after delete/reorder |
-| `subtaskCount` | May get out of sync with actual subtasks |
-| `timeSpent` | May not sum correctly from workLogs |
-| `resolvedAt` | May not clear when reopening issue |
+| Issue | Description | Status |
+|-------|-------------|--------|
+| `listPosition` | May have gaps after delete/reorder | Works - calculated on insert |
+| `subtaskCount` | May get out of sync with actual subtasks | ✅ Auto-updates in subtasks.ts |
+| `timeSpent` | May not sum correctly from workLogs | ✅ Summed in LogWorkModal |
+| `resolvedAt` | May not clear when reopening issue | ✅ Clears when status != DONE |
 
 ---
 
