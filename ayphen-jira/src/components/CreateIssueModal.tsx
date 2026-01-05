@@ -728,8 +728,26 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
         {/* Custom Fields Section */}
         {customFields.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontWeight: 500, marginBottom: 12, color: '#666' }}>Custom Fields</div>
+          <div style={{ 
+            marginBottom: 16, 
+            marginTop: 16,
+            padding: 16,
+            background: '#fafafa',
+            borderRadius: 8,
+            border: '1px solid #f0f0f0'
+          }}>
+            <div style={{ 
+              fontWeight: 600, 
+              marginBottom: 16, 
+              color: '#1f1f1f',
+              fontSize: 14,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}>
+              <span style={{ color: '#1890ff' }}>⚙️</span>
+              Custom Fields
+            </div>
             {customFields.map((field: any) => (
               <Form.Item
                 key={field.id}
