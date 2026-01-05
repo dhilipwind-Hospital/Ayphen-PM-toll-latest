@@ -367,17 +367,17 @@ export const EnhancedDashboard: React.FC = () => {
         ))}
       </QuickStats>
 
-      <Row gutter={[20, 20]} style={{ marginBottom: 32 }}>
-        <Col xs={24} md={12}>
+      <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
+        <Col xs={24}>
           <ErrorBoundary title="Orphaned Issues">
             <OrphanedIssuesWidget />
           </ErrorBoundary>
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={12}>
-          <GlassCard title="Recent Activity" extra={<Button type="link" onClick={() => navigate('/reports')}>View All</Button>}>
+      <Row gutter={[20, 20]}>
+        <Col xs={24} md={12} lg={12}>
+          <GlassCard title="Recent Activity" extra={<Button type="link" onClick={() => navigate('/reports')}>View All</Button>} style={{ height: '100%' }}>
             <List
               dataSource={recentActivity}
               renderItem={(item) => (
@@ -393,8 +393,8 @@ export const EnhancedDashboard: React.FC = () => {
           </GlassCard>
         </Col>
 
-        <Col xs={24} lg={12}>
-          <GlassCard title="Upcoming Deadlines">
+        <Col xs={24} md={12} lg={12}>
+          <GlassCard title="Upcoming Deadlines" style={{ height: '100%' }}>
             <List
               dataSource={upcomingDeadlines}
               renderItem={(item) => (
@@ -412,8 +412,8 @@ export const EnhancedDashboard: React.FC = () => {
           </GlassCard>
         </Col>
 
-        <Col xs={24} lg={12}>
-          <GlassCard title="Sprint Progress">
+        <Col xs={24} md={12} lg={12}>
+          <GlassCard title="Sprint Progress" style={{ height: '100%' }}>
             {sprintProgress.total > 0 ? (
               <div>
                 <h4>Current Sprint</h4>
@@ -426,8 +426,8 @@ export const EnhancedDashboard: React.FC = () => {
           </GlassCard>
         </Col>
 
-        <Col xs={24} lg={12}>
-          <GlassCard title="Issue Distribution">
+        <Col xs={24} md={12} lg={12}>
+          <GlassCard title="Issue Distribution" style={{ height: '100%' }}>
             <List
               dataSource={[
                 { name: 'To Do', count: projectIssues.filter((i: any) => workflowStatusList.find(s => s.id === i.status && s.category === 'TODO')).length },
@@ -446,43 +446,50 @@ export const EnhancedDashboard: React.FC = () => {
       </Row>
 
       {/* Advanced Features Section */}
-      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+      <Row gutter={[20, 20]} style={{ marginTop: 32 }}>
         <Col span={24}>
-          <h2 style={{ color: '#0EA5E9', marginBottom: 16 }}>🚀 Advanced Features</h2>
+          <h2 style={{ 
+            color: '#0EA5E9', 
+            marginBottom: 8,
+            fontSize: 20,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            🚀 Advanced Features
+          </h2>
+          <p style={{ color: '#666', marginBottom: 16, fontSize: 14 }}>
+            AI-powered tools and analytics to supercharge your productivity
+          </p>
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
+      <Row gutter={[20, 20]}>
+        <Col xs={24} md={12} lg={8}>
           <ErrorBoundary title="AI Assistant">
             <AIAssistant />
           </ErrorBoundary>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={12} lg={8}>
           <ErrorBoundary title="Analytics">
             <PredictiveAnalytics />
           </ErrorBoundary>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={12} lg={8}>
           <ErrorBoundary title="Achievements">
             <AchievementSystem />
           </ErrorBoundary>
         </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={12} lg={8}>
           <ErrorBoundary title="Blockchain Audit">
             <BlockchainAudit />
           </ErrorBoundary>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={12} lg={8}>
           <ErrorBoundary title="Virtual Workspace">
             <VirtualWorkspace />
           </ErrorBoundary>
-        </Col>
-        <Col xs={24} md={8}>
-          {/* Future feature slot */}
         </Col>
       </Row>
 
