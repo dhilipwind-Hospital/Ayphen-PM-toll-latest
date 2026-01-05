@@ -227,11 +227,11 @@ export const settingsApi = {
   updateIssueType: (id: string, data: any) => api.put(`/settings/issue-types/${id}`, data),
   deleteIssueType: (id: string) => api.delete(`/settings/issue-types/${id}`),
 
-  // Custom Fields
-  getCustomFields: () => api.get('/settings/custom-fields'),
-  createCustomField: (data: any) => api.post('/settings/custom-fields', data),
-  updateCustomField: (id: string, data: any) => api.put(`/settings/custom-fields/${id}`, data),
-  deleteCustomField: (id: string) => api.delete(`/settings/custom-fields/${id}`),
+  // Custom Fields - uses database-backed /custom-fields route
+  getCustomFields: () => api.get('/custom-fields'),
+  createCustomField: (data: any) => api.post('/custom-fields', data),
+  updateCustomField: (id: string, data: any) => api.put(`/custom-fields/${id}`, data),
+  deleteCustomField: (id: string) => api.delete(`/custom-fields/${id}`),
 
   // Automation Rules
   getAutomationRules: () => api.get('/settings/automation-rules'),

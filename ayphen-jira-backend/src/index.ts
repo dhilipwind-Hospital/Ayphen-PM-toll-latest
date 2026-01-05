@@ -88,6 +88,7 @@ import aiSprintAutoPopulateRoutes from './routes/ai-sprint-auto-populate';
 import aiNotificationFilterRoutes from './routes/ai-notification-filter';
 import aiTestCaseGeneratorRoutes from './routes/ai-test-case-generator';
 import testCasesRoutes from './routes/test-cases';
+import projectTemplatesRoutes from './routes/project-templates';
 
 dotenv.config();
 
@@ -156,6 +157,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/epics', epicsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/test-email', testEmailRoutes);
+app.use('/api/project-templates', projectTemplatesRoutes);
 
 // AI Test Automation routes
 app.use('/api/ai-test-automation/requirements', aiRequirementsRoutes);
