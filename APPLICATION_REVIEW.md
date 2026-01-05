@@ -24,16 +24,16 @@ After reviewing the entire application codebase, this document identifies **inte
 
 | Frontend API | Backend Route | Status |
 |--------------|---------------|--------|
-| `settingsApi.getIssueTypes()` → `/settings/issue-types` | `settings.ts` | ⚠️ Verify endpoint exists |
-| `settingsApi.getCustomFields()` → `/settings/custom-fields` | `settings.ts` vs `custom-fields.ts` | ⚠️ Two routes exist - possible conflict |
-| `projectTemplatesApi` → `/project-templates` | No dedicated route file | ❌ Missing backend |
+| `settingsApi.getIssueTypes()` → `/settings/issue-types` | `settings.ts` | ✅ VERIFIED |
+| `settingsApi.getCustomFields()` → `/custom-fields` | `custom-fields.ts` (database-backed) | ✅ FIXED |
+| `projectTemplatesApi` → `/project-templates` | `project-templates.ts` | ✅ CREATED |
 
-### 1.3 Missing Backend Integrations
+### 1.3 Backend Integrations Status
 
-1. **Project Templates API** - Frontend has `projectTemplatesApi` but no backend route
-2. **Predictive Alerts** - Widget exists but backend returns mock data
-3. **AI Insights Page** - May not have all AI endpoints connected
-4. **Meeting Scribe** - Backend route exists but integration may be incomplete
+1. **Project Templates API** - ✅ Created `/api/project-templates` with pre-defined templates
+2. **Predictive Alerts** - ✅ Already uses REAL database data (Sprint, Issue, ProjectMember tables)
+3. **AI Insights Page** - Endpoints connected via `/api/ai-insights`
+4. **Meeting Scribe** - Backend route exists at `/api/meeting-scribe`
 
 ---
 
