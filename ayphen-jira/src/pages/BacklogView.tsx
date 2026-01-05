@@ -242,13 +242,22 @@ const SortableIssueItem = React.memo(({ issue, onClick, isSelected, workflowStat
 });
 
 const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssueClick, workflowStatuses }: { sprintId: string, issues: any[], selectedIssueId: string | null, onIssueClick: (key: string) => void, workflowStatuses: any[] }) => {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: sprintId,
     data: { type: 'sprint', sprintId }
   });
 
   return (
-    <div ref={setNodeRef}>
+    <div 
+      ref={setNodeRef}
+      style={{
+        transition: 'all 0.2s ease',
+        background: isOver ? 'rgba(14, 165, 233, 0.08)' : 'transparent',
+        borderRadius: 8,
+        border: isOver ? '2px dashed #0EA5E9' : '2px dashed transparent',
+        padding: isOver ? 4 : 0,
+      }}
+    >
       <SortableContext items={issues.map(i => i.id)} strategy={verticalListSortingStrategy}>
         <IssueList>
           {issues.map((issue) => (
@@ -261,8 +270,18 @@ const DroppableSprint = React.memo(({ sprintId, issues, selectedIssueId, onIssue
             />
           ))}
           {issues.length === 0 && (
-            <div style={{ padding: '24px', textAlign: 'center', color: colors.text.tertiary, border: '1px dashed #e0e0e0', borderRadius: 4, background: 'white', margin: 8 }}>
-              Plan a sprint by dragging issues here
+            <div style={{ 
+              padding: '24px', 
+              textAlign: 'center', 
+              color: isOver ? '#0EA5E9' : colors.text.tertiary, 
+              border: isOver ? '2px solid #0EA5E9' : '1px dashed #e0e0e0', 
+              borderRadius: 8, 
+              background: isOver ? 'rgba(14, 165, 233, 0.05)' : 'white', 
+              margin: 8,
+              transition: 'all 0.2s ease',
+              fontWeight: isOver ? 500 : 400
+            }}>
+              {isOver ? '✓ Drop here to add to sprint' : 'Plan a sprint by dragging issues here'}
             </div>
           )}
         </IssueList>

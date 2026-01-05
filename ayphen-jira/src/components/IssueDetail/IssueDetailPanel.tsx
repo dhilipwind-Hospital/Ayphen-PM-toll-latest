@@ -166,6 +166,25 @@ const ContentBox = styled.div`
   padding: 16px 24px;
   margin-top: 12px;
   border: 1px solid #F0F0F0;
+  max-height: 400px;
+  overflow-y: auto;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  
+  /* Scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const EmptyStateText = styled.div`

@@ -41,6 +41,9 @@ const GlassCard = styled(Card)`
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   animation: ${fadeIn} 0.6s ease-out backwards;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
   
   &:hover {
     transform: translateY(-6px) scale(1.02);
@@ -52,10 +55,13 @@ const GlassCard = styled(Card)`
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     font-weight: 700;
     font-size: 1.125rem;
+    flex-shrink: 0;
   }
   
   .ant-card-body {
     padding: 24px;
+    flex: 1;
+    overflow-y: auto;
   }
 `;
 
