@@ -44,11 +44,11 @@ After reviewing the entire application codebase, this document identifies **inte
 | Location | Issue | Severity | Status |
 |----------|-------|----------|--------|
 | **BoardView** | Cards may overflow on small screens | Medium | ✅ Has `overflow-x: auto` |
-| **BacklogView** | Drag-drop visual feedback inconsistent | Low | Minor |
-| **IssueDetailPanel** | Long descriptions not properly truncated | Low | Minor |
+| **BacklogView** | Drag-drop visual feedback inconsistent | Low | ✅ FIXED - Added isOver visual feedback |
+| **IssueDetailPanel** | Long descriptions not properly truncated | Low | ✅ FIXED - Added max-height + scroll |
 | **CreateIssueModal** | Custom fields section lacks visual separation | Low | ✅ FIXED |
 | **ProjectSettingsView** | Very large file (40KB) - may have render performance issues | Medium | Works |
-| **Dashboard widgets** | Inconsistent card heights | Low | Minor |
+| **Dashboard widgets** | Inconsistent card heights | Low | ✅ FIXED - Added min-height: 280px |
 
 ### 2.2 Responsive Design Issues
 
