@@ -26,6 +26,14 @@ const DashboardContainer = styled.div`
   padding: 32px;
   background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
   min-height: calc(100vh - 64px);
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
 `;
 
 const PageHeader = styled.div`
