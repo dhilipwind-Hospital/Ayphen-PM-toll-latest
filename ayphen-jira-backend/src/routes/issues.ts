@@ -237,10 +237,30 @@ router.post('/', async (req, res) => {
       websocketService.notifyIssueCreated(fullIssue, req.body.reporterId || 'system');
     }
 
-    // Send email notification if assignee is set
+    // Save notification and send email if assignee is set
     if (fullIssue.assignee && fullIssue.assignee.id) {
       try {
         const reporter = fullIssue.reporter || { name: 'System' };
+        
+        // Save notification to database
+        const { Notification } = require('../entities/Notification');
+        const notificationRepo = AppDataSource.getRepository(Notification);
+        await notificationRepo.insert({
+          userId: fullIssue.assignee.id,
+          type: 'assigned',
+          title: `New issue assigned: ${fullIssue.key}`,
+          message: `${reporter.name} assigned "${fullIssue.summary}" to you`,
+          issueId: fullIssue.id,
+          issueKey: fullIssue.key,
+          projectId: fullIssue.projectId,
+          actorId: fullIssue.reporterId,
+          actorName: reporter.name,
+          actionUrl: `/issues/${fullIssue.key}`,
+          read: false
+        });
+        console.log(`🔔 Assignment notification saved for: ${fullIssue.assignee.email}`);
+
+        // Send email
         await emailService.sendNotificationEmail(fullIssue.assignee.id, 'issue_created', {
           actorName: reporter.name,
           projectKey: fullIssue.project?.key || 'PROJECT',
@@ -251,8 +271,8 @@ router.post('/', async (req, res) => {
         });
         console.log(`📧 Email notification sent to assignee: ${fullIssue.assignee.email}`);
       } catch (emailError) {
-        console.error('Failed to send email notification:', emailError);
-        // Don't fail the request if email fails
+        console.error('Failed to send notification:', emailError);
+        // Don't fail the request if notification fails
       }
     }
 
@@ -451,11 +471,29 @@ router.put('/:id', async (req, res) => {
             userId
           );
 
-          // Email for status change
+          // Save notification to database for assignee
           if (updatedIssue.assignee && updatedIssue.assignee.id) {
             try {
               const userRepo = AppDataSource.getRepository(User);
               const actor = await userRepo.findOne({ where: { id: userId } });
+              const { Notification } = require('../entities/Notification');
+              const notificationRepo = AppDataSource.getRepository(Notification);
+              await notificationRepo.insert({
+                userId: updatedIssue.assignee.id,
+                type: 'status_changed',
+                title: `Status Changed: ${updatedIssue.key}`,
+                message: `${actor?.name || 'Someone'} changed status from "${existingIssue.status}" to "${updatedIssue.status}"`,
+                issueId: updatedIssue.id,
+                issueKey: updatedIssue.key,
+                projectId: updatedIssue.projectId,
+                actorId: userId,
+                actorName: actor?.name || 'Someone',
+                actionUrl: `/issues/${updatedIssue.key}`,
+                read: false
+              });
+              console.log(`🔔 Status notification saved for: ${updatedIssue.assignee.email}`);
+
+              // Email for status change
               await emailService.sendNotificationEmail(updatedIssue.assignee.id, 'status_changed', {
                 actorName: actor?.name || 'Someone',
                 projectKey: updatedIssue.project?.key || 'PROJECT',
@@ -465,7 +503,7 @@ router.put('/:id', async (req, res) => {
               });
               console.log(`📧 Status change email sent to: ${updatedIssue.assignee.email}`);
             } catch (emailError) {
-              console.error('⚠️ Status change email failed (non-critical):', emailError);
+              console.error('⚠️ Status notification/email failed (non-critical):', emailError);
             }
           }
         }
@@ -478,11 +516,29 @@ router.put('/:id', async (req, res) => {
             userId
           );
 
-          // Email for assignment change
+          // Save notification to database for new assignee
           if (updatedIssue.assignee && updatedIssue.assignee.id) {
             try {
               const userRepo = AppDataSource.getRepository(User);
               const actor = await userRepo.findOne({ where: { id: userId } });
+              const { Notification } = require('../entities/Notification');
+              const notificationRepo = AppDataSource.getRepository(Notification);
+              await notificationRepo.insert({
+                userId: updatedIssue.assignee.id,
+                type: 'assigned',
+                title: `Assigned to you: ${updatedIssue.key}`,
+                message: `${actor?.name || 'Someone'} assigned "${updatedIssue.summary}" to you`,
+                issueId: updatedIssue.id,
+                issueKey: updatedIssue.key,
+                projectId: updatedIssue.projectId,
+                actorId: userId,
+                actorName: actor?.name || 'Someone',
+                actionUrl: `/issues/${updatedIssue.key}`,
+                read: false
+              });
+              console.log(`🔔 Assignment notification saved for: ${updatedIssue.assignee.email}`);
+
+              // Email for assignment change
               await emailService.sendNotificationEmail(updatedIssue.assignee.id, 'assignment_changed', {
                 actorName: actor?.name || 'Someone',
                 projectKey: updatedIssue.project?.key || 'PROJECT',
@@ -493,7 +549,7 @@ router.put('/:id', async (req, res) => {
               });
               console.log(`📧 Assignment email sent to: ${updatedIssue.assignee.email}`);
             } catch (emailError) {
-              console.error('⚠️ Assignment email failed (non-critical):', emailError);
+              console.error('⚠️ Assignment notification/email failed (non-critical):', emailError);
             }
           }
         }
