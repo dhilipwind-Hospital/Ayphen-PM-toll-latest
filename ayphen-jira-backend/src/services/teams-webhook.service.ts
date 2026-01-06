@@ -21,14 +21,17 @@ export class TeamsWebhookService {
   private webhookUrl: string;
   private isConfigured: boolean;
   private appUrl: string;
+  private isPowerAutomate: boolean;
 
   constructor() {
     this.webhookUrl = process.env.TEAMS_WEBHOOK_URL || '';
     this.appUrl = process.env.APP_URL || 'http://localhost:5173';
     this.isConfigured = !!this.webhookUrl;
+    this.isPowerAutomate = this.webhookUrl.includes('powerplatform.com') || 
+                           this.webhookUrl.includes('powerautomate');
     
     if (this.isConfigured) {
-      console.log('✅ Teams Webhook configured');
+      console.log('✅ Teams Webhook configured:', this.isPowerAutomate ? 'Power Automate' : 'Standard');
     } else {
       console.log('⚠️ Teams Webhook not configured - notifications disabled');
     }
@@ -63,36 +66,53 @@ export class TeamsWebhookService {
     }
 
     try {
-      const card = {
-        '@type': 'MessageCard',
-        '@context': 'http://schema.org/extensions',
-        themeColor: this.getThemeColor(notification.type),
-        summary: notification.title,
-        sections: [
-          {
-            activityTitle: notification.title,
-            activitySubtitle: notification.projectName ? `Project: ${notification.projectName}` : undefined,
-            activityImage: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png',
-            facts: [
-              ...(notification.issueKey ? [{ name: 'Issue', value: notification.issueKey }] : []),
-              ...(notification.userName ? [{ name: 'By', value: notification.userName }] : []),
-            ].filter(f => f.value),
-            text: notification.message,
-            markdown: true
-          }
-        ],
-        potentialAction: notification.issueKey ? [
-          {
-            '@type': 'OpenUri',
-            name: 'View Issue',
-            targets: [
-              { os: 'default', uri: `${this.appUrl}/issues/${notification.issueKey}` }
-            ]
-          }
-        ] : []
-      };
+      let payload: any;
 
-      await axios.post(this.webhookUrl, card, {
+      if (this.isPowerAutomate) {
+        // Power Automate expects simpler JSON that the workflow processes
+        payload = {
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          issueKey: notification.issueKey || null,
+          issueUrl: notification.issueKey ? `${this.appUrl}/issues/${notification.issueKey}` : null,
+          projectName: notification.projectName || null,
+          userName: notification.userName || null,
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        // Standard Teams Incoming Webhook MessageCard format
+        payload = {
+          '@type': 'MessageCard',
+          '@context': 'http://schema.org/extensions',
+          themeColor: this.getThemeColor(notification.type),
+          summary: notification.title,
+          sections: [
+            {
+              activityTitle: notification.title,
+              activitySubtitle: notification.projectName ? `Project: ${notification.projectName}` : undefined,
+              activityImage: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png',
+              facts: [
+                ...(notification.issueKey ? [{ name: 'Issue', value: notification.issueKey }] : []),
+                ...(notification.userName ? [{ name: 'By', value: notification.userName }] : []),
+              ].filter(f => f.value),
+              text: notification.message,
+              markdown: true
+            }
+          ],
+          potentialAction: notification.issueKey ? [
+            {
+              '@type': 'OpenUri',
+              name: 'View Issue',
+              targets: [
+                { os: 'default', uri: `${this.appUrl}/issues/${notification.issueKey}` }
+              ]
+            }
+          ] : []
+        };
+      }
+
+      await axios.post(this.webhookUrl, payload, {
         headers: { 'Content-Type': 'application/json' },
         timeout: 10000
       });
