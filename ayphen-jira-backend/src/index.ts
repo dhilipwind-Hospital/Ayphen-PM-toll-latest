@@ -90,6 +90,7 @@ import aiTestCaseGeneratorRoutes from './routes/ai-test-case-generator';
 import testCasesRoutes from './routes/test-cases';
 import projectTemplatesRoutes from './routes/project-templates';
 import teamsWebhookRoutes from './routes/teams-webhook';
+import teamNotificationsRoutes from './routes/team-notifications';
 
 dotenv.config();
 
@@ -160,6 +161,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/test-email', testEmailRoutes);
 app.use('/api/project-templates', projectTemplatesRoutes);
 app.use('/api/teams-webhook', teamsWebhookRoutes);
+app.use('/api/team-notifications', teamNotificationsRoutes);
 
 // AI Test Automation routes
 app.use('/api/ai-test-automation/requirements', aiRequirementsRoutes);
