@@ -8,7 +8,11 @@ import { aiDuplicateDetector } from '../services/ai-duplicate-detector.service';
 import { websocketService } from '../services/websocket.service';
 import { emailService } from '../services/email.service';
 import { workflowService } from '../services/workflow.service';
+import { TeamsWebhookService } from '../services/teams-webhook.service';
 import { In } from 'typeorm';
+
+// Initialize Teams webhook service
+const teamsWebhook = new TeamsWebhookService();
 
 const router = Router();
 const issueRepo = AppDataSource.getRepository(Issue);
@@ -506,6 +510,23 @@ router.put('/:id', async (req, res) => {
               console.error('⚠️ Status notification/email failed (non-critical):', emailError);
             }
           }
+
+          // Send Teams notification for status change
+          try {
+            const userRepo = AppDataSource.getRepository(User);
+            const actor = await userRepo.findOne({ where: { id: userId } });
+            await teamsWebhook.sendNotification({
+              title: `Status Changed: ${updatedIssue.key}`,
+              message: `${actor?.name || 'Someone'} changed "${updatedIssue.summary}" from "${existingIssue.status}" to "${updatedIssue.status}"`,
+              type: 'info',
+              issueKey: updatedIssue.key,
+              projectName: updatedIssue.project?.name,
+              userName: actor?.name
+            });
+            console.log(`📢 Teams notification sent for status change: ${updatedIssue.key}`);
+          } catch (teamsError) {
+            console.error('⚠️ Teams notification failed (non-critical):', teamsError);
+          }
         }
 
         // Assignment change notification
@@ -551,6 +572,23 @@ router.put('/:id', async (req, res) => {
             } catch (emailError) {
               console.error('⚠️ Assignment notification/email failed (non-critical):', emailError);
             }
+          }
+
+          // Send Teams notification for assignment change
+          try {
+            const userRepo = AppDataSource.getRepository(User);
+            const actor = await userRepo.findOne({ where: { id: userId } });
+            await teamsWebhook.sendNotification({
+              title: `Issue Assigned: ${updatedIssue.key}`,
+              message: `${actor?.name || 'Someone'} assigned "${updatedIssue.summary}" to ${updatedIssue.assignee?.name || 'a team member'}`,
+              type: 'info',
+              issueKey: updatedIssue.key,
+              projectName: updatedIssue.project?.name,
+              userName: actor?.name
+            });
+            console.log(`📢 Teams notification sent for assignment: ${updatedIssue.key}`);
+          } catch (teamsError) {
+            console.error('⚠️ Teams notification failed (non-critical):', teamsError);
           }
         }
       }
