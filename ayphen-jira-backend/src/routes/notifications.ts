@@ -69,8 +69,21 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Mark notification as read
+// Mark notification as read (PUT)
 router.put('/:id/read', async (req, res) => {
+  try {
+    const notificationRepo = AppDataSource.getRepository(Notification);
+    await notificationRepo.update(req.params.id, { read: true });
+    const notification = await notificationRepo.findOne({ where: { id: req.params.id } });
+    res.json(notification);
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({ error: 'Failed to mark notification as read' });
+  }
+});
+
+// Mark notification as read (PATCH - for frontend compatibility)
+router.patch('/:id/read', async (req, res) => {
   try {
     const notificationRepo = AppDataSource.getRepository(Notification);
     await notificationRepo.update(req.params.id, { read: true });

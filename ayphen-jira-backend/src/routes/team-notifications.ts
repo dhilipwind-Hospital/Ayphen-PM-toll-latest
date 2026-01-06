@@ -15,7 +15,8 @@ const router = Router();
 
 /**
  * POST /api/team-notifications/team/:teamId/notify
- * Send notification to all members of a team
+ * Send notification to all members of a team/project
+ * teamId can be a Team ID or Project ID
  */
 router.post('/team/:teamId/notify', async (req: Request, res: Response) => {
   try {
@@ -29,22 +30,32 @@ router.post('/team/:teamId/notify', async (req: Request, res: Response) => {
       });
     }
 
-    const teamRepo = AppDataSource.getRepository(Team);
     const notificationRepo = AppDataSource.getRepository(Notification);
     const projectMemberRepo = AppDataSource.getRepository(ProjectMember);
+    const { Project } = require('../entities/Project');
+    const projectRepo = AppDataSource.getRepository(Project);
 
-    // Get team
-    const team = await teamRepo.findOne({ where: { id: teamId } });
-    if (!team) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Team not found' 
-      });
+    // Try to find as project first (frontend sends project ID)
+    let projectId = teamId;
+    let projectName = 'Team';
+    
+    const project = await projectRepo.findOne({ where: { id: teamId } });
+    if (project) {
+      projectId = project.id;
+      projectName = project.name;
+    } else {
+      // Try as team ID
+      const teamRepo = AppDataSource.getRepository(Team);
+      const team = await teamRepo.findOne({ where: { id: teamId } });
+      if (team) {
+        projectId = team.projectId;
+        projectName = team.name;
+      }
     }
 
-    // Get all project members (since teams are project-based)
+    // Get all project members
     const members = await projectMemberRepo.find({
-      where: { projectId: team.projectId },
+      where: { projectId },
       relations: ['user']
     });
 
@@ -61,8 +72,8 @@ router.post('/team/:teamId/notify', async (req: Request, res: Response) => {
       userId: member.userId,
       type: type,
       title: title,
-      message: `[${team.name}] ${message}`,
-      projectId: team.projectId,
+      message: `[${projectName}] ${message}`,
+      projectId: projectId,
       actionUrl: actionUrl || null,
       read: false
     }));
@@ -86,33 +97,45 @@ router.post('/team/:teamId/notify', async (req: Request, res: Response) => {
 /**
  * GET /api/team-notifications/team/:teamId
  * Get notifications for a team (filtered by user)
+ * If teamId is 'all', returns all notifications for the user
  */
 router.get('/team/:teamId', async (req: Request, res: Response) => {
   try {
     const { teamId } = req.params;
     const { userId } = req.query;
 
-    const notificationRepo = AppDataSource.getRepository(Notification);
-
-    const whereClause: any = {};
-    
-    if (userId) {
-      whereClause.userId = userId;
+    if (!userId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'userId is required' 
+      });
     }
 
-    // Get notifications that have this teamId in their data
-    const notifications = await notificationRepo
-      .createQueryBuilder('notification')
-      .where(userId ? 'notification.userId = :userId' : '1=1', { userId })
-      .andWhere("notification.data->>'teamId' = :teamId", { teamId })
-      .orderBy('notification.createdAt', 'DESC')
-      .take(50)
-      .getMany();
+    const notificationRepo = AppDataSource.getRepository(Notification);
 
-    res.json({
-      success: true,
-      notifications
-    });
+    let notifications;
+    
+    if (teamId === 'all') {
+      // Return all notifications for this user
+      notifications = await notificationRepo.find({
+        where: { userId: userId as string },
+        order: { createdAt: 'DESC' },
+        take: 50
+      });
+    } else {
+      // Return notifications for specific project/team
+      notifications = await notificationRepo.find({
+        where: { 
+          userId: userId as string,
+          projectId: teamId 
+        },
+        order: { createdAt: 'DESC' },
+        take: 50
+      });
+    }
+
+    // Return as array directly for frontend compatibility
+    res.json(notifications);
   } catch (error: any) {
     console.error('Error fetching team notifications:', error);
     res.status(500).json({ 
