@@ -6,3 +6,5 @@ export { DashboardPage } from './DashboardPage';
 export { BacklogPage } from './BacklogPage';
 export { BoardPage } from './BoardPage';
 export { CreateIssuePage, type IssueType, type Priority } from './CreateIssuePage';
+export { ProjectPage } from './ProjectPage';
+export { IssuePage } from './IssuePage';

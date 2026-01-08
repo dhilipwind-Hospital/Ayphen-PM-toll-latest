@@ -109,19 +109,19 @@ export const createTestComment = () => ({
  */
 export const TEST_USERS = {
   admin: {
-    email: 'admin@test.com',
-    password: 'AdminPassword123!',
-    name: 'Test Admin',
+    email: 'dhilipwind+501@gmail.com',
+    password: 'Demo@501',
+    name: 'Demo User',
   },
   user1: {
-    email: 'user1@test.com',
-    password: 'UserPassword123!',
-    name: 'Test User 1',
+    email: 'dhilipwind+501@gmail.com',
+    password: 'Demo@501',
+    name: 'Demo User',
   },
   user2: {
-    email: 'user2@test.com',
-    password: 'UserPassword123!',
-    name: 'Test User 2',
+    email: 'dhilipwind+501@gmail.com',
+    password: 'Demo@501',
+    name: 'Demo User',
   },
 };
 

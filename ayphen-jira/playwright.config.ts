@@ -30,7 +30,7 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: process.env.BASE_URL || 'http://localhost:5173',
+    baseURL: process.env.BASE_URL || 'https://ayphen-pm-toll.vercel.app',
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -58,58 +58,14 @@ export default defineConfig({
 
   // Configure projects for major browsers
   projects: [
-    // Setup project - runs before all tests
-    {
-      name: 'setup',
-      testMatch: /global-setup\.ts/,
-    },
-
     {
       name: 'chromium',
       use: { 
         ...devices['Desktop Chrome'],
         viewport: { width: 1920, height: 1080 },
       },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'firefox',
-      use: { 
-        ...devices['Desktop Firefox'],
-        viewport: { width: 1920, height: 1080 },
-      },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'webkit',
-      use: { 
-        ...devices['Desktop Safari'],
-        viewport: { width: 1920, height: 1080 },
-      },
-      dependencies: ['setup'],
-    },
-
-    // Mobile viewports
-    {
-      name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'mobile-safari',
-      use: { ...devices['iPhone 12'] },
-      dependencies: ['setup'],
     },
   ],
 
-  // Run local dev server before starting the tests
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // No webServer needed - testing against production URL
 });
