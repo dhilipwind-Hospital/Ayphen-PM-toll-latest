@@ -34,9 +34,14 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppDataSource = void 0;
+exports.connectWithRetry = connectWithRetry;
 const typeorm_1 = require("typeorm");
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
+// Log database URL (masked for security)
+const dbUrl = process.env.DATABASE_URL || '';
+const maskedUrl = dbUrl.replace(/:([^:@]+)@/, ':****@');
+console.log('🔗 Database URL configured:', maskedUrl);
 exports.AppDataSource = new typeorm_1.DataSource({
     type: 'postgres',
     url: process.env.DATABASE_URL,
@@ -48,4 +53,35 @@ exports.AppDataSource = new typeorm_1.DataSource({
     entities: [__dirname + '/../entities/**/*.{ts,js}'],
     migrations: [__dirname + '/../migrations/**/*.{ts,js}'],
     subscribers: [],
+    // Connection pool settings for Supabase transaction pooler
+    extra: {
+        max: 10, // Maximum connections in pool
+        idleTimeoutMillis: 30000, // Close idle connections after 30s
+        connectionTimeoutMillis: 10000, // Connection timeout 10s
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 10000,
+    },
+    // Retry settings
+    connectTimeoutMS: 10000,
 });
+// Helper function to connect with retries
+async function connectWithRetry(maxRetries = 3, delayMs = 2000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`🔄 Database connection attempt ${attempt}/${maxRetries}...`);
+            await exports.AppDataSource.initialize();
+            console.log('✅ Database connected successfully');
+            return;
+        }
+        catch (error) {
+            console.error(`❌ Connection attempt ${attempt} failed:`, error.message);
+            if (attempt === maxRetries) {
+                console.error('❌ All database connection attempts failed');
+                throw error;
+            }
+            console.log(`⏳ Retrying in ${delayMs / 1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+            delayMs *= 1.5; // Exponential backoff
+        }
+    }
+}

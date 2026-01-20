@@ -93,6 +93,9 @@ const ai_sprint_auto_populate_1 = __importDefault(require("./routes/ai-sprint-au
 const ai_notification_filter_1 = __importDefault(require("./routes/ai-notification-filter"));
 const ai_test_case_generator_1 = __importDefault(require("./routes/ai-test-case-generator"));
 const test_cases_1 = __importDefault(require("./routes/test-cases"));
+const project_templates_1 = __importDefault(require("./routes/project-templates"));
+const teams_webhook_1 = __importDefault(require("./routes/teams-webhook"));
+const team_notifications_1 = __importDefault(require("./routes/team-notifications"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 8500;
@@ -155,6 +158,9 @@ app.use('/api/search', search_1.default);
 app.use('/api/epics', epics_1.default);
 app.use('/api/auth', auth_1.default);
 app.use('/api/test-email', test_email_1.default);
+app.use('/api/project-templates', project_templates_1.default);
+app.use('/api/teams-webhook', teams_webhook_1.default);
+app.use('/api/team-notifications', team_notifications_1.default);
 // AI Test Automation routes
 app.use('/api/ai-test-automation/requirements', ai_requirements_1.default);
 app.use('/api/ai-test-automation/stories', ai_stories_1.default);
@@ -237,9 +243,8 @@ const websocketService = (0, websocket_service_1.initializeWebSocket)(httpServer
 exports.websocketService = websocketService;
 console.log('🔌 WebSocket service initialized');
 // Initialize database and start server
-database_1.AppDataSource.initialize()
+(0, database_1.connectWithRetry)(3, 2000)
     .then(() => {
-    console.log('✅ Database connected successfully');
     httpServer.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Server is running on http://localhost:${PORT}`);
         console.log(`📊 API endpoints available at http://localhost:${PORT}/api`);
@@ -247,6 +252,6 @@ database_1.AppDataSource.initialize()
     });
 })
     .catch((error) => {
-    console.error('❌ Database connection failed:', error);
+    console.error('❌ Database connection failed after retries:', error);
     process.exit(1);
 });

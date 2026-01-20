@@ -192,6 +192,10 @@ __decorate([
     __metadata("design:type", Object)
 ], Issue.prototype, "creationMetadata", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'simple-json', nullable: true }),
+    __metadata("design:type", Object)
+], Issue.prototype, "customFields", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Issue.prototype, "createdAt", void 0);

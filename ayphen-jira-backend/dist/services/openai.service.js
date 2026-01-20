@@ -7,11 +7,74 @@ exports.OpenAIService = void 0;
 const axios_1 = __importDefault(require("axios"));
 class OpenAIService {
     constructor() {
-        console.log('🔵 Using Cerebras API');
-        this.apiKey = process.env.CEREBRAS_API_KEY || '';
-        this.baseURL = 'https://api.cerebras.ai/v1';
+        this.apiKey = process.env.CEREBRAS_API_KEY || process.env.OPENAI_API_KEY || '';
+        this.baseURL = process.env.CEREBRAS_API_KEY
+            ? 'https://api.cerebras.ai/v1'
+            : 'https://api.openai.com/v1';
+        this.isConfigured = !!this.apiKey;
+        if (this.isConfigured) {
+            console.log('🔵 AI Service configured:', process.env.CEREBRAS_API_KEY ? 'Cerebras' : 'OpenAI');
+        }
+        else {
+            console.log('⚠️ AI Service: No API key configured - using fallback responses');
+        }
+    }
+    /**
+     * Check if AI is properly configured
+     */
+    isAvailable() {
+        return this.isConfigured;
+    }
+    /**
+     * Fallback stories when AI is not available
+     */
+    getFallbackStories(requirement) {
+        const words = requirement.toLowerCase();
+        const isAuth = words.includes('login') || words.includes('auth') || words.includes('user');
+        const isUI = words.includes('ui') || words.includes('page') || words.includes('display');
+        return {
+            uiStories: [
+                {
+                    title: isAuth ? 'User can login with email and password' : 'User can view the main dashboard',
+                    description: `As a user, I want to ${isAuth ? 'login securely' : 'see an overview'}, so that I can ${isAuth ? 'access my account' : 'understand the current status'}`,
+                    acceptanceCriteria: [
+                        isAuth ? 'Email field validates format' : 'Dashboard loads within 3 seconds',
+                        isAuth ? 'Password field is masked' : 'Key metrics are displayed',
+                        isAuth ? 'Error message shown for invalid credentials' : 'Data refreshes automatically'
+                    ]
+                },
+                {
+                    title: isUI ? 'User can navigate between sections' : 'User can perform primary action',
+                    description: 'As a user, I want clear navigation, so that I can find features easily',
+                    acceptanceCriteria: ['Navigation is visible', 'Current section is highlighted', 'Mobile menu works']
+                }
+            ],
+            apiStories: [
+                {
+                    title: isAuth ? 'API endpoint for user authentication' : 'API endpoint for data retrieval',
+                    description: `As an API consumer, I want a ${isAuth ? 'secure auth endpoint' : 'data endpoint'}, so that I can ${isAuth ? 'verify credentials' : 'fetch required data'}`,
+                    acceptanceCriteria: [
+                        isAuth ? 'POST /api/auth/login accepts credentials' : 'GET endpoint returns JSON',
+                        isAuth ? 'Returns JWT token on success' : 'Supports pagination',
+                        isAuth ? 'Returns 401 on invalid credentials' : 'Returns proper error codes'
+                    ]
+                },
+                {
+                    title: 'API endpoint for data validation',
+                    description: 'As an API consumer, I want input validation, so that data integrity is maintained',
+                    acceptanceCriteria: ['Validates required fields', 'Returns 400 for invalid input', 'Sanitizes user input']
+                }
+            ],
+            _fallback: true,
+            _message: 'AI not configured - showing template stories. Set CEREBRAS_API_KEY or OPENAI_API_KEY for AI-generated content.'
+        };
     }
     async generateStories(requirement) {
+        // Return fallback if not configured
+        if (!this.isConfigured) {
+            console.log('⚠️ AI not configured, returning fallback stories');
+            return this.getFallbackStories(requirement);
+        }
         const prompt = `
 You are a Product Manager. Given this Epic requirement, generate User Stories.
 
@@ -45,22 +108,29 @@ Return as JSON with this exact structure:
   ]
 }
 `;
-        console.log('🤖 Calling Cerebras API...');
-        const response = await axios_1.default.post(`${this.baseURL}/chat/completions`, {
-            model: 'llama-3.3-70b',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.7,
-        }, {
-            headers: {
-                'Authorization': `Bearer ${this.apiKey}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        console.log('✅ Cerebras succeeded!');
-        let content = response.data.choices[0].message.content || '{}';
-        // Remove markdown code blocks if present
-        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        return JSON.parse(content);
+        try {
+            console.log('🤖 Calling AI API...');
+            const response = await axios_1.default.post(`${this.baseURL}/chat/completions`, {
+                model: process.env.CEREBRAS_API_KEY ? 'llama-3.3-70b' : 'gpt-3.5-turbo',
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.7,
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            });
+            console.log('✅ AI API succeeded!');
+            let content = response.data.choices[0].message.content || '{}';
+            content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            return JSON.parse(content);
+        }
+        catch (error) {
+            console.error('❌ AI API failed:', error.message);
+            console.log('⚠️ Returning fallback stories');
+            return this.getFallbackStories(requirement);
+        }
     }
     /**
      * Generate stories WITH Epic + Project context (Context-Aware AI)
@@ -117,23 +187,67 @@ Return ONLY valid JSON with this EXACT structure:
   ]
 }
 `;
-        console.log('🤖 Calling Cerebras API with CONTEXT...');
-        const response = await axios_1.default.post(`${this.baseURL}/chat/completions`, {
-            model: 'llama-3.3-70b',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.7,
-        }, {
-            headers: {
-                'Authorization': `Bearer ${this.apiKey}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        console.log('✅ Context-aware generation succeeded!');
-        let content = response.data.choices[0].message.content || '{}';
-        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        return JSON.parse(content);
+        if (!this.isConfigured) {
+            console.log('⚠️ AI not configured, returning fallback stories');
+            return this.getFallbackStories(requirement);
+        }
+        try {
+            console.log('🤖 Calling AI API with CONTEXT...');
+            const response = await axios_1.default.post(`${this.baseURL}/chat/completions`, {
+                model: process.env.CEREBRAS_API_KEY ? 'llama-3.3-70b' : 'gpt-3.5-turbo',
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.7,
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            });
+            console.log('✅ Context-aware generation succeeded!');
+            let content = response.data.choices[0].message.content || '{}';
+            content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            return JSON.parse(content);
+        }
+        catch (error) {
+            console.error('❌ AI API failed:', error.message);
+            return this.getFallbackStories(requirement);
+        }
+    }
+    /**
+     * Fallback test cases when AI is not available
+     */
+    getFallbackTestCases(story) {
+        return {
+            testCases: [
+                {
+                    title: `Verify ${story.title || 'feature'} works correctly`,
+                    steps: ['Navigate to the feature', 'Perform the main action', 'Verify the result'],
+                    expectedResult: 'Feature works as expected',
+                    categories: ['smoke', 'sanity']
+                },
+                {
+                    title: `Verify ${story.title || 'feature'} handles errors`,
+                    steps: ['Navigate to the feature', 'Provide invalid input', 'Verify error handling'],
+                    expectedResult: 'Appropriate error message is shown',
+                    categories: ['regression']
+                },
+                {
+                    title: `Verify ${story.title || 'feature'} edge cases`,
+                    steps: ['Test with empty input', 'Test with special characters', 'Test boundary values'],
+                    expectedResult: 'All edge cases handled properly',
+                    categories: ['regression']
+                }
+            ],
+            _fallback: true,
+            _message: 'AI not configured - showing template test cases.'
+        };
     }
     async generateTestCases(story) {
+        if (!this.isConfigured) {
+            console.log('⚠️ AI not configured, returning fallback test cases');
+            return this.getFallbackTestCases(story);
+        }
         const prompt = `
 You are a QA Engineer. Generate test cases for this User Story.
 
@@ -167,22 +281,36 @@ Return as JSON with this exact structure:
   ]
 }
 `;
-        const response = await axios_1.default.post(`${this.baseURL}/chat/completions`, {
-            model: 'llama-3.3-70b',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.7,
-        }, {
-            headers: {
-                'Authorization': `Bearer ${this.apiKey}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        let content = response.data.choices[0].message.content || '{}';
-        // Remove markdown code blocks if present
-        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        return JSON.parse(content);
+        try {
+            const response = await axios_1.default.post(`${this.baseURL}/chat/completions`, {
+                model: process.env.CEREBRAS_API_KEY ? 'llama-3.3-70b' : 'gpt-3.5-turbo',
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.7,
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            });
+            let content = response.data.choices[0].message.content || '{}';
+            content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            return JSON.parse(content);
+        }
+        catch (error) {
+            console.error('❌ AI API failed:', error.message);
+            return this.getFallbackTestCases(story);
+        }
     }
     async detectChanges(oldContent, newContent) {
+        if (!this.isConfigured) {
+            return {
+                hasChanges: oldContent !== newContent,
+                changes: [{ type: 'modified', section: 'Content', impact: 'medium', description: 'Content was modified' }],
+                impactedAreas: ['general'],
+                _fallback: true
+            };
+        }
         const prompt = `
 You are a Change Analyst. Compare these two requirement versions and identify changes.
 
@@ -211,19 +339,31 @@ Return as JSON with this exact structure:
   "impactedAreas": ["authentication", "security", "user-management"]
 }
 `;
-        const response = await axios_1.default.post(`${this.baseURL}/chat/completions`, {
-            model: 'llama-3.3-70b',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.3,
-        }, {
-            headers: {
-                'Authorization': `Bearer ${this.apiKey}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        let content = response.data.choices[0].message.content || '{}';
-        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        return JSON.parse(content);
+        try {
+            const response = await axios_1.default.post(`${this.baseURL}/chat/completions`, {
+                model: process.env.CEREBRAS_API_KEY ? 'llama-3.3-70b' : 'gpt-3.5-turbo',
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.3,
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            });
+            let content = response.data.choices[0].message.content || '{}';
+            content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            return JSON.parse(content);
+        }
+        catch (error) {
+            console.error('❌ AI API failed:', error.message);
+            return {
+                hasChanges: oldContent !== newContent,
+                changes: [{ type: 'modified', section: 'Content', impact: 'medium', description: 'Content was modified' }],
+                impactedAreas: ['general'],
+                _fallback: true
+            };
+        }
     }
 }
 exports.OpenAIService = OpenAIService;

@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
-import { AppDataSource } from './config/database';
+import { AppDataSource, connectWithRetry } from './config/database';
 import { initializeWebSocket } from './services/websocket.service';
 import projectRoutes from './routes/projects';
 import issueRoutes from './routes/issues';
@@ -264,10 +264,8 @@ const websocketService = initializeWebSocket(httpServer);
 console.log('🔌 WebSocket service initialized');
 
 // Initialize database and start server
-AppDataSource.initialize()
+connectWithRetry(3, 2000)
   .then(() => {
-    console.log('✅ Database connected successfully');
-
     httpServer.listen(PORT as number, '0.0.0.0', () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`);
       console.log(`📊 API endpoints available at http://localhost:${PORT}/api`);
@@ -275,7 +273,7 @@ AppDataSource.initialize()
     });
   })
   .catch((error) => {
-    console.error('❌ Database connection failed:', error);
+    console.error('❌ Database connection failed after retries:', error);
     process.exit(1);
   });
 
